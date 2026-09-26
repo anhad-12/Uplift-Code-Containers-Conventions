@@ -12,6 +12,7 @@ from dash import Input, Output, State, dcc, html
 import graph
 import loader
 import panels
+import comment as _comment_mod
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], title="Uplift",
                 suppress_callback_exceptions=True, meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}])
@@ -203,8 +204,55 @@ def accessible_node_list(report: dict, hide: set[str] | None = None) -> html.Div
     )
 
 
-def detail_view(sid: str) -> html.Div:
-    r = REPORTS[sid]
+def _pr_comment_tab(r: dict) -> dbc.Tab:
+    """Build the PR comment tab content."""
+    comment_text = _comment_mod.pr_comment(r)
+    return dbc.Tab(
+        html.Div([
+            html.Div(
+                dcc.Clipboard(
+                    target_id="pr-comment-md",
+                    title="Copy to clipboard",
+                    style={"fontSize": "1.1rem", "cursor": "pointer",
+                           "color": "#3b82d4"},
+                ),
+                className="d-flex justify-content-end mb-2",
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    dcc.Markdown(
+                        comment_text,
+                        id="pr-comment-md",
+                        className="release-notes-md",
+                    ),
+                    style={"backgroundColor": "#ffffff", "padding": "16px"},
+                ),
+                style={"border": "1px solid #e5e7eb"},
+            ),
+        ], className="mt-3"),
+        label="PR comment",
+        tab_id="tab-pr-comment",
+    )
+
+
+def _bob_tab(r: dict) -> dbc.Tab:
+    """Build the 'Powered by IBM Bob' tab content."""
+    return dbc.Tab(
+        html.Div(panels.bob_panel(r), className="mt-3"),
+        label="Powered by IBM Bob",
+        tab_id="tab-bob",
+    )
+
+
+def detail_view(sid: str, uploaded_report: dict | None = None) -> html.Div:
+    # Resolve the report: prefer the uploaded store, then built-in REPORTS
+    if sid == "uploaded" and uploaded_report is not None:
+        r = uploaded_report
+    elif sid in REPORTS:
+        r = REPORTS[sid]
+    else:
+        return home()
+
     if r.get("_errors"):
         return html.Div([dbc.Alert("This report does not match the schema:", color="danger"),
                          html.Ul([html.Li(e) for e in r["_errors"][:10]])])
@@ -213,7 +261,7 @@ def detail_view(sid: str) -> html.Div:
     if r.get("mode") == "migrate":
         migration = r.get("migration") or {}
         has_catalog = bool(migration.get("catalog"))
-        return html.Div([
+        main_content = html.Div([
             html.H3(r["scenario"]["title"]),
             stepper(r["pipeline"]),
             panels.summary_strip(r),
@@ -228,12 +276,20 @@ def detail_view(sid: str) -> html.Div:
             *([dcc.Dropdown(id="catalog-kind-filter", style={"display": "none"})]
               if not has_catalog else []),
         ])
+        # Tabs: main view + PR comment + Bob panel
+        return html.Div([
+            dbc.Tabs([
+                dbc.Tab(main_content, label="Overview", tab_id="tab-overview"),
+                _pr_comment_tab(r),
+                _bob_tab(r),
+            ], id="detail-tabs", active_tab="tab-overview"),
+        ])
 
     node_count = len(r.get("affected", [])) + len(r.get("changedSymbols", []))
     large = node_count > 60
     initial_elements = graph.build_elements(r, large=large)
 
-    return html.Div([
+    main_content = html.Div([
         html.H3(r["scenario"]["title"]),
         stepper(r["pipeline"]),
         panels.summary_strip(r),
@@ -296,6 +352,15 @@ def detail_view(sid: str) -> html.Div:
         dcc.Dropdown(id="catalog-kind-filter", style={"display": "none"}),
     ])
 
+    # Tabs: main view + PR comment + Bob panel
+    return html.Div([
+        dbc.Tabs([
+            dbc.Tab(main_content, label="Overview", tab_id="tab-overview"),
+            _pr_comment_tab(r),
+            _bob_tab(r),
+        ], id="detail-tabs", active_tab="tab-overview"),
+    ])
+
 
 def home() -> html.Div:
     return html.Div([
@@ -319,16 +384,118 @@ def home() -> html.Div:
     ])
 
 
-app.layout = dbc.Container([dcc.Location(id="url"), html.Div(id="page"),
-                            dcc.Upload(id="upload", children=html.Div("Drop a report.json here"),
-                                       className="upload"), html.Div(id="upload-msg")], fluid=True,
-                           className="px-3 px-md-4")
+# ── Layout ────────────────────────────────────────────────────────────────────
+app.layout = dbc.Container([
+    dcc.Location(id="url"),
+    html.Div(id="page"),
+    # ── Upload area ───────────────────────────────────────────────────────────
+    dcc.Upload(
+        id="upload",
+        children=html.Div("Drop a report.json here"),
+        className="upload",
+    ),
+    # ── Paste JSON area ───────────────────────────────────────────────────────
+    html.Div([
+        dbc.Textarea(
+            id="paste-json",
+            placeholder="…or paste report JSON here",
+            rows=4,
+            style={
+                "backgroundColor": "#2a2f3d",
+                "color": "#e6ebf5",
+                "border": "1px solid #3d4455",
+                "borderRadius": "6px",
+                "fontFamily": "monospace",
+                "fontSize": "0.82rem",
+                "resize": "vertical",
+                "width": "100%",
+            },
+        ),
+        dbc.Button(
+            "Validate",
+            id="paste-validate-btn",
+            color="primary",
+            size="sm",
+            className="mt-2",
+            style={"color": "#ffffff"},
+        ),
+    ], className="mt-2"),
+    html.Div(id="upload-msg"),
+    # ── In-memory store for uploaded/pasted reports ───────────────────────────
+    dcc.Store(id="uploaded-report", storage_type="memory"),
+], fluid=True, className="px-3 px-md-4")
 
 
-@app.callback(Output("page", "children"), Input("url", "search"))
-def route(search):
+# ── Routing ───────────────────────────────────────────────────────────────────
+
+@app.callback(
+    Output("page", "children"),
+    Input("url", "search"),
+    Input("uploaded-report", "data"),
+)
+def route(search, uploaded_data=None):
     sid = (search or "").split("scenario=")[-1] if "scenario=" in (search or "") else None
-    return detail_view(sid) if sid in REPORTS else home()
+    if sid == "uploaded" and uploaded_data is not None:
+        return detail_view("uploaded", uploaded_report=uploaded_data)
+    if sid in REPORTS:
+        return detail_view(sid)
+    return home()
+
+
+# ── Upload / paste callbacks ──────────────────────────────────────────────────
+
+def _process_report_dict(report: dict):
+    """Validate a report dict. Returns (store_data, msg_component, redirect_href)."""
+    errors = loader.validate(report)
+    if not errors:
+        return report, dbc.Alert("Report loaded — rendering now…", color="success"), "/?scenario=uploaded"
+    error_items = [html.Li(e, style={"color": "#1d2330"}) for e in errors[:5]]
+    msg = html.Div([
+        dbc.Alert("Report has schema errors:", color="danger",
+                  style={"marginBottom": "4px"}),
+        html.Ul(error_items,
+                style={"paddingLeft": "1.4rem", "marginTop": "4px",
+                       "color": "#1d2330", "backgroundColor": "#fff3f3",
+                       "border": "1px solid #f5c6c6", "borderRadius": "4px",
+                       "padding": "8px 8px 8px 1.4rem"}),
+    ])
+    return None, msg, dash.no_update
+
+
+@app.callback(
+    Output("uploaded-report", "data"),
+    Output("upload-msg", "children"),
+    Output("url", "href"),
+    Input("upload", "contents"),
+    Input("paste-validate-btn", "n_clicks"),
+    State("paste-json", "value"),
+    prevent_initial_call=True,
+)
+def on_upload(contents, _n_clicks, paste_value):
+    """Handle dropped file upload or pasted JSON validation."""
+    from dash import ctx  # noqa: PLC0415
+    triggered = ctx.triggered_id
+
+    if triggered == "upload" and contents:
+        try:
+            raw = base64.b64decode(contents.split(",", 1)[1]).decode("utf-8")
+            report = json.loads(raw)
+        except Exception as exc:  # noqa: BLE001
+            return None, dbc.Alert(f"Not valid JSON: {exc}", color="danger"), dash.no_update
+        store, msg, href = _process_report_dict(report)
+        return store, msg, href
+
+    if triggered == "paste-validate-btn":
+        if not paste_value or not paste_value.strip():
+            return None, dbc.Alert("Paste some JSON first.", color="warning"), dash.no_update
+        try:
+            report = json.loads(paste_value)
+        except Exception as exc:  # noqa: BLE001
+            return None, dbc.Alert(f"Not valid JSON: {exc}", color="danger"), dash.no_update
+        store, msg, href = _process_report_dict(report)
+        return store, msg, href
+
+    return dash.no_update, dash.no_update, dash.no_update
 
 
 @app.callback(
@@ -342,7 +509,7 @@ def show_detail(node, selected_rows, sid):
     from dash import ctx  # noqa: PLC0415
     triggered = ctx.triggered_id if ctx.triggered_id else None
 
-    r = REPORTS[sid]
+    r = REPORTS.get(sid) or {}
 
     # Table row click takes priority when that is the trigger
     if triggered == "affected-table" and selected_rows:
@@ -397,12 +564,6 @@ def update_graph(selected_filters, tapped_node, sid, large):
 )
 def table_row_selects_node(selected_rows, sid):
     """When a table row is clicked, return the node id so the graph highlights it."""
-    # Cytoscape does not accept a direct "select by id" callback output, but
-    # returning tapNodeData-compatible data keeps the highlight in sync via
-    # the update_graph callback which listens to tapNodeData.
-    # We update the graph elements via a separate approach: returning an empty
-    # list clears selection; we rely on the existing tapNodeData flow for graph
-    # highlighting (the table row still shows the panel via show_detail above).
     return []
 
 
@@ -443,18 +604,6 @@ def filter_catalog(kind_value, sid):
         }
         for entry in rows
     ]
-
-
-@app.callback(Output("upload-msg", "children"), Input("upload", "contents"))
-def on_upload(contents):
-    if not contents:
-        return ""
-    try:
-        report = json.loads(base64.b64decode(contents.split(",", 1)[1]).decode("utf-8"))
-    except Exception as exc:  # noqa: BLE001
-        return dbc.Alert(f"Not valid JSON: {exc}", color="danger")
-    errors = loader.validate(report)
-    return dbc.Alert("Report is valid" if not errors else "; ".join(errors[:3]), color="success" if not errors else "danger")
 
 
 if __name__ == "__main__":

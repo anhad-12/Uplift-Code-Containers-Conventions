@@ -7,6 +7,27 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from dash import dash_table, dcc, html
 
+# ── Bob mode summaries ────────────────────────────────────────────────────────
+_BOB_MODE_SUMMARIES: dict[str, str] = {
+    "uplift-impact-analyst":    "judges impact, cannot edit code",
+    "uplift-prover":            "writes proof tests only",
+    "uplift-migration-planner": "reads the migration guide",
+    "uplift-worker-users":      "can edit only its own module",
+    "uplift-worker-orders":     "can edit only its own module",
+    "uplift-worker-payments":   "can edit only its own module",
+    "uplift-worker-core":       "can edit only its own module",
+    "uplift-verifier":          "re-runs tests and writes reports",
+    "uplift-convention-scanner": "learns the repo's style",
+}
+
+# Static fallback list (9 modes) when provenance.bobModes is empty
+_STATIC_BOB_MODES: list[str] = list(_BOB_MODE_SUMMARIES.keys())
+
+_BOB_FEATURES = (
+    "Agent mode, parallel tasks, subagents, and document understanding "
+    "are the four IBM Bob features used to predict, prove, repair and verify every change."
+)
+
 # Maps verdict -> Bootstrap colour token
 VERDICT_COLOR = {
     "will_break":  "danger",
@@ -804,3 +825,47 @@ def migrate_view(report: dict) -> html.Div:
         lanes_section,
         rn_section,
     ])
+
+
+def bob_panel(report: dict) -> dbc.Card:
+    """'Powered by IBM Bob' panel: lists the Bob modes used (or all 9 when empty).
+
+    Falls back to the full static list of 9 modes when ``provenance.bobModes``
+    is absent or empty.  Each mode is shown with a one-line permission summary.
+    A closing sentence names the four Bob features used.
+
+    Args:
+        report: Parsed report dict.
+
+    Returns:
+        A ``dbc.Card`` Dash component with a white background (dark text).
+    """
+    provenance = report.get("provenance") or {}
+    bob_modes: list[str] = provenance.get("bobModes") or _STATIC_BOB_MODES
+
+    mode_rows = []
+    for mode in bob_modes:
+        summary = _BOB_MODE_SUMMARIES.get(mode, "custom mode")
+        mode_rows.append(
+            html.Li([
+                html.Code(mode, className="small",
+                          style={"color": "#3b5bdb", "fontWeight": "600"}),
+                html.Span(f" — {summary}", className="small",
+                          style={"color": "#1d2330"}),
+            ], style={"marginBottom": "4px"})
+        )
+
+    return dbc.Card([
+        dbc.CardHeader(
+            html.Strong("Powered by IBM Bob",
+                        style={"color": "#1d2330"}),
+            style={"backgroundColor": "#f7f8fa", "borderBottom": "1px solid #e5e7eb"},
+        ),
+        dbc.CardBody([
+            html.Ul(mode_rows,
+                    style={"paddingLeft": "1.2rem", "marginBottom": "0.75rem",
+                           "listStyle": "disc"}),
+            html.P(_BOB_FEATURES, className="small mb-0",
+                   style={"color": "#57606a", "fontStyle": "italic"}),
+        ], style={"backgroundColor": "#ffffff"}),
+    ], style={"border": "1px solid #e5e7eb", "borderRadius": "6px"})
