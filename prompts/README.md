@@ -31,9 +31,9 @@ Things that testing already caught, so Bob does not have to rediscover them:
 - **B1 then B2 first**: they unblock everyone. After B2, B uncomments the ground-truth line in `.bobignore`.
 - **A0 to A1 and C1 to C2** need nothing from B: start them at the same time as B1.
 - Then A2 onward as B's engine lands (B3 to B7). C works from the mock reports the whole time.
-- Stretch tasks (A11, A12, B13, C10) only after the Sep 27 10 AM checkpoint is green.
+- The two differentiators (A11/A12 conventions, B13 Docker, C10 dashboard for both) are built **after** the Sep 27 10 AM checkpoint is green — they are layers within Impact/Migrate mode, not optional bolt-ons, and they are mandatory demo moments (PLAN.md sections 3, 14, 15). Cut them only as a last resort and, if cut, drop them from the pitch and statements too (PLAN.md section 12).
 
-See PLAN.md sections 8 and 9 for the timeline.
+See PLAN.md sections 8 and 9 for the timeline, sections 14-18 for the demo script, statements, checklist and the local-reproduction runbook. Never write "blast radius" in user-facing output (a rival is named BlastRadius); say "what a change will break" or "change impact".
 
 ## If Bob's output is wrong
 Do not fix core code by hand or with another tool. Give Bob the failing output and ask it to fix it in the same task. That keeps the Bob usage real and the session summary honest.

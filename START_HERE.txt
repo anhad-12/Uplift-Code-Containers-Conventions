@@ -6,6 +6,11 @@ WHAT WE ARE BUILDING
 Uplift tells you what a code change will break, PROVES it with a failing test, and REPAIRS it
 with sandboxed IBM Bob workers, then shows the real numbers on a dashboard.
 Predict -> Prove -> Repair -> Verify. Two modes: Impact (a patch) and Migrate (a dependency upgrade).
+Four ideas, two modes, one graph: code-impact + Docker-layer impact live INSIDE Impact mode;
+dependency migration + convention-aware fixes live INSIDE Migrate mode. Docker and conventions are
+LAYERS within the two modes, never pitched as separate features (see PLAN.md section 14).
+Pitch: "Know what a change will break before you merge - in your code, your containers, and your conventions. Then let Bob fix it."
+(Do NOT use the phrase "blast radius" in any public-facing copy: a rival submission is literally named BlastRadius.)
 Demo target: a small FastAPI shop. Scenarios: S1 get_user returns None, S2 dollars->cents, S3 Pydantic v1->v2.
 
 ROLES (fill in names)
@@ -72,6 +77,9 @@ CHECKPOINTS (IST)
   FREEZE Sep 27, 2 PM: only README, statements, screenshots, submission after this.
   SUBMIT by 5 PM. Hard deadline 8:30 PM.
   At each checkpoint send the output of  python scripts/verify.py --run  to whoever is reviewing, to get fix prompts.
+  TO TEST EVERYTHING LOCALLY (reproduce every published number end to end): follow PLAN.md section 18c
+  (setup venvs -> per-scenario predict/prove/repair -> accuracy eval -> uplift validate -> scripts/verify.py --run -> dashboard).
+  What evidence we publish and where each number comes from: PLAN.md section 18a. If a number cannot be regenerated, it does not ship.
   Coins: max used per person  CP1 = 14, CP2 = 30, freeze = 36 (keep 4). Cut order if behind: Docker, MCP, Action, S2.
   Stretch tasks (A11, A12, B13, C10) ONLY after CP2 is green.
 

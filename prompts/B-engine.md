@@ -1550,7 +1550,7 @@ BADGE = {"low": "green", "medium": "yellow", "high": "orange", "critical": "red"
 
 def pr_comment(report: dict) -> str:
     r, m = report["risk"], report["metrics"]
-    lines = [f"### Uplift: blast radius for `{report['scenario']['title']}`", "",
+    lines = [f"### Uplift: what `{report['scenario']['title']}` will break", "",
              f"**Risk {r['score']}/100 ({r['level']})** - {'; '.join(r.get('factors', []))}", ""]
     has_verdicts = any(a["verdict"] != "unknown" for a in report["affected"])
     if not has_verdicts:
@@ -1647,7 +1647,7 @@ def build_mcp():
 
     @mcp.tool()
     def uplift_graph(repo: str, patch: str, applied: bool = False) -> str:
-        """Build the blast-radius graph for a patch and write .uplift/graph.json."""
+        """Build the change-impact graph for a patch and write .uplift/graph.json."""
         return json.dumps({"ok": True, "repo": repo, "patch": patch, "applied": applied})
 
     return mcp
@@ -1663,7 +1663,7 @@ Failures found by `python scripts/verify.py --run` or by a review of Bob's outpu
 
 ---
 
-## B13. Docker impact  (F17, STRETCH: only after CP2 is green, about 4 coins)
+## B13. Docker impact  (F17, differentiator — Impact Mode infra layer; build after CP2 is green, about 4 coins)
 
 ````text
 Read PLAN.md (F17) and the `infraImpact` field in schema/report.schema.json.

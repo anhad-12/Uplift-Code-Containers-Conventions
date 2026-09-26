@@ -68,6 +68,9 @@
   "contracts": [
     { "type": "route", "id": "GET /users/{user_id}", "handler": "shop/users/routes.py#get_user_route", "verdict": "will_break", "reason": "Used to return 404 through the exception handler. Now returns 200 with a null body.", "proof": { "status": "confirmed", "testFile": "tests/uplift_proofs/test_get_user_route.py" } }
   ],
+  "infraImpact": [
+    { "file": "sample-app/Dockerfile", "layer": 4, "totalLayers": 7, "trigger": "shop/users/service.py is copied in layer 4 (a single COPY shop/ that sits above the dependency install)", "layersRebuilt": "4-7", "suggestion": "Split the COPY: copy requirements.txt and pip install before copying application code, so a code-only change no longer busts the dependency layer." }
+  ],
   "testsToRun": ["tests/orders/test_invoice.py", "tests/payments/test_receipt.py", "tests/orders/test_service.py", "tests/notifications/test_email.py", "tests/orders/test_routes.py"],
   "untested": ["shop/admin/reports.py#user_spend_report"],
   "risk": { "score": 71, "level": "high", "factors": ["4 will_break (+40)", "1 might_break (+4)", "1 untested affected item (+12)", "1 contract hit (+15)"] },

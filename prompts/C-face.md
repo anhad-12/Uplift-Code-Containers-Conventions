@@ -26,7 +26,7 @@ Python 3.11 or 3.12. `python -m venv dashboard/.venv`, then `dashboard/.venv/Scr
 ````text
 Read PLAN.md and schema/report.schema.json first.
 
-GOAL: create dashboard/, a Dash app that loads validated reports and draws the blast-radius graph. Use the tested reference code below EXACTLY as the starting point.
+GOAL: create dashboard/, a Dash app that loads validated reports and draws the change-impact graph. Use the tested reference code below EXACTLY as the starting point.
 
 FILES:
 - dashboard/requirements.txt (exact):
@@ -404,7 +404,7 @@ Commit: [bob C2] landing and stepper
 
 ---
 
-## C3. Blast radius graph: filters, hover path, legend  (about 4 coins, the centerpiece)
+## C3. Change-impact graph: filters, hover path, legend  (about 4 coins, the centerpiece)
 
 ````text
 Read PLAN.md. Extend the graph view (dashboard/graph.py, dashboard/app.py). Keep build_elements and build_stylesheet tested; add:
@@ -494,7 +494,7 @@ BADGE = {"low": "green", "medium": "yellow", "high": "orange", "critical": "red"
 
 def pr_comment(report: dict) -> str:
     r, m = report["risk"], report["metrics"]
-    lines = [f"### Uplift: blast radius for `{report['scenario']['title']}`", "",
+    lines = [f"### Uplift: what `{report['scenario']['title']}` will break", "",
              f"**Risk {r['score']}/100 ({r['level']})** - {'; '.join(r.get('factors', []))}", ""]
     has_verdicts = any(a["verdict"] != "unknown" for a in report["affected"])
     if not has_verdicts:
@@ -523,7 +523,7 @@ The share preview uses `app.index_string` (already in the tested app.py: it rend
 Read PLAN.md. Polish and ship.
 1. Accessibility: colour contrast at least 4.5:1 for text (verify the verdict colours), visible focus outlines, aria-labels on the graph controls and upload area, `prefers-reduced-motion` respected (already in style.css), all interactive elements reachable by keyboard.
 2. States: empty state (no reports), error state (invalid report with the schema errors), loading spinners (dcc.Loading around the graph).
-3. Replace dashboard/assets/og.png with a real 1200x630 cover: the blast-radius graph screenshot of the S1 scenario on a dark background with the title "Uplift: know what a change will break". Keep the file under 300 kB.
+3. Replace dashboard/assets/og.png with a real 1200x630 cover: the change-impact graph screenshot of the S1 scenario (include the Docker node) on a dark background with the title "Uplift: know what a change will break". Keep the file under 300 kB.
 4. Deploy to Render: create dashboard/render.yaml (exact text below), and give me the exact click-by-click steps for a Render "Web Service" from the GitHub repo (root directory dashboard, start command `gunicorn app:server`, Python 3.12). Also document a backup: Hugging Face Spaces with a Dockerfile (python:3.12-slim, pip install -r requirements.txt, CMD gunicorn -b 0.0.0.0:7860 app:server).
 5. The app must run with only committed files: no backend, no secrets, no database. Confirm with `gunicorn app:server` locally (on Windows use `python app.py`, gunicorn needs Linux; also test `python -m pytest -q`).
 6. Update dashboard/README.md with the live URL placeholder, run, test and deploy steps.
@@ -564,7 +564,7 @@ Commit: [bob C9] real reports in dashboard
 
 ---
 
-## C10. Convention badge and Docker node  (F16 and F17, STRETCH, about 3 coins)
+## C10. Convention badge and Docker node  (F16 and F17, differentiators — build after CP2 is green, about 3 coins)
 
 ````text
 Read PLAN.md. Update the dashboard for two OPTIONAL report fields (render nothing when absent):

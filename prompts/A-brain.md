@@ -28,6 +28,7 @@ Create .bob/rules/rules.md with EXACTLY this content (it loads into every Bob co
 
 Uplift predicts what a change will break, proves it with a failing test, and repairs it with sandboxed workers.
 Pipeline: PREDICT (graph + verdicts) -> PROVE (failing tests) -> REPAIR (workers) -> VERIFY (tests + report).
+Two modes over one engine: `impact` (a patch) and `migrate` (a dependency upgrade). Docker-layer impact is part of impact; convention-aware fixes are part of migrate. These are layers within the two modes, never separate features. Do not use the phrase "blast radius" in any user-facing output (a rival is named BlastRadius); say "what a change will break" or "change impact".
 
 ## Stack
 - Python 3.11 or 3.12 only. Windows paths are used in examples; use forward slashes in code.
