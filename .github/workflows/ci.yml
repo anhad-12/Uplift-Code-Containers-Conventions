@@ -14,6 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: "3.12"}
+        with: {python-version: "3.11"}  # pydantic v1 + fastapi 0.99.1 break on 3.12
       - run: pip install -r sample-app/requirements.txt
       - run: cd sample-app && python -m pytest -q
