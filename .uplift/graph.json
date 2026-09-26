@@ -20,7 +20,8 @@
       "module": "admin",
       "layer": "direct",
       "snippet": "def user_spend_report() -> list:\n    rows = []\n    for order in order_repo.all_orders():\n        rows.append({\"user\": get_user(order.user_id).name, \"total\": order.total})\n    return rows\n\n\ndef revenue_total(payments: List[Payment]) -> float:",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": []
     },
     {
       "id": "shop/notifications/email.py#send_welcome",
@@ -31,7 +32,10 @@
       "module": "notifications",
       "layer": "direct",
       "snippet": "\n\ndef send_welcome(user_id: int) -> bool:\n    user = get_user(user_id)\n    if user is None:\n        return False\n    settings = get_settings()\n    return bool(f\"from {settings.sender} to {user.email}\")",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/notifications/test_email.py"
+      ]
     },
     {
       "id": "shop/orders/invoice.py#build_invoice",
@@ -42,7 +46,10 @@
       "module": "orders",
       "layer": "direct",
       "snippet": "\n\ndef build_invoice(order: Order) -> dict:\n    user = get_user(order.user_id)\n    return {\n        \"to\": user.email,\n        \"lines\": [{\"label\": \"order\", \"amount\": order.total}],\n        \"total\": order.total,",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/orders/test_invoice.py"
+      ]
     },
     {
       "id": "shop/orders/service.py#create_order",
@@ -53,7 +60,11 @@
       "module": "orders",
       "layer": "direct",
       "snippet": "\ndef create_order(data: OrderIn) -> repo.Order:\n    try:\n        get_user(data.user_id)\n    except NotFoundError:\n        raise ValidationError(\"unknown user\")\n    total = sum(data.items)\n    return repo.save_order(data.user_id, total)",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/orders/test_routes.py",
+        "tests/orders/test_service.py"
+      ]
     },
     {
       "id": "shop/payments/charge.py#charge",
@@ -64,7 +75,16 @@
       "module": "payments",
       "layer": "direct",
       "snippet": "\n\ndef charge(user_id: int, amount: float) -> Payment:\n    get_user(user_id)\n    fee = round(amount * 0.029 + 0.30, 2)\n    return Payment(user_id, round(amount + fee, 2))",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/notifications/test_email.py",
+        "tests/orders/test_invoice.py",
+        "tests/payments/test_charge.py",
+        "tests/payments/test_receipt.py",
+        "tests/payments/test_receipt_more.py",
+        "tests/payments/test_repo.py",
+        "tests/payments/test_routes.py"
+      ]
     },
     {
       "id": "shop/payments/receipt.py#render_receipt",
@@ -75,7 +95,11 @@
       "module": "payments",
       "layer": "direct",
       "snippet": "\n\ndef render_receipt(payment: Payment) -> str:\n    user = get_user(payment.user_id)\n    return f\"Receipt for {user.name}: ${payment.amount:.2f}\"",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/payments/test_receipt.py",
+        "tests/payments/test_receipt_more.py"
+      ]
     },
     {
       "id": "shop/users/routes.py#get_user_route",
@@ -86,7 +110,10 @@
       "module": "users",
       "layer": "direct",
       "snippet": "\n@router.get(\"/{user_id}\", response_model=UserOut)\ndef get_user_route(user_id: int):\n    return service.get_user(user_id)\n\n\n@router.get(\"\", response_model=List[UserOut])\ndef list_users_route():",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/users/test_routes.py"
+      ]
     },
     {
       "id": "shop/orders/routes.py#post_order",
@@ -97,7 +124,10 @@
       "module": "orders",
       "layer": "indirect",
       "snippet": "\n@router.post(\"\", response_model=OrderOut)\ndef post_order(payload: OrderIn):\n    return service.create_order(payload)\n\n\n@router.get(\"/{order_id}\", response_model=OrderOut)\ndef get_order_route(order_id: int):",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/orders/test_routes.py"
+      ]
     },
     {
       "id": "shop/payments/routes.py#post_payment",
@@ -108,9 +138,47 @@
       "module": "payments",
       "layer": "indirect",
       "snippet": "\n@router.post(\"\")\ndef post_payment(payload: PaymentIn):\n    payment = repo.save_payment(charge.charge(payload.user_id, payload.amount))\n    return {\"user_id\": payment.user_id, \"amount\": payment.amount}",
-      "resolution": "jedi"
+      "resolution": "jedi",
+      "tests": [
+        "tests/payments/test_routes.py"
+      ]
     }
   ],
+  "contracts": [
+    {
+      "type": "route",
+      "id": "GET /users/{user_id}",
+      "handler": "shop/users/routes.py#get_user_route",
+      "verdict": "unknown"
+    },
+    {
+      "type": "route",
+      "id": "POST /orders",
+      "handler": "shop/orders/routes.py#post_order",
+      "verdict": "unknown"
+    },
+    {
+      "type": "route",
+      "id": "POST /payments",
+      "handler": "shop/payments/routes.py#post_payment",
+      "verdict": "unknown"
+    }
+  ],
+  "testsToRun": [
+    "tests/notifications/test_email.py",
+    "tests/orders/test_invoice.py",
+    "tests/orders/test_routes.py",
+    "tests/orders/test_service.py",
+    "tests/payments/test_charge.py",
+    "tests/payments/test_receipt.py",
+    "tests/payments/test_receipt_more.py",
+    "tests/payments/test_repo.py",
+    "tests/payments/test_routes.py",
+    "tests/users/test_routes.py"
+  ],
+  "untested": [
+    "shop/admin/reports.py#user_spend_report"
+  ],
   "filesScanned": 25,
-  "secondsTaken": 0.303
+  "secondsTaken": 0.293
 }

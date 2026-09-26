@@ -8,6 +8,8 @@ import typer
 
 from uplift.diff import changed_symbols, head_and_base
 from uplift.graph import find_candidates
+from uplift.routes import contracts_for, route_map
+from uplift.testmap import annotate_candidates
 
 app = typer.Typer(
     help="Uplift: predict, prove, repair.",
@@ -62,6 +64,19 @@ def graph(
     changed = changed_symbols(head, base, patch)
     candidates = find_candidates(head, changed)
 
+    # Route map + contracts
+    routes = route_map(head)
+    contracts = contracts_for(candidates, routes)
+
+    # Test mapping — annotates candidates in-place, returns union + untested
+    annotate_candidates(candidates, head)
+    tests_to_run: list[str] = sorted(
+        {t for c in candidates for t in c.get("tests", [])}
+    )
+    untested: list[str] = sorted(
+        c["id"] for c in candidates if not c.get("tests")
+    )
+
     # Count scanned files (non-test .py files under head)
     files_scanned = sum(
         1 for p in head.rglob("*.py")
@@ -75,13 +90,16 @@ def graph(
     payload = {
         "changedSymbols": changed,
         "candidates": candidates,
+        "contracts": contracts,
+        "testsToRun": tests_to_run,
+        "untested": untested,
         "filesScanned": files_scanned,
         "secondsTaken": seconds_taken,
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    # ASCII summary table: hop | id | module
+    # ASCII summary table: hop | id | module | tests
     print(f"Changed symbols ({len(changed)}):")
     for s in changed:
         print(f"  {s['id']}  [{s['changeType']}]")
@@ -97,6 +115,16 @@ def graph(
     print("  " + "-" * (col_hop + col_mod + col_id + 6))
     for c in candidates:
         print(fmt.format(c["hop"], c.get("module", ""), c["id"]))
+
+    if contracts:
+        print(f"\nContracts ({len(contracts)}):")
+        for ct in contracts:
+            print(f"  {ct['id']}  handler={ct['handler']}")
+
+    if untested:
+        print(f"\nUntested ({len(untested)}):")
+        for u in untested:
+            print(f"  {u}")
 
     print(f"\nFiles scanned: {files_scanned}  Time: {seconds_taken}s")
     print(f"Graph written to {out}")
