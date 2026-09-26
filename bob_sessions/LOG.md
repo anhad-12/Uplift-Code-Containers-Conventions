@@ -6,3 +6,8 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 
 | Member | Task | What Bob did | Files touched | Coins used | Screenshot |
 | --- | --- | --- | --- | --- | --- |
+
+
+![Dhruv | Bob made the file](uplift_A_task_0_summary.png)
+
+
