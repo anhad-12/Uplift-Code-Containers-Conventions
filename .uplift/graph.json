@@ -1,0 +1,116 @@
+{
+  "changedSymbols": [
+    {
+      "id": "shop/users/service.py#get_user",
+      "kind": "function",
+      "changeType": "behavior",
+      "hints": [
+        "raise removed",
+        "None check removed"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "shop/admin/reports.py#user_spend_report",
+      "file": "shop/admin/reports.py",
+      "line": 11,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "admin",
+      "layer": "direct",
+      "snippet": "def user_spend_report() -> list:\n    rows = []\n    for order in order_repo.all_orders():\n        rows.append({\"user\": get_user(order.user_id).name, \"total\": order.total})\n    return rows\n\n\ndef revenue_total(payments: List[Payment]) -> float:",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/notifications/email.py#send_welcome",
+      "file": "shop/notifications/email.py",
+      "line": 7,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "notifications",
+      "layer": "direct",
+      "snippet": "\n\ndef send_welcome(user_id: int) -> bool:\n    user = get_user(user_id)\n    if user is None:\n        return False\n    settings = get_settings()\n    return bool(f\"from {settings.sender} to {user.email}\")",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/orders/invoice.py#build_invoice",
+      "file": "shop/orders/invoice.py",
+      "line": 7,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "orders",
+      "layer": "direct",
+      "snippet": "\n\ndef build_invoice(order: Order) -> dict:\n    user = get_user(order.user_id)\n    return {\n        \"to\": user.email,\n        \"lines\": [{\"label\": \"order\", \"amount\": order.total}],\n        \"total\": order.total,",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/orders/service.py#create_order",
+      "file": "shop/orders/service.py",
+      "line": 9,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "orders",
+      "layer": "direct",
+      "snippet": "\ndef create_order(data: OrderIn) -> repo.Order:\n    try:\n        get_user(data.user_id)\n    except NotFoundError:\n        raise ValidationError(\"unknown user\")\n    total = sum(data.items)\n    return repo.save_order(data.user_id, total)",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/payments/charge.py#charge",
+      "file": "shop/payments/charge.py",
+      "line": 13,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "payments",
+      "layer": "direct",
+      "snippet": "\n\ndef charge(user_id: int, amount: float) -> Payment:\n    get_user(user_id)\n    fee = round(amount * 0.029 + 0.30, 2)\n    return Payment(user_id, round(amount + fee, 2))",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/payments/receipt.py#render_receipt",
+      "file": "shop/payments/receipt.py",
+      "line": 6,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "payments",
+      "layer": "direct",
+      "snippet": "\n\ndef render_receipt(payment: Payment) -> str:\n    user = get_user(payment.user_id)\n    return f\"Receipt for {user.name}: ${payment.amount:.2f}\"",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/users/routes.py#get_user_route",
+      "file": "shop/users/routes.py",
+      "line": 13,
+      "hop": 1,
+      "via": "shop/users/service.py#get_user",
+      "module": "users",
+      "layer": "direct",
+      "snippet": "\n@router.get(\"/{user_id}\", response_model=UserOut)\ndef get_user_route(user_id: int):\n    return service.get_user(user_id)\n\n\n@router.get(\"\", response_model=List[UserOut])\ndef list_users_route():",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/orders/routes.py#post_order",
+      "file": "shop/orders/routes.py",
+      "line": 11,
+      "hop": 2,
+      "via": "shop/orders/service.py#create_order",
+      "module": "orders",
+      "layer": "indirect",
+      "snippet": "\n@router.post(\"\", response_model=OrderOut)\ndef post_order(payload: OrderIn):\n    return service.create_order(payload)\n\n\n@router.get(\"/{order_id}\", response_model=OrderOut)\ndef get_order_route(order_id: int):",
+      "resolution": "jedi"
+    },
+    {
+      "id": "shop/payments/routes.py#post_payment",
+      "file": "shop/payments/routes.py",
+      "line": 11,
+      "hop": 2,
+      "via": "shop/payments/charge.py#charge",
+      "module": "payments",
+      "layer": "indirect",
+      "snippet": "\n@router.post(\"\")\ndef post_payment(payload: PaymentIn):\n    payment = repo.save_payment(charge.charge(payload.user_id, payload.amount))\n    return {\"user_id\": payment.user_id, \"amount\": payment.amount}",
+      "resolution": "jedi"
+    }
+  ],
+  "filesScanned": 25,
+  "secondsTaken": 0.303
+}

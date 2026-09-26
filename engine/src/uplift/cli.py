@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import typer
 
 from uplift.diff import changed_symbols, head_and_base
+from uplift.graph import find_candidates
 
 app = typer.Typer(
     help="Uplift: predict, prove, repair.",
@@ -50,12 +52,54 @@ def diff(
 @app.command()
 def graph(
     repo: Path = typer.Option(..., help="Path to the repository root."),
-    diff_file: Path = typer.Option(..., "--diff", help="Changed symbols JSON from `uplift diff`."),
+    patch: Path = typer.Option(..., help="Path to the unified diff patch file."),
     out: Path = typer.Option(..., help="Output JSON file path."),
     applied: bool = typer.Option(False, "--applied", help="Patch already applied to repo."),
 ) -> None:
-    """Build the 3-hop reference graph (not yet implemented)."""
-    raise NotImplementedError("graph: coming in B4")
+    """Run diff + 3-hop reference graph and write graph.json."""
+    t0 = time.monotonic()
+    head, base = head_and_base(repo, patch, applied)
+    changed = changed_symbols(head, base, patch)
+    candidates = find_candidates(head, changed)
+
+    # Count scanned files (non-test .py files under head)
+    files_scanned = sum(
+        1 for p in head.rglob("*.py")
+        if not any(
+            part in ("tests", "test") or part.startswith("test_")
+            for part in p.relative_to(head).parts
+        )
+    )
+    seconds_taken = round(time.monotonic() - t0, 3)
+
+    payload = {
+        "changedSymbols": changed,
+        "candidates": candidates,
+        "filesScanned": files_scanned,
+        "secondsTaken": seconds_taken,
+    }
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    # ASCII summary table: hop | id | module
+    print(f"Changed symbols ({len(changed)}):")
+    for s in changed:
+        print(f"  {s['id']}  [{s['changeType']}]")
+
+    print(f"\nCandidates ({len(candidates)}):")
+    col_hop = 3
+    col_mod = max((len(c.get("module", "")) for c in candidates), default=6)
+    col_mod = max(col_mod, 6)
+    col_id = max((len(c["id"]) for c in candidates), default=2)
+    col_id = max(col_id, 2)
+    fmt = f"  {{:<{col_hop}}}  {{:<{col_mod}}}  {{}}"
+    print(fmt.format("hop", "module", "id"))
+    print("  " + "-" * (col_hop + col_mod + col_id + 6))
+    for c in candidates:
+        print(fmt.format(c["hop"], c.get("module", ""), c["id"]))
+
+    print(f"\nFiles scanned: {files_scanned}  Time: {seconds_taken}s")
+    print(f"Graph written to {out}")
 
 
 @app.command()
