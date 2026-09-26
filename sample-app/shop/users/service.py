@@ -1,12 +1,8 @@
-from shop.errors import NotFoundError
 from shop.users import repo
 
 
 def get_user(user_id: int) -> repo.User:
-    user = repo.find_user(user_id)
-    if user is None:
-        raise NotFoundError("user", user_id)
-    return user
+    return repo.find_user(user_id)
 
 
 def list_users() -> list:
