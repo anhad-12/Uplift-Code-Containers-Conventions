@@ -222,15 +222,22 @@ def detail_view(sid: str) -> html.Div:
         # ── Filter chips ──────────────────────────────────────────────────────
         html.Div([
             html.Span("Filter: ", className="filter-label", **{"aria-hidden": "true"}),
-            dcc.Checklist(
-                id="filter-chips",
-                options=FILTER_OPTIONS,
-                value=FILTER_DEFAULT,
-                inline=True,
-                className="filter-checklist",
-                inputClassName="filter-chip-input",
-                labelClassName="filter-chip-label",
-            ),
+            html.Div([
+                dcc.Checklist(
+                    id="filter-chips",
+                    options=FILTER_OPTIONS,
+                    value=FILTER_DEFAULT,
+                    inline=True,
+                    className="filter-checklist",
+                    inputClassName="filter-chip-input",
+                    labelClassName="filter-chip-label",
+                ),
+                html.P(
+                    "Toggle a verdict to show or hide those nodes. "
+                    "'Untested only' keeps just code that no test covers.",
+                    className="filter-hint",
+                ),
+            ], className="filter-chips-wrap"),
         ], className="filter-row", role="group", **{"aria-label": "Filter nodes by verdict"}),
 
         dbc.Row([

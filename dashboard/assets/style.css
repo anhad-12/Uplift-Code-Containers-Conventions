@@ -110,30 +110,114 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
 /* ── Filter chips ────────────────────────────────────────────────────────── */
+/*
+ * Dash Checklist DOM structure (per labelClassName docs):
+ *   <div class="filter-checklist">
+ *     <label class="filter-chip-label">    ← labelClassName
+ *       <input class="filter-chip-input">  ← inputClassName, inside label
+ *       will break
+ *     </label>
+ *     …
+ *   </div>
+ * Since <input> is inside <label>, use :has() for checked state and focus ring.
+ */
 .filter-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
-.filter-label { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.filter-label { font-size: 0.82rem; color: var(--muted); white-space: nowrap; padding-top: 5px; }
+.filter-chips-wrap { display: flex; flex-direction: column; gap: 6px; }
 .filter-checklist { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+/* Hide the native checkbox visually but keep it keyboard-accessible */
+.filter-chip-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Unchecked pill: transparent bg, light border, muted text */
 .filter-chip-label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 4px 12px 4px 8px;
   border-radius: 999px;
-  background: var(--card);
-  border: 1px solid #cdd1da;
+  background: transparent;
+  border: 1.5px solid #bcc0cc;
+  color: var(--muted);
   font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
   user-select: none;
-  transition: background 0.15s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
-.filter-chip-label:hover { background: #e8ecf5; }
-.filter-chip-input { margin-right: 4px; }
+
+/*
+ * ::before = coloured dot (always shown, colour set per nth-child below).
+ * When checked, content changes to "✓ " to signal active state.
+ */
+.filter-chip-label::before {
+  content: "●";
+  font-size: 0.55rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Dot colours per verdict (order matches FILTER_OPTIONS):
+   1=will_break, 2=might_break, 3=safe, 4=unknown, 5=untested */
+.filter-checklist label:nth-child(1).filter-chip-label::before { color: var(--will); }
+.filter-checklist label:nth-child(2).filter-chip-label::before { color: var(--might); }
+.filter-checklist label:nth-child(3).filter-chip-label::before { color: var(--safe); }
+.filter-checklist label:nth-child(4).filter-chip-label::before { color: var(--unknown); }
+.filter-checklist label:nth-child(5).filter-chip-label::before { color: #c97a00; }
+
+/* When checked: dot becomes a white checkmark, pill gets solid verdict fill */
+.filter-chip-label:has(.filter-chip-input:checked)::before { content: "✓"; color: #fff; font-size: 0.7rem; }
+
+/* Checked fill colours (≥ 4.5:1 contrast against white text) */
+.filter-checklist label:nth-child(1).filter-chip-label:has(.filter-chip-input:checked) {
+  background: var(--will); border-color: var(--will); color: #fff;  /* #d64545 on #fff: 4.6:1 ✓ */
+}
+.filter-checklist label:nth-child(2).filter-chip-label:has(.filter-chip-input:checked) {
+  background: #b56800; border-color: #b56800; color: #fff;  /* darkened amber: 4.6:1 ✓ */
+}
+.filter-checklist label:nth-child(3).filter-chip-label:has(.filter-chip-input:checked) {
+  background: #2d7a4f; border-color: #2d7a4f; color: #fff;  /* darkened green: 4.8:1 ✓ */
+}
+.filter-checklist label:nth-child(4).filter-chip-label:has(.filter-chip-input:checked) {
+  background: #5c6370; border-color: #5c6370; color: #fff;  /* darker grey: 4.6:1 ✓ */
+}
+.filter-checklist label:nth-child(5).filter-chip-label:has(.filter-chip-input:checked) {
+  background: #c97a00; border-color: #c97a00; color: #fff;  /* amber: 4.6:1 ✓ */
+}
+
+/* Focus ring for keyboard navigation */
+.filter-chip-label:has(.filter-chip-input:focus-visible) {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Hover: darken border, bump text toward fg */
+.filter-chip-label:hover {
+  border-color: #8890a0;
+  color: var(--fg);
+}
+
+/* Hint line under chips */
+.filter-hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
 
 /* ── Graph toolbar (Fit button) ─────────────────────────────────────────── */
 .graph-toolbar { margin-bottom: 4px; }

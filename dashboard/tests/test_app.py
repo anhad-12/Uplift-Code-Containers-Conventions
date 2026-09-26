@@ -124,3 +124,40 @@ def test_stepper_aria_labels_present():
     rendered = _render(_app_module.stepper(pipeline))
     # aria-label attributes are serialised in Dash's string repr
     assert "aria-label" in rendered
+
+
+# ── 8. C3 filter chip options, values and hint text ──────────────────────────
+
+def test_filter_chip_options_unchanged():
+    """FILTER_OPTIONS must contain the five expected verdicts in the correct order."""
+    values = [o["value"] for o in _app_module.FILTER_OPTIONS]
+    assert values == ["will_break", "might_break", "safe", "unknown", "untested"]
+
+
+def test_filter_chip_labels_unchanged():
+    """Human-readable labels must match the original spec."""
+    labels = [o["label"] for o in _app_module.FILTER_OPTIONS]
+    assert labels == ["will break", "might break", "safe", "unknown", "untested only"]
+
+
+def test_filter_chip_default_values():
+    """Default selection must include the four verdict chips (not untested)."""
+    assert set(_app_module.FILTER_DEFAULT) == {"will_break", "might_break", "safe", "unknown"}
+
+
+def test_filter_chip_detail_contains_checklist():
+    """detail_view must render a Checklist with id 'filter-chips'."""
+    layout = _app_module.detail_view("s1-null-user")
+    rendered = _render(layout)
+    assert "filter-chips" in rendered
+    # All five option values must be present
+    for val in ["will_break", "might_break", "safe", "unknown", "untested"]:
+        assert val in rendered
+
+
+def test_filter_chip_hint_text_present():
+    """The hint line under the chips must appear in the detail view."""
+    layout = _app_module.detail_view("s1-null-user")
+    rendered = _render(layout)
+    assert "Toggle a verdict to show or hide those nodes" in rendered
+    assert "Untested only" in rendered
