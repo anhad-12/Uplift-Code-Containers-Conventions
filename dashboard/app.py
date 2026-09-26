@@ -208,7 +208,6 @@ def detail_view(sid: str) -> html.Div:
     if r.get("_errors"):
         return html.Div([dbc.Alert("This report does not match the schema:", color="danger"),
                          html.Ul([html.Li(e) for e in r["_errors"][:10]])])
-    m, risk = r["metrics"], r["risk"]
     node_count = len(r.get("affected", [])) + len(r.get("changedSymbols", []))
     large = node_count > 60
     initial_elements = graph.build_elements(r, large=large)
@@ -216,9 +215,7 @@ def detail_view(sid: str) -> html.Div:
     return html.Div([
         html.H3(r["scenario"]["title"]),
         stepper(r["pipeline"]),
-        dbc.Row([metric_card("Risk score", f"{risk['score']} ({risk['level']})"),
-                 metric_card("Predicted", m["predicted"]), metric_card("Confirmed", m["confirmed"]),
-                 metric_card("Fixed", m.get("fixed", 0))], className="g-3 my-2"),
+        panels.summary_strip(r),
 
         # ── Filter chips ──────────────────────────────────────────────────────
         html.Div([

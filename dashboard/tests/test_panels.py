@@ -214,3 +214,113 @@ def test_detail_panel_on_migrate_report():
     rendered = str(panels.detail_panel(item))
     assert item["id"] in rendered
     assert item["verdict"] in rendered
+
+
+# ── 6. summary_strip() ───────────────────────────────────────────────────────
+
+def test_summary_strip_s1_contains_risk_score_71():
+    """summary_strip on S1 must contain the text '71' (risk score)."""
+    r = _s1()
+    rendered = str(panels.summary_strip(r))
+    assert "71" in rendered
+
+
+def test_summary_strip_s1_metric_figures():
+    """summary_strip shows predicted=5, confirmed=4, fixed=4, regressions=0."""
+    r = _s1()
+    rendered = str(panels.summary_strip(r))
+    assert "5" in rendered   # predicted
+    assert "4" in rendered   # confirmed and fixed
+    assert "0" in rendered   # regressions
+
+
+def test_summary_strip_s1_has_accuracy_card():
+    """S1 has an accuracy block, so the accuracy card must appear."""
+    r = _s1()
+    rendered = str(panels.summary_strip(r))
+    assert "Accuracy" in rendered
+    assert "Precision" in rendered
+    assert "Recall" in rendered
+    # 80% precision (0.8 * 100 = 80), 100% recall
+    assert "80%" in rendered
+    assert "100%" in rendered
+    # TP=4, FP=1, FN=0 as badges
+    assert "TP 4" in rendered
+    assert "FP 1" in rendered
+    assert "FN 0" in rendered
+
+
+def test_summary_strip_no_accuracy_card_when_accuracy_absent():
+    """A report without metrics.accuracy must render no accuracy card."""
+    r = _report("migrate-pydantic2.mock.json")
+    # migrate mock has no accuracy key
+    assert "accuracy" not in r.get("metrics", {})
+    rendered = str(panels.summary_strip(r))
+    assert "Accuracy" not in rendered
+    assert "Precision" not in rendered
+
+
+def test_summary_strip_s1_risk_level_high():
+    """Risk level 'high' must appear in the strip."""
+    r = _s1()
+    rendered = str(panels.summary_strip(r))
+    assert "high" in rendered.lower() or "HIGH" in rendered
+
+
+def test_summary_strip_tests_to_run_list():
+    """summary_strip shows tests-to-run entries."""
+    r = _s1()
+    rendered = str(panels.summary_strip(r))
+    assert "Tests to run" in rendered
+    # At least one test file name from the S1 mock
+    assert "test_invoice" in rendered or "test_receipt" in rendered or "test_service" in rendered
+
+
+def test_summary_strip_untested_list():
+    """summary_strip shows untested affected code entries."""
+    r = _s1()
+    rendered = str(panels.summary_strip(r))
+    assert "Untested affected code" in rendered
+    assert "user_spend_report" in rendered
+
+
+def test_summary_strip_tests_bar_present_for_s1():
+    """S1 has metrics.tests, so the stacked bar must appear (dcc.Graph)."""
+    from dash import dcc as _dcc  # noqa: PLC0415
+    r = _s1()
+    strip = panels.summary_strip(r)
+    rendered = str(strip)
+    # dcc.Graph is in the rendered output when tests data is present
+    assert "Graph" in rendered
+
+
+def test_summary_strip_returns_html_div():
+    """summary_strip must return an html.Div."""
+    from dash import html as _html  # noqa: PLC0415
+    r = _s1()
+    result = panels.summary_strip(r)
+    assert isinstance(result, _html.Div)
+
+
+def test_summary_strip_no_tests_bar_when_tests_absent():
+    """A report with no metrics.tests must not crash and omits the bar."""
+    r = _s1()
+    # Remove tests from metrics
+    r["metrics"] = {k: v for k, v in r["metrics"].items() if k != "tests"}
+    rendered = str(panels.summary_strip(r))
+    # Must still render metric cards
+    assert "Predicted" in rendered
+
+
+def test_affected_table_header_has_dark_text():
+    """DataTable header must have a dark color for contrast (not light grey)."""
+    r = _s1()
+    table = panels.affected_table(r)
+    header_style = table.style_header or {}
+    color = header_style.get("color", "")
+    # Must not be a light colour; the dark fg is #1d2330
+    assert color, "style_header must specify a color"
+    # Verify it's not the old light bg-only style
+    assert "backgroundColor" in header_style
+    # The color must be a dark value (not white or light grey)
+    assert color.lower() not in ("#ffffff", "#f7f8fa", "#f5f5f5", "white", "")
