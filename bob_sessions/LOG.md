@@ -12,6 +12,7 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 | C | C3b | Bob restyled the filter chips as readable toggle pills with a hint line and tests that the filter options are unchanged | dashboard/app.py, dashboard/assets/style.css, dashboard/tests/test_app.py | 1.45 | uplift_C_task03b_chips_summary.png |
 | C | C4 | Bob built the detail panel (snippet, verdict, proof, repair, contracts) and a sortable affected-items table synced with graph selection; 13 new tests | dashboard/panels.py, dashboard/app.py, dashboard/tests/test_panels.py | 3.79 | uplift_C_task04_panel_table_summary.png |
 | C | C5 | Bob built the summary strip (risk gauge, metric cards, tests before/after bar, accuracy card with misses modal, tests-to-run and untested lists) and fixed the invisible table header; 12 new tests | dashboard/panels.py, dashboard/app.py, dashboard/requirements.txt, dashboard/tests/test_panels.py | 3.39 | uplift_C_task05_summary_cards_summary.png |
+| C | C5b | Bob made the plotly charts readable on the dark theme with a shared light-text layout, transparent backgrounds, faint grid and counts on the bars; 6 new tests | dashboard/panels.py, dashboard/tests/test_panels.py | 1.16 | uplift_C_task05b_charts_summary.png |
 
 
 ![Dhruv | Bob made the file](uplift_A_task_0_summary.png)
