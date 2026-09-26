@@ -1,0 +1,31 @@
+--- a/shop/payments/charge.py
++++ b/shop/payments/charge.py
+@@ -6,10 +6,10 @@
+ @dataclass
+ class Payment:
+     user_id: int
+-    amount: float  # dollars
++    amount: int  # cents
+ 
+ 
+ def charge(user_id: int, amount: float) -> Payment:
+     get_user(user_id)
+     fee = round(amount * 0.029 + 0.30, 2)
+-    return Payment(user_id, round(amount + fee, 2))
++    return Payment(user_id, round((amount + fee) * 100))
+--- a/tests/payments/test_charge.py
++++ b/tests/payments/test_charge.py
+@@ -2,4 +2,4 @@
+ 
+ 
+ def test_charge_adds_fee_in_dollars():
+-    assert charge(1, 100.0).amount == 103.2
++    assert charge(1, 100.0).amount == 10320
+--- a/tests/payments/test_routes.py
++++ b/tests/payments/test_routes.py
+@@ -6,4 +6,4 @@
+ 
+ def test_post_payment_ok():
+     body = {"user_id": 1, "amount": 100, "card": "4242424242424242"}
+-    assert client.post("/payments", json=body).json()["amount"] == 103.2
++    assert client.post("/payments", json=body).json()["amount"] == 10320
