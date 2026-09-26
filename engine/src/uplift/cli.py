@@ -256,10 +256,54 @@ def validate(
 @app.command(name="proof-run")
 def proof_run(
     repo: Path = typer.Option(..., help="Path to the repository root."),
-    scenario: str = typer.Option(..., help="Scenario ID."),
+    patch: Path = typer.Option(..., help="Path to the unified diff patch file."),
+    proofs: Path = typer.Option(..., help="Directory containing proof test files."),
+    out: Path = typer.Option(..., help="Output proofs JSON file (e.g. .uplift/proofs.json)."),
+    applied: bool = typer.Option(False, "--applied", help="Patch already applied to repo."),
+    app_python: Optional[str] = typer.Option(
+        None,
+        "--app-python",
+        help="Python interpreter for running tests (default: sample-app/.venv python or sys.executable).",
+    ),
 ) -> None:
-    """Run proof tests and record results (not yet implemented)."""
-    raise NotImplementedError("proof-run: coming in B7")
+    """Run proof tests and emit proofs.json with confirmed/unconfirmed status."""
+    from uplift.proof import proof_run as _proof_run, _default_app_python
+
+    python = app_python or _default_app_python(repo)
+
+    result = _proof_run(
+        repo=repo,
+        patch=patch,
+        proofs_dir=proofs,
+        app_python=python,
+        applied=applied,
+    )
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=2), encoding="utf-8")
+
+    # ASCII summary table
+    plist = result["proofs"]
+    suite = result["suite"]
+    if plist:
+        col_item = max(len(p["item"]) for p in plist)
+        col_item = max(col_item, 4)
+        col_file = max(len(p["testFile"]) for p in plist)
+        col_file = max(col_file, 8)
+        fmt = f"  {{:<{col_item}}}  {{:<{col_file}}}  {{:<11}}  {{:<11}}  {{}}"
+        typer.echo(fmt.format("item", "testFile", "passesOnBase", "failsOnHead", "status"))
+        typer.echo("  " + "-" * (col_item + col_file + 40))
+        for p in plist:
+            typer.echo(fmt.format(
+                p["item"], p["testFile"],
+                str(p["passesOnBase"]), str(p["failsOnHead"]), p["status"],
+            ))
+    typer.echo(
+        f"\nSuite  base: {suite['base']['passed']} passed / {suite['base']['failed']} failed"
+        f"   head: {suite['head']['passed']} passed / {suite['head']['failed']} failed"
+    )
+    confirmed = sum(1 for p in plist if p["status"] == "confirmed")
+    typer.echo(f"\n{confirmed}/{len(plist)} proofs confirmed. Written to {out}")
 
 
 @app.command(name="migrate-scan")
