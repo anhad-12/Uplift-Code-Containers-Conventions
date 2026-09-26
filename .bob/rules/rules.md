@@ -19,7 +19,7 @@ Two modes over one engine: `impact` (a patch) and `migrate` (a dependency upgrad
 
 ## Working rules
 - Stay inside the folder your mode allows. If a fix needs a change elsewhere, record it as blocked; do not do it.
-- Commit messages start with `[bob <member><task>]`, for example `[bob A6] orders repair for S1`.
+- Commit messages start with `[bob <member> <task>]`, for example `[bob A6] orders repair for S1`.
 - Never guess. If an input file is missing, say so instead of inventing callers, verdicts or numbers.
 - Every number you report must come from a command you ran. Paste the command output.
 - Never read sample-app/scenarios/*.expected.json (hidden ground truth; only the evaluation task may).
