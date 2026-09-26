@@ -1,12 +1,121 @@
 :root { --bg: #ffffff; --fg: #1d2330; --muted: #5d6675; --card: #f5f7fb; --accent: #3b5bdb;
         --will: #d64545; --might: #e0a030; --safe: #3fa66a; --unknown: #8a8f98; --radius: 12px; }
 @media (prefers-color-scheme: dark) { :root { --bg: #11151c; --fg: #e8ecf3; --muted: #9aa4b5; --card: #1a202b; } }
+
+/* ── Reset / base ─────────────────────────────────────────────────────────── */
 body { background: var(--bg); color: var(--fg); }
+
+/* Prevent any horizontal overflow at all viewport widths */
+html, body { overflow-x: hidden; max-width: 100vw; }
+.container-fluid { padding-left: 0; padding-right: 0; }
+
+/* ── Hero section ────────────────────────────────────────────────────────── */
+.hero-section {
+  padding: 48px 0 32px;
+  max-width: 780px;
+}
+.hero-h1 {
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.hero-sub {
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+  color: var(--muted);
+  max-width: 680px;
+  margin-bottom: 0;
+}
+
+/* ── How-it-works strip ──────────────────────────────────────────────────── */
+.hiw-strip {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  margin: 24px 0;
+}
+.hiw-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.hiw-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.hiw-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.2;
+  flex-shrink: 0;
+  width: 28px;
+}
+.hiw-text { font-size: 0.9rem; padding-top: 2px; }
+
+/* ── Section heading ─────────────────────────────────────────────────────── */
+.section-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 8px 0 16px;
+}
+
+/* ── Scenario cards ──────────────────────────────────────────────────────── */
+.scenario-card { border-radius: var(--radius); border: 1px solid #e0e4ee; }
+.card-desc {
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+  /* clamp to 2 lines to keep cards uniform */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.risk-badge { font-size: 0.7rem; letter-spacing: 0.06em; }
+
+/* Headline figure numbers */
+.fig-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.fig-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.fig-regressions { color: var(--will); }
+
+/* ── Metric cards (detail page) ──────────────────────────────────────────── */
 .metric-value { font-size: 2rem; font-weight: 700; }
 .metric-label { color: var(--muted); }
+
+/* ── Stepper ─────────────────────────────────────────────────────────────── */
 .stepper { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-.step { padding: 6px 12px; border-radius: 999px; background: var(--card); }
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.85rem;
+}
+.step-icon { font-size: 1rem; }
+.step-label { /* always visible text */ }
 .step-done { background: var(--safe); color: #fff; }
 .step-pending { opacity: .6; }
+
+/* ── Upload drop zone ────────────────────────────────────────────────────── */
 .upload { border: 2px dashed var(--muted); border-radius: var(--radius); padding: 16px; text-align: center; margin: 24px 0; }
+
+/* ── Accessibility ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ── 375 px safety net – no horizontal scrollbar ───────────────────────── */
+@media (max-width: 400px) {
+  .hero-h1 { font-size: 1.45rem; }
+  .fig-value { font-size: 1.35rem; }
+  .metric-value { font-size: 1.5rem; }
+  .hiw-strip { padding: 16px 12px; }
+  /* Ensure Bootstrap cols don't overflow */
+  .row { --bs-gutter-x: 1rem; }
+  .g-4 { --bs-gutter-x: 0.75rem; }
+}
