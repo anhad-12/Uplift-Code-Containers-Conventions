@@ -7,6 +7,7 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 | Member | Task | What Bob did | Files touched | Coins used | Screenshot |
 | --- | --- | --- | --- | --- | --- |
 | C | C1 | Bob scaffolded the Dash dashboard: report loader with schema validation, change-impact graph builder, app shell, styles and 5 passing tests; verified both mock scenarios render | dashboard/ (app.py, loader.py, graph.py, assets/style.css, tests, reports, requirements.txt, schema copy) | 3.30 | uplift_C_task01_scaffold_summary.png |
+| C | C2 | Bob built the landing page (hero, How it works strip, scenario cards with risk badge and headline numbers) and the accessible done/pending stepper, with 12 new tests | dashboard/app.py, dashboard/assets/style.css, dashboard/tests/test_app.py | 1.54 | uplift_C_task02_landing_summary.png |
 
 
 ![Dhruv | Bob made the file](uplift_A_task_0_summary.png)
