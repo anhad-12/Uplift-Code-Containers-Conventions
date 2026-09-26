@@ -324,3 +324,73 @@ def test_affected_table_header_has_dark_text():
     assert "backgroundColor" in header_style
     # The color must be a dark value (not white or light grey)
     assert color.lower() not in ("#ffffff", "#f7f8fa", "#f5f5f5", "white", "")
+
+
+# ── C5: chart readability ─────────────────────────────────────────────────────
+
+def test_chart_layout_returns_light_font_and_transparent_bg():
+    """_chart_layout() must set a light font colour and transparent backgrounds."""
+    layout = panels._chart_layout()
+    assert layout["font"]["color"] == panels._CHART_FONT_COLOR
+    assert layout["font"]["size"] >= 13
+    assert layout["paper_bgcolor"] == "rgba(0,0,0,0)"
+    assert layout["plot_bgcolor"] == "rgba(0,0,0,0)"
+
+
+def test_chart_layout_overrides_are_merged():
+    """Extra kwargs passed to _chart_layout() appear in the returned dict."""
+    layout = panels._chart_layout(height=200, margin={"t": 10})
+    assert layout["height"] == 200
+    assert layout["font"]["color"] == panels._CHART_FONT_COLOR
+
+
+def test_risk_gauge_figure_has_light_font_and_transparent_bg():
+    """Risk gauge figure must use the shared light font colour and transparent bg."""
+    import plotly.graph_objects as go  # noqa: PLC0415
+    risk = {"score": 71, "level": "high", "factors": []}
+    wrapper = panels._risk_gauge(risk)
+    # The dcc.Graph is the only child of the wrapper div
+    graph = wrapper.children
+    fig = graph.figure
+    assert isinstance(fig, go.Figure)
+    layout = fig.layout
+    assert layout.paper_bgcolor == "rgba(0,0,0,0)"
+    assert layout.plot_bgcolor == "rgba(0,0,0,0)"
+    # Global font colour is light
+    assert layout.font.color == panels._CHART_FONT_COLOR
+    # Gauge axis tick labels are light
+    indicator = fig.data[0]
+    assert indicator.gauge.axis.tickfont.color == panels._CHART_FONT_COLOR
+    # Title uses "Risk: HIGH" colon format
+    assert "Risk:" in indicator.title.text
+    assert "HIGH" in indicator.title.text
+
+
+def test_tests_bar_figure_has_light_font_and_transparent_bg():
+    """Tests-bar figure must use the shared light font colour and transparent bg."""
+    import plotly.graph_objects as go  # noqa: PLC0415
+    tests = {"before": {"passed": 43, "failed": 4}, "after": {"passed": 47, "failed": 0}}
+    graph = panels._tests_bar(tests)
+    assert graph is not None
+    fig = graph.figure
+    assert isinstance(fig, go.Figure)
+    layout = fig.layout
+    assert layout.paper_bgcolor == "rgba(0,0,0,0)"
+    assert layout.plot_bgcolor == "rgba(0,0,0,0)"
+    # Global font colour is light
+    assert layout.font.color == panels._CHART_FONT_COLOR
+    # Gridlines are faint (rgba white)
+    assert "rgba(255,255,255" in layout.yaxis.gridcolor
+    # Bar traces carry text annotations
+    for trace in fig.data:
+        assert trace.text is not None and len(trace.text) == 2
+
+
+def test_untested_empty_shows_none():
+    """When untested is empty the strip must show 'None', not a dash."""
+    r = _s1()
+    r["untested"] = []
+    rendered = str(panels.summary_strip(r))
+    assert "Untested affected code" in rendered
+    # "None" must appear (as the empty placeholder)
+    assert "None" in rendered

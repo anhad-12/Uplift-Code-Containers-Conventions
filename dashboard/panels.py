@@ -208,10 +208,28 @@ _RISK_GAUGE_COLOR = {
     "unknown": "#8a8f98",
 }
 
+# Light font colour used on the dark page background (≥4.5:1 contrast on #1d2330)
+_CHART_FONT_COLOR = "#e6ebf5"
+
 # Formula tooltip text (matches schema definition)
 _RISK_FORMULA = (
     "score = min(100, 10×willBreak + 4×mightBreak + 12×untested + 15×contractHits)"
 )
+
+
+def _chart_layout(**overrides) -> dict:
+    """Return a shared Plotly layout dict with light font and transparent backgrounds.
+
+    Keyword arguments are merged on top of the defaults, allowing per-chart
+    customisation while keeping font colour and bg consistent.
+    """
+    base = {
+        "font": {"color": _CHART_FONT_COLOR, "size": 13},
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
+    }
+    base.update(overrides)
+    return base
 
 
 def _risk_gauge(risk: dict) -> dcc.Graph:
@@ -229,25 +247,26 @@ def _risk_gauge(risk: dict) -> dcc.Graph:
         value=score,
         number={"font": {"size": 32, "color": color}},
         gauge={
-            "axis": {"range": [0, 100], "tickfont": {"size": 10}},
+            "axis": {
+                "range": [0, 100],
+                "tickfont": {"size": 11, "color": _CHART_FONT_COLOR},
+            },
             "bar": {"color": color, "thickness": 0.3},
-            "bgcolor": "white",
+            "bgcolor": "rgba(0,0,0,0)",
             "borderwidth": 0,
             "steps": [
-                {"range": [0, 40],  "color": "#eefbf3"},
-                {"range": [40, 70], "color": "#fef9e8"},
-                {"range": [70, 100], "color": "#fff0f0"},
+                {"range": [0, 40],   "color": "rgba(63,166,106,0.20)"},
+                {"range": [40, 70],  "color": "rgba(224,160,48,0.20)"},
+                {"range": [70, 100], "color": "rgba(214,69,69,0.20)"},
             ],
             "threshold": {"line": {"color": color, "width": 3}, "thickness": 0.75, "value": score},
         },
-        title={"text": f"Risk — {level.upper()}", "font": {"size": 13}},
+        title={"text": f"Risk: {level.upper()}", "font": {"size": 13, "color": _CHART_FONT_COLOR}},
     ))
-    fig.update_layout(
+    fig.update_layout(**_chart_layout(
         margin={"t": 50, "b": 10, "l": 20, "r": 20},
         height=180,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-    )
+    ))
     return html.Div(
         dcc.Graph(
             figure=fig,
@@ -269,18 +288,45 @@ def _tests_bar(tests: dict) -> dcc.Graph | None:
     failed = [before.get("failed", 0), after.get("failed", 0)]
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(name="Passed", x=labels, y=passed, marker_color="#3fa66a"))
-    fig.add_trace(go.Bar(name="Failed", x=labels, y=failed, marker_color="#d64545"))
-    fig.update_layout(
+    fig.add_trace(go.Bar(
+        name="Passed",
+        x=labels,
+        y=passed,
+        marker_color="#3fa66a",
+        text=[str(v) for v in passed],
+        textposition="inside",
+        textfont={"color": "#ffffff"},
+    ))
+    fig.add_trace(go.Bar(
+        name="Failed",
+        x=labels,
+        y=failed,
+        marker_color="#d64545",
+        text=[str(v) for v in failed],
+        textposition="inside",
+        textfont={"color": "#ffffff"},
+    ))
+    fig.update_layout(**_chart_layout(
         barmode="stack",
-        margin={"t": 30, "b": 30, "l": 30, "r": 10},
+        margin={"t": 40, "b": 30, "l": 30, "r": 10},
         height=160,
-        legend={"orientation": "h", "y": -0.3, "font": {"size": 11}},
-        title={"text": "Tests before / after", "font": {"size": 12}},
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        yaxis={"gridcolor": "#e0e4ee"},
-    )
+        legend={
+            "orientation": "h",
+            "y": -0.3,
+            "font": {"size": 11, "color": _CHART_FONT_COLOR},
+        },
+        title={"text": "Tests before / after", "font": {"size": 13, "color": _CHART_FONT_COLOR}},
+        xaxis={
+            "tickfont": {"color": _CHART_FONT_COLOR},
+            "gridcolor": "rgba(255,255,255,0.12)",
+            "linecolor": "rgba(255,255,255,0.20)",
+        },
+        yaxis={
+            "tickfont": {"color": _CHART_FONT_COLOR},
+            "gridcolor": "rgba(255,255,255,0.12)",
+            "linecolor": "rgba(255,255,255,0.20)",
+        },
+    ))
     return dcc.Graph(figure=fig, config={"displayModeBar": False, "responsive": True},
                      style={"width": "100%"})
 
@@ -405,9 +451,9 @@ def summary_strip(report: dict, reports_dir: Path | None = None) -> html.Div:
     tests_to_run = report.get("testsToRun") or []
     untested     = report.get("untested")   or []
 
-    def _bullet_list(items: list[str], empty: str = "—") -> html.Ul:
+    def _bullet_list(items: list[str], empty: str = "—") -> html.Ul | html.P:
         if not items:
-            return html.Ul([html.Li(empty, className="text-muted small")])
+            return html.P(empty, className="text-muted small mb-0")
         return html.Ul([html.Li(html.Code(t, className="small"), className="small") for t in items],
                        style={"paddingLeft": "1.2rem", "marginBottom": 0})
 
@@ -418,7 +464,7 @@ def summary_strip(report: dict, reports_dir: Path | None = None) -> html.Div:
         ], xs=12, md=6, className="mb-2"),
         dbc.Col([
             html.Strong("Untested affected code", className="small"),
-            _bullet_list(untested),
+            _bullet_list(untested, empty="None"),
         ], xs=12, md=6, className="mb-2"),
     ], className="g-2 mt-1")
 
