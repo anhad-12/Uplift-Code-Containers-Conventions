@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "uplift-report",
+  "title": "Uplift report (the contract between engine, Bob modes and dashboard)",
+  "type": "object",
+  "required": ["schemaVersion", "mode", "provenance", "scenario", "change", "changedSymbols", "affected", "risk", "pipeline", "metrics"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "mode": { "enum": ["impact", "migrate"] },
+    "provenance": {
+      "type": "object",
+      "required": ["generatedBy"],
+      "properties": {
+        "generatedBy": { "enum": ["bob", "engine", "mock"], "description": "mock = hand-written placeholder. Never allowed in dashboard/public/reports at submission." },
+        "bobModes": { "type": "array", "items": { "type": "string" } },
+        "generatedAt": { "type": "string" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["id", "title"],
+      "properties": { "id": { "type": "string" }, "title": { "type": "string" }, "description": { "type": "string" } }
+    },
+    "change": {
+      "type": "object",
+      "required": ["summary", "kind"],
+      "properties": {
+        "summary": { "type": "string" },
+        "kind": { "enum": ["patch", "dependency-upgrade"] },
+        "patchFile": { "type": "string" },
+        "library": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" }
+      }
+    },
+    "changedSymbols": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "changeType"],
+        "properties": {
+          "id": { "type": "string", "description": "relative/path.py#symbol_name" },
+          "kind": { "enum": ["function", "method", "class", "type", "route", "export", "dependency"] },
+          "changeType": { "enum": ["signature", "returnShape", "behavior", "removed", "renamed", "added", "dependency"] },
+          "hints": { "type": "array", "items": { "type": "string" }, "description": "deterministic behaviour hints from the diff, e.g. 'throw removed', 'return null added'" }
+        }
+      }
+    },
+    "affected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "file", "line", "hop", "layer", "verdict"],
+        "properties": {
+          "id": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": "integer" },
+          "module": { "type": "string" },
+          "hop": { "type": "integer", "minimum": 1, "maximum": 3 },
+          "layer": { "enum": ["direct", "indirect", "contract"] },
+          "via": { "type": "string", "description": "id of the symbol this item depends on (previous hop)" },
+          "snippet": { "type": "string" },
+          "tests": { "type": "array", "items": { "type": "string" } },
+          "verdict": { "enum": ["will_break", "might_break", "safe", "unknown"] },
+          "reason": { "type": "string" },
+          "fix": { "type": "string" },
+          "proof": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": { "enum": ["confirmed", "unconfirmed", "not_attempted", "not_applicable"] },
+              "testFile": { "type": "string" },
+              "passesOnBase": { "type": "boolean" },
+              "failsOnHead": { "type": "boolean" }
+            }
+          },
+          "repair": {
+            "type": "object",
+            "properties": {
+              "status": { "enum": ["fixed", "failed", "not_attempted"] },
+              "worker": { "type": "string" },
+              "filesChanged": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "verdict"],
+        "properties": {
+          "type": { "enum": ["route", "export", "event"] },
+          "id": { "type": "string", "description": "e.g. GET /users/:id" },
+          "handler": { "type": "string" },
+          "verdict": { "enum": ["will_break", "might_break", "safe", "unknown"] },
+          "reason": { "type": "string" },
+          "proof": { "type": "object" }
+        }
+      }
+    },
+    "infraImpact": {
+      "type": "array",
+      "description": "Optional (F17). Docker layer effects of the change. Only deterministic facts; cost is a measured number or omitted.",
+      "items": {
+        "type": "object",
+        "required": ["file", "trigger"],
+        "properties": {
+          "file": { "type": "string", "description": "e.g. sample-app/Dockerfile" },
+          "layer": { "type": "integer" },
+          "totalLayers": { "type": "integer" },
+          "trigger": { "type": "string", "description": "e.g. requirements.txt changed, or shop/users/service.py copied in layer 3" },
+          "layersRebuilt": { "type": "string", "description": "e.g. 3-7" },
+          "measuredRebuildSeconds": { "type": "number", "description": "only if actually measured with docker build" },
+          "suggestion": { "type": "string" }
+        }
+      }
+    },
+    "conventions": {
+      "type": "object",
+      "description": "Optional (F16). Output of the Convention Scanner mode, plus the Verifier's compliance result.",
+      "properties": {
+        "naming": { "type": "string" },
+        "imports": { "type": "string" },
+        "errorHandling": { "type": "string" },
+        "fileLayout": { "type": "string" },
+        "evidenceFiles": { "type": "array", "items": { "type": "string" }, "description": "files the scanner read" },
+        "compliance": {
+          "type": "object",
+          "properties": {
+            "checkedLines": { "type": "integer" },
+            "violations": { "type": "integer" },
+            "retried": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "testsToRun": { "type": "array", "items": { "type": "string" } },
+    "untested": { "type": "array", "items": { "type": "string" } },
+    "risk": {
+      "type": "object",
+      "required": ["score", "level"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "level": { "enum": ["low", "medium", "high", "critical"] },
+        "factors": { "type": "array", "items": { "type": "string" } }
+      },
+      "description": "score = min(100, 10*willBreak + 4*mightBreak + 12*untestedAffected + 15*contractHits); low<30, medium<60, high<80, critical>=80. willBreak/mightBreak count 'affected' items only; untestedAffected = length of the top-level 'untested' list; contractHits = number of 'contracts' whose verdict is will_break or might_break."
+    },
+    "pipeline": {
+      "type": "object",
+      "required": ["predict", "prove", "repair", "verify"],
+      "properties": {
+        "predict": { "enum": ["done", "skipped", "pending"] },
+        "prove": { "enum": ["done", "skipped", "pending"] },
+        "repair": { "enum": ["done", "skipped", "pending"] },
+        "verify": { "enum": ["done", "skipped", "pending"] }
+      }
+    },
+    "migration": {
+      "type": ["object", "null"],
+      "properties": {
+        "catalog": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "kind"],
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "kind": { "enum": ["api_removed", "api_changed", "behavior_changed", "syntax"] },
+              "guideSection": { "type": "string" },
+              "detect": { "type": "object" },
+              "replacement": { "type": "string" },
+              "occurrences": { "type": "integer" }
+            }
+          }
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["module", "worker"],
+            "properties": {
+              "module": { "type": "string" },
+              "worker": { "type": "string" },
+              "filesChanged": { "type": "array", "items": { "type": "string" } },
+              "fixesApplied": { "type": "integer" },
+              "testsBefore": { "type": "object", "properties": { "passed": { "type": "integer" }, "failed": { "type": "integer" } } },
+              "testsAfter": { "type": "object", "properties": { "passed": { "type": "integer" }, "failed": { "type": "integer" } } }
+            }
+          }
+        },
+        "releaseNotes": { "type": "string" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["filesScanned", "predicted", "confirmed"],
+      "properties": {
+        "filesScanned": { "type": "integer" },
+        "secondsTaken": { "type": "number" },
+        "predicted": { "type": "integer", "description": "will_break items + will_break contracts" },
+        "confirmed": { "type": "integer", "description": "predicted items whose proof.status = confirmed" },
+        "unconfirmed": { "type": "integer" },
+        "fixed": { "type": "integer" },
+        "regressions": { "type": "integer" },
+        "tests": {
+          "type": "object",
+          "properties": {
+            "before": { "type": "object", "properties": { "passed": { "type": "integer" }, "failed": { "type": "integer" } } },
+            "after": { "type": "object", "properties": { "passed": { "type": "integer" }, "failed": { "type": "integer" } } }
+          }
+        },
+        "accuracy": {
+          "type": "object",
+          "description": "filled by task A8 from sample-app/scenarios/*.expected.json",
+          "properties": { "precision": { "type": "number" }, "recall": { "type": "number" }, "truePositives": { "type": "integer" }, "falsePositives": { "type": "integer" }, "falseNegatives": { "type": "integer" } }
+        }
+      }
+    }
+  }
+}

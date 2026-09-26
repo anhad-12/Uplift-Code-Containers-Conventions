@@ -1,0 +1,12 @@
+:root { --bg: #ffffff; --fg: #1d2330; --muted: #5d6675; --card: #f5f7fb; --accent: #3b5bdb;
+        --will: #d64545; --might: #e0a030; --safe: #3fa66a; --unknown: #8a8f98; --radius: 12px; }
+@media (prefers-color-scheme: dark) { :root { --bg: #11151c; --fg: #e8ecf3; --muted: #9aa4b5; --card: #1a202b; } }
+body { background: var(--bg); color: var(--fg); }
+.metric-value { font-size: 2rem; font-weight: 700; }
+.metric-label { color: var(--muted); }
+.stepper { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.step { padding: 6px 12px; border-radius: 999px; background: var(--card); }
+.step-done { background: var(--safe); color: #fff; }
+.step-pending { opacity: .6; }
+.upload { border: 2px dashed var(--muted); border-radius: var(--radius); padding: 16px; text-align: center; margin: 24px 0; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
