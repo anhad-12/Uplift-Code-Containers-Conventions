@@ -109,6 +109,68 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 /* ── Accessibility ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
+/* ── Filter chips ────────────────────────────────────────────────────────── */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.filter-label { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.filter-checklist { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.filter-chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid #cdd1da;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.filter-chip-label:hover { background: #e8ecf5; }
+.filter-chip-input { margin-right: 4px; }
+
+/* ── Graph toolbar (Fit button) ─────────────────────────────────────────── */
+.graph-toolbar { margin-bottom: 4px; }
+.fit-btn { font-size: 0.78rem; }
+
+/* ── Graph legend ────────────────────────────────────────────────────────── */
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 6px 0;
+}
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid #e0e4ee;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* ── Accessible node list ────────────────────────────────────────────────── */
+.a11y-details { margin-top: 16px; font-size: 0.85rem; }
+.a11y-details summary { cursor: pointer; color: var(--muted); font-size: 0.82rem; }
+.node-a11y-list {
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.a11y-node { padding: 2px 0; border-bottom: 1px solid var(--card); font-family: monospace; font-size: 0.78rem; }
+
 /* ── 375 px safety net – no horizontal scrollbar ───────────────────────── */
 @media (max-width: 400px) {
   .hero-h1 { font-size: 1.45rem; }

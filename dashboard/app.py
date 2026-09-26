@@ -51,6 +51,28 @@ HOW_IT_WORKS = [
     ("4", "Verify",   "Re-run the suite; confirm zero regressions."),
 ]
 
+# ── filter chip options ──────────────────────────────────────────────────────
+FILTER_OPTIONS = [
+    {"label": "will break", "value": "will_break"},
+    {"label": "might break", "value": "might_break"},
+    {"label": "safe", "value": "safe"},
+    {"label": "unknown", "value": "unknown"},
+    {"label": "untested only", "value": "untested"},
+]
+FILTER_DEFAULT = ["will_break", "might_break", "safe", "unknown"]
+
+# ── legend definition ────────────────────────────────────────────────────────
+LEGEND_ITEMS = [
+    ("★", "#3b5bdb", "Changed symbol"),
+    ("▬", "#d64545", "Will break"),
+    ("▬", "#e0a030", "Might break"),
+    ("▬", "#3fa66a", "Safe"),
+    ("▬", "#8a8f98", "Unknown"),
+    ("⬡", "#888", "Untested (dashed border)"),
+    ("✓", "#3fa66a", "Proof confirmed"),
+    ("?", "#e0a030", "Proof unconfirmed"),
+]
+
 
 def metric_card(label: str, value) -> dbc.Col:
     return dbc.Col(dbc.Card(dbc.CardBody([html.Div(str(value), className="metric-value"),
@@ -138,25 +160,108 @@ def how_it_works() -> html.Section:
     )
 
 
+def graph_legend() -> html.Div:
+    """A row of coloured chips explaining node shapes/colours."""
+    chips = []
+    for icon, color, label in LEGEND_ITEMS:
+        chips.append(
+            html.Span(
+                [html.Span(icon, style={"color": color, "margin-right": "4px", "font-size": "1rem"}),
+                 html.Span(label, style={"font-size": "0.78rem"})],
+                className="legend-chip",
+                title=label,
+            )
+        )
+    return html.Div(chips, className="graph-legend", role="list", **{"aria-label": "Graph legend"})
+
+
+def accessible_node_list(report: dict, hide: set[str] | None = None) -> html.Div:
+    """Plain <ul> listing all visible nodes for screen readers and keyboard users."""
+    hide = hide or set()
+    items = []
+    for c in report.get("changedSymbols", []):
+        items.append(html.Li(f"[changed] {c['id']}", className="a11y-node"))
+    for item in report.get("affected", []):
+        if item["verdict"] in hide:
+            continue
+        proof_status = (item.get("proof") or {}).get("status", "")
+        untested = " (untested)" if not item.get("tests") else ""
+        proof_txt = f" — proof: {proof_status}" if proof_status else ""
+        items.append(html.Li(
+            f"[{item['verdict']}] {item['id']}{untested}{proof_txt}",
+            className="a11y-node",
+        ))
+    for contract in report.get("contracts") or []:
+        if contract["verdict"] in hide:
+            continue
+        items.append(html.Li(f"[contract/{contract['verdict']}] {contract['id']}", className="a11y-node"))
+    return html.Div(
+        [html.H4("Nodes (accessible list)", className="visually-hidden"),
+         html.Ul(items, id="node-list", className="node-a11y-list")],
+        **{"aria-label": "Accessible node list"},
+    )
+
+
 def detail_view(sid: str) -> html.Div:
     r = REPORTS[sid]
     if r.get("_errors"):
         return html.Div([dbc.Alert("This report does not match the schema:", color="danger"),
                          html.Ul([html.Li(e) for e in r["_errors"][:10]])])
     m, risk = r["metrics"], r["risk"]
+    node_count = len(r.get("affected", [])) + len(r.get("changedSymbols", []))
+    large = node_count > 60
+    initial_elements = graph.build_elements(r, large=large)
+
     return html.Div([
         html.H3(r["scenario"]["title"]),
         stepper(r["pipeline"]),
         dbc.Row([metric_card("Risk score", f"{risk['score']} ({risk['level']})"),
                  metric_card("Predicted", m["predicted"]), metric_card("Confirmed", m["confirmed"]),
                  metric_card("Fixed", m.get("fixed", 0))], className="g-3 my-2"),
+
+        # ── Filter chips ──────────────────────────────────────────────────────
+        html.Div([
+            html.Span("Filter: ", className="filter-label", **{"aria-hidden": "true"}),
+            dcc.Checklist(
+                id="filter-chips",
+                options=FILTER_OPTIONS,
+                value=FILTER_DEFAULT,
+                inline=True,
+                className="filter-checklist",
+                inputClassName="filter-chip-input",
+                labelClassName="filter-chip-label",
+            ),
+        ], className="filter-row", role="group", **{"aria-label": "Filter nodes by verdict"}),
+
         dbc.Row([
-            dbc.Col(cyto.Cytoscape(id="graph", elements=graph.build_elements(r), stylesheet=graph.build_stylesheet(),
-                                   layout={"name": "preset", "fit": True, "padding": 30},
-                                   style={"width": "100%", "height": "520px"}, minZoom=0.3, maxZoom=2.5), md=8),
+            dbc.Col([
+                # ── Fit button + Cytoscape graph ─────────────────────────────
+                html.Div([
+                    html.Button("Fit", id="fit-btn", className="btn btn-sm btn-outline-secondary fit-btn",
+                                title="Reset zoom and pan to fit all nodes"),
+                ], className="graph-toolbar"),
+                cyto.Cytoscape(
+                    id="graph",
+                    elements=initial_elements,
+                    stylesheet=graph.build_stylesheet(large=large),
+                    layout={"name": "preset", "fit": True, "padding": 30},
+                    style={"width": "100%", "height": "520px"},
+                    minZoom=0.15,
+                    maxZoom=3.0,
+                ),
+                graph_legend(),
+            ], md=8),
             dbc.Col(html.Div(id="detail", children="Click a node."), md=4),
         ]),
+
+        # ── Accessible node list (below the graph) ────────────────────────────
+        html.Details([
+            html.Summary("Show accessible node list (screen reader / keyboard)"),
+            html.Div(id="a11y-list"),
+        ], className="a11y-details"),
+
         dcc.Store(id="sid", data=sid),
+        dcc.Store(id="large-flag", data=large),
     ])
 
 
@@ -209,6 +314,45 @@ def show_detail(node, sid):
         html.P(f"Fix: {item.get('fix', '')}"),
         html.P(f"Proof: {proof.get('status', 'n/a')}"),
     ])
+
+
+@app.callback(
+    Output("graph", "elements"),
+    Output("a11y-list", "children"),
+    Input("filter-chips", "value"),
+    Input("graph", "tapNodeData"),
+    State("sid", "data"),
+    State("large-flag", "data"),
+)
+def update_graph(selected_filters, tapped_node, sid, large):
+    """Rebuild elements on filter change or node tap."""
+    if sid not in REPORTS:
+        return [], html.Ul()
+    r = REPORTS[sid]
+    large = large or False
+
+    # Determine which verdicts to hide from the filter chips
+    selected = selected_filters or []
+    hide = graph.filter_hide(selected)
+
+    # Determine highlight path from tapped node
+    highlight: set[str] = set()
+    if tapped_node:
+        highlight = set(graph.path_to_root(r, tapped_node["id"]))
+
+    elements = graph.build_elements(r, hide=hide, highlight=highlight, large=large)
+    a11y = accessible_node_list(r, hide=hide)
+    return elements, a11y
+
+
+@app.callback(
+    Output("graph", "layout"),
+    Input("fit-btn", "n_clicks"),
+    prevent_initial_call=True,
+)
+def fit_graph(_n):
+    """Reset zoom/pan by re-applying the preset layout with fit=True."""
+    return {"name": "preset", "fit": True, "padding": 30}
 
 
 @app.callback(Output("upload-msg", "children"), Input("upload", "contents"))
