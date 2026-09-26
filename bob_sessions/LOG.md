@@ -8,3 +8,5 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 | --- | --- | --- | --- | --- | --- |
 
 ![DHRUV BOB ADDED TASK A2](uplift_A_task_2_summary.png)
+
+![DHRUV BOB ADDED TASK A3](uplift_A_task_3_summary-1.png)
