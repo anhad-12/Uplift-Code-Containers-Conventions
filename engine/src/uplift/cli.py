@@ -146,6 +146,10 @@ def report(
     catalog_file: Optional[Path] = typer.Option(None, "--catalog", help="Path to .uplift/catalog.json."),
     bob_modes: Optional[str] = typer.Option(None, "--bob-modes", help="Comma-separated Bob mode names for provenance."),
     verified: bool = typer.Option(False, "--verified", help="Mark pipeline.verify as done."),
+    occurrences_file: Optional[Path] = typer.Option(None, "--occurrences", help="Path to .uplift/occurrences.json (migrate mode)."),
+    library: Optional[str] = typer.Option(None, "--library", help="Library name for dependency upgrade, e.g. pydantic."),
+    lib_from: Optional[str] = typer.Option(None, "--from", help="Library version being upgraded from."),
+    lib_to: Optional[str] = typer.Option(None, "--to", help="Library version being upgraded to."),
 ) -> None:
     """Assemble a full Uplift report from graph + optional verdict/proof/repair files."""
     if not graph_file.exists():
@@ -182,6 +186,16 @@ def report(
             raise typer.Exit(1)
         catalog = json.loads(catalog_file.read_text(encoding="utf-8"))
 
+    occurrences_data = None
+    if occurrences_file is not None:
+        if not occurrences_file.exists():
+            typer.echo(f"ERROR: occurrences file not found: {occurrences_file}", err=True)
+            raise typer.Exit(1)
+        occurrences_data = json.loads(occurrences_file.read_text(encoding="utf-8"))
+        # May be {"occurrences": [...], "counts": {...}} or a raw list
+        if isinstance(occurrences_data, dict):
+            occurrences_data = occurrences_data.get("occurrences", [])
+
     modes_list: list[str] = [m.strip() for m in bob_modes.split(",")] if bob_modes else []
 
     rpt = build_report(
@@ -194,6 +208,10 @@ def report(
         title=title,
         bob_modes=modes_list,
         verified=verified,
+        occurrences=occurrences_data,
+        library=library,
+        lib_from=lib_from,
+        lib_to=lib_to,
     )
 
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -309,18 +327,79 @@ def proof_run(
 @app.command(name="migrate-scan")
 def migrate_scan(
     repo: Path = typer.Option(..., help="Path to the repository root."),
-    catalog: Path = typer.Option(..., help="Migration catalog JSON from Bob."),
+    catalog: Path = typer.Option(..., help="Migration catalog JSON (list of entries)."),
+    out: Path = typer.Option(..., help="Output JSON file path (e.g. .uplift/occurrences.json)."),
 ) -> None:
-    """Scan repo for migration catalog occurrences (not yet implemented)."""
-    raise NotImplementedError("migrate-scan: coming in B8")
+    """Scan repo/shop for every migration catalog entry occurrence."""
+    import json as _json
+    from uplift.migrate import scan as _scan
+
+    if not catalog.exists():
+        typer.echo(f"ERROR: catalog not found: {catalog}", err=True)
+        raise typer.Exit(1)
+
+    catalog_data = _json.loads(catalog.read_text(encoding="utf-8"))
+    # catalog may be a list directly, or {"catalog": [...]}
+    entries: list[dict] = catalog_data if isinstance(catalog_data, list) else catalog_data.get("catalog", catalog_data)
+
+    occurrences = _scan(repo, entries)
+
+    # Counts per entry id
+    counts: dict[str, int] = {}
+    for occ in occurrences:
+        counts[occ["entry"]] = counts.get(occ["entry"], 0) + 1
+
+    result = {"occurrences": occurrences, "counts": counts}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(_json.dumps(result, indent=2), encoding="utf-8")
+
+    # ASCII summary
+    typer.echo(f"Scan complete: {len(occurrences)} occurrences across {len(counts)} catalog entries")
+    col_e = max((len(e) for e in counts), default=5)
+    col_e = max(col_e, 5)
+    fmt = f"  {{:<{col_e}}}  {{:>5}}  {{}}"
+    typer.echo(fmt.format("entry", "count", "modules"))
+    typer.echo("  " + "-" * (col_e + 20))
+    for entry_id, cnt in sorted(counts.items()):
+        modules = sorted({o["module"] for o in occurrences if o["entry"] == entry_id})
+        typer.echo(fmt.format(entry_id, cnt, ", ".join(modules)))
+    typer.echo(f"\nOccurrences written to {out}")
 
 
 @app.command(name="upgrade-test")
-def upgrade_test(
-    repo: Path = typer.Option(..., help="Path to the repository root."),
+def upgrade_test_cmd(
+    repo: Path = typer.Option(..., help="Path to the repository root (e.g. sample-app/)."),
+    requirements: Path = typer.Option(..., "--requirements", help="Upgraded requirements.txt to test against."),
+    out: Path = typer.Option(..., help="Output JSON file path (e.g. .uplift/upgrade-before.json)."),
+    current: bool = typer.Option(False, "--current", help="Use existing interpreter instead of a temp venv."),
+    app_python: Optional[str] = typer.Option(None, "--app-python", help="Python interpreter path."),
 ) -> None:
-    """Run tests against the upgraded dependency (not yet implemented)."""
-    raise NotImplementedError("upgrade-test: coming in B8")
+    """Run the test suite against upgraded requirements (creates a temp venv)."""
+    from uplift.migrate import upgrade_test as _upgrade_test
+
+    if not requirements.exists():
+        typer.echo(f"ERROR: requirements file not found: {requirements}", err=True)
+        raise typer.Exit(1)
+
+    typer.echo(f"Running upgrade test (current={current}, requirements={requirements}) ...")
+    result = _upgrade_test(
+        repo=repo,
+        requirements=requirements,
+        app_python=app_python,
+        current=current,
+        out=out,
+    )
+
+    typer.echo(f"\nResults: {result['passed']} passed, {result['failed']} failed")
+    if result.get("byModule"):
+        col_m = max((len(m) for m in result["byModule"]), default=6)
+        col_m = max(col_m, 6)
+        fmt = f"  {{:<{col_m}}}  {{:>6}}  {{:>6}}"
+        typer.echo(fmt.format("module", "passed", "failed"))
+        typer.echo("  " + "-" * (col_m + 16))
+        for mod, counts in sorted(result["byModule"].items()):
+            typer.echo(fmt.format(mod, counts.get("passed", 0), counts.get("failed", 0)))
+    typer.echo(f"\nResults written to {out}")
 
 
 @app.command()

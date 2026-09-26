@@ -63,6 +63,10 @@ def build_report(
     title: str,
     bob_modes: list[str],
     verified: bool = False,
+    occurrences: Optional[list[dict]] = None,
+    library: Optional[str] = None,
+    lib_from: Optional[str] = None,
+    lib_to: Optional[str] = None,
 ) -> dict:
     """Assemble a full report dict that validates against schema/report.schema.json.
 
@@ -218,16 +222,74 @@ def build_report(
     if "kind" not in change:
         change["kind"] = "patch"
 
-    # ---- migration (from catalog if present) --------------------------------
+    # ---- migration (from catalog + occurrences if present) ------------------
     migration = None
-    if catalog:
-        migration = {"catalog": catalog.get("catalog", []), "modules": catalog.get("modules", [])}
-        if "releaseNotes" in catalog:
+    mode = "impact"
+    if catalog or occurrences is not None:
+        mode = "migrate"
+        catalog_entries = catalog.get("catalog", []) if catalog else []
+        catalog_modules = catalog.get("modules", []) if catalog else []
+        migration = {
+            "catalog": catalog_entries,
+            "modules": catalog_modules,
+        }
+        if catalog and "releaseNotes" in catalog:
             migration["releaseNotes"] = catalog["releaseNotes"]
+
+    # If we have occurrences, build affected[] from them and override changedSymbols
+    if occurrences is not None and library:
+        via_id = f"requirements.txt#{library}"
+        changed_sym = [{"id": via_id, "kind": "dependency", "changeType": "dependency"}]
+        occ_affected: list[dict] = []
+        verdict_map_local = verdict_map.copy()
+        for occ in occurrences:
+            enc = occ.get("enclosing") or occ["module"]
+            item_id = f"{occ['file']}#{enc}"
+            v_entry = verdict_map_local.get(item_id, {})
+            verdict = v_entry.get("verdict", "unknown")
+            occ_affected.append({
+                "id": item_id,
+                "file": occ["file"],
+                "line": occ["line"],
+                "hop": 1,
+                "layer": "direct",
+                "via": via_id,
+                "verdict": verdict,
+                "reason": v_entry.get("reason", ""),
+                "fix": v_entry.get("fix", ""),
+                "proof": {"status": "not_attempted"},
+                "module": occ["module"],
+            })
+        # Deduplicate by id
+        seen_ids: set[str] = set()
+        deduped: list[dict] = []
+        for item in occ_affected:
+            if item["id"] not in seen_ids:
+                seen_ids.add(item["id"])
+                deduped.append(item)
+        affected = deduped
+        # Recompute risk for migrate mode
+        rk = risk(affected, contracts, untested)
+        predicted = sum(1 for a in affected if a["verdict"] == "will_break")
+        confirmed = sum(1 for a in affected if a.get("proof", {}).get("status") == "confirmed")
+        metrics["predicted"] = predicted
+        metrics["confirmed"] = confirmed
+        # Override change for dependency upgrade
+        change = {
+            "summary": f"Dependency upgrade: {library} {lib_from} -> {lib_to}" if lib_from and lib_to else f"Dependency upgrade: {library}",
+            "kind": "dependency-upgrade",
+        }
+        if library:
+            change["library"] = library
+        if lib_from:
+            change["from"] = lib_from
+        if lib_to:
+            change["to"] = lib_to
+        graph["changedSymbols"] = changed_sym
 
     return {
         "schemaVersion": 1,
-        "mode": "impact",
+        "mode": mode,
         "provenance": provenance,
         "scenario": {"id": scenario_id, "title": title},
         "change": change,
