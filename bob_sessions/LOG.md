@@ -15,6 +15,7 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 | C | C5b | Bob made the plotly charts readable on the dark theme with a shared light-text layout, transparent backgrounds, faint grid and counts on the bars; 6 new tests | dashboard/panels.py, dashboard/tests/test_panels.py | 1.16 | uplift_C_task05b_charts_summary.png |
 | C | C6 | Bob built the Migrate view: guide catalog table with kind filter, four parallel worker lanes with before/after test bars, release notes, summary strip and graph; 12 new tests | dashboard/panels.py, dashboard/app.py, dashboard/tests/test_panels.py | 2.77 | uplift_C_task06_migrate_summary.png |
 | C | C6b | Bob fixed the migrate view visuals: worker-lane charts contained in their cards, horizontal bar labels, readable empty states, kind dropdown for the catalog, release-notes heading sizes and graph spacing; 5 new tests | dashboard/panels.py, dashboard/app.py, dashboard/assets/style.css, dashboard/tests/test_panels.py | 3.49 | uplift_C_task06b_lanes_fix_summary.png |
+| C | C7 | Bob added drop/paste report validation with schema errors, tabs for the PR comment preview (with copy button) and the Powered by IBM Bob panel; 28 new tests | dashboard/app.py, dashboard/panels.py, dashboard/comment.py, dashboard/tests/test_c7.py | 4.18 | uplift_C_task07_upload_pr_bob_summary.png |
 
 
 ![Dhruv | Bob made the file](uplift_A_task_0_summary.png)
