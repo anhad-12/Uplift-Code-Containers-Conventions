@@ -404,20 +404,123 @@ def upgrade_test_cmd(
 
 @app.command()
 def comment(
-    report_file: Path = typer.Option(..., help="Report JSON to render as PR comment."),
+    report_file: Path = typer.Option(..., "--report", help="Report JSON to render as a Markdown PR comment."),
 ) -> None:
-    """Generate a PR comment from a report (not yet implemented)."""
-    raise NotImplementedError("comment: coming in B11")
+    """Print a Markdown PR comment (risk line, verdict table, contracts, metrics)."""
+    from uplift.comment import pr_comment
+
+    if not report_file.exists():
+        typer.echo(f"ERROR: report file not found: {report_file}", err=True)
+        raise typer.Exit(1)
+    try:
+        report = json.loads(report_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        typer.echo(f"ERROR: could not read report: {exc}", err=True)
+        raise typer.Exit(1)
+
+    typer.echo(pr_comment(report))
 
 
 @app.command(name="run-all")
 def run_all(
     repo: Path = typer.Option(..., help="Path to the repository root."),
-    scenario: str = typer.Option(..., help="Scenario ID."),
+    patch: Path = typer.Option(..., help="Path to the unified diff patch file."),
+    scenario: str = typer.Option(..., help="Scenario ID (e.g. s1-null-user)."),
     applied: bool = typer.Option(False, "--applied", help="Patch already applied to repo."),
 ) -> None:
-    """Run the full predict pipeline for a scenario (not yet implemented)."""
-    raise NotImplementedError("run-all: coming in B9")
+    """Run diff + graph + routes + test-map and write .uplift/graph.json; print next steps for Bob."""
+    t0 = time.monotonic()
+
+    uplift_dir = Path(".uplift")
+    uplift_dir.mkdir(parents=True, exist_ok=True)
+    graph_out = uplift_dir / "graph.json"
+
+    # --- diff ---
+    typer.echo(f"[run-all] diff  repo={repo}  patch={patch}  applied={applied}")
+    try:
+        head, base = head_and_base(repo, patch, applied)
+    except Exception as exc:
+        typer.echo(f"ERROR: diff failed: {exc}", err=True)
+        raise typer.Exit(1)
+
+    try:
+        changed = changed_symbols(head, base, patch)
+    except Exception as exc:
+        typer.echo(f"ERROR: changed_symbols failed: {exc}", err=True)
+        raise typer.Exit(1)
+
+    typer.echo(f"[run-all] {len(changed)} changed symbol(s)")
+
+    # --- graph (3-hop) ---
+    typer.echo("[run-all] graph ...")
+    try:
+        candidates = find_candidates(head, changed)
+    except Exception as exc:
+        typer.echo(f"ERROR: graph failed: {exc}", err=True)
+        raise typer.Exit(1)
+
+    # --- routes + contracts ---
+    try:
+        routes = route_map(head)
+        contracts = contracts_for(candidates, routes)
+    except Exception as exc:
+        typer.echo(f"ERROR: routes failed: {exc}", err=True)
+        raise typer.Exit(1)
+
+    # --- test map ---
+    try:
+        annotate_candidates(candidates, head)
+    except Exception as exc:
+        typer.echo(f"ERROR: test-map failed: {exc}", err=True)
+        raise typer.Exit(1)
+
+    tests_to_run: list[str] = sorted(
+        {t for c in candidates for t in c.get("tests", [])}
+    )
+    untested: list[str] = sorted(
+        c["id"] for c in candidates if not c.get("tests")
+    )
+    files_scanned = sum(
+        1 for p in head.rglob("*.py")
+        if not any(
+            part in ("tests", "test") or part.startswith("test_")
+            for part in p.relative_to(head).parts
+        )
+    )
+    seconds_taken = round(time.monotonic() - t0, 3)
+
+    payload = {
+        "changedSymbols": changed,
+        "candidates": candidates,
+        "contracts": contracts,
+        "testsToRun": tests_to_run,
+        "untested": untested,
+        "filesScanned": files_scanned,
+        "secondsTaken": seconds_taken,
+    }
+    graph_out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    typer.echo(f"[run-all] graph written to {graph_out}")
+    typer.echo(
+        f"[run-all] {len(candidates)} candidate(s), "
+        f"{len(contracts)} contract(s), "
+        f"{len(untested)} untested, "
+        f"{files_scanned} files scanned, "
+        f"{seconds_taken}s"
+    )
+    typer.echo("")
+    typer.echo("=" * 60)
+    typer.echo("NEXT STEPS FOR BOB")
+    typer.echo("=" * 60)
+    typer.echo(f"  Switch to mode : uplift-impact-analyst")
+    typer.echo(f"  Open prompt    : prompts/A-brain.md  (task A2 - predict)")
+    typer.echo(f"  Graph file     : {graph_out}")
+    typer.echo(f"  Scenario       : {scenario}")
+    typer.echo("")
+    typer.echo("  After verdicts are written to .uplift/verdicts.json:")
+    typer.echo("  Switch to mode : uplift-prover")
+    typer.echo("  Open prompt    : prompts/A-brain.md  (task A3 - prove)")
+    typer.echo("=" * 60)
 
 
 @app.command()
