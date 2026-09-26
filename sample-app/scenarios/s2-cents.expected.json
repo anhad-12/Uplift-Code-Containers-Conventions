@@ -1,0 +1,48 @@
+{
+  "scenario": "s2-cents",
+  "changedSymbol": "shop/payments/charge.py#charge",
+  "items": [
+    {
+      "id": "shop/payments/receipt.py#render_receipt",
+      "file": "shop/payments/receipt.py",
+      "expected": "will_break",
+      "evidence": "Ran render_receipt(charge(1, 100.0)) on scenario/s2-cents branch. charge now returns Payment(amount=10320). render_receipt uses f'${payment.amount:.2f}', so output is 'Receipt for Asha Rao: $10320.00'. Pre-patch output was 'Receipt for Asha Rao: $103.20'. Amount shown to user is 100x too large."
+    },
+    {
+      "id": "shop/notifications/email.py#send_receipt_email",
+      "file": "shop/notifications/email.py",
+      "expected": "will_break",
+      "evidence": "Ran send_receipt_email(charge(1, 100.0)) on scenario/s2-cents branch. charge returns Payment(amount=10320). Output is 'Thanks! We charged $10320.00'. Pre-patch: 'Thanks! We charged $103.20'. Email to customer shows 100x inflated amount."
+    },
+    {
+      "id": "shop/orders/invoice.py#payment_line",
+      "file": "shop/orders/invoice.py",
+      "expected": "will_break",
+      "evidence": "Ran payment_line(charge(1, 100.0)) on scenario/s2-cents branch. Returns {'label': 'payment', 'amount': 10320}. Pre-patch: {'label': 'payment', 'amount': 103.2}. Invoice line item shows cents value where dollars are expected."
+    },
+    {
+      "id": "shop/admin/reports.py#revenue_total",
+      "file": "shop/admin/reports.py",
+      "expected": "will_break",
+      "evidence": "Ran revenue_total([charge(1,100.0), charge(1,100.0)]) on scenario/s2-cents branch. Returns 20640. Pre-patch: 206.4. Revenue report is 100x inflated because it sums cent-valued integers as if they were dollars."
+    },
+    {
+      "id": "shop/payments/routes.py#post_payment",
+      "file": "shop/payments/routes.py",
+      "expected": "will_break",
+      "evidence": "Called POST /payments with user_id=1, amount=100 on scenario/s2-cents branch. Response JSON: {'user_id': 1, 'amount': 10320}. Pre-patch: {'user_id': 1, 'amount': 103.2}. API contract broken: clients expecting a dollar-denominated float receive a cents-denominated int."
+    },
+    {
+      "id": "shop/payments/repo.py#save_payment",
+      "file": "shop/payments/repo.py",
+      "expected": "will_break",
+      "evidence": "Ran repo.save_payment(charge(1, 100.0)); repo.all_payments()[0].amount == 10320 on scenario/s2-cents branch. The stored Payment now holds cents, so any downstream code reading from the repo (e.g. revenue_total, reporting) will get cent-valued amounts instead of dollar values."
+    },
+    {
+      "id": "shop/orders/invoice.py#build_invoice",
+      "file": "shop/orders/invoice.py",
+      "expected": "safe",
+      "evidence": "Ran build_invoice(Order(id=1, user_id=1, total=20.0)) on scenario/s2-cents branch. build_invoice uses order.total (not Payment.amount) to build the invoice. It calls get_user for the email address only. Output unchanged: {'to': 'asha@example.com', 'lines': [{'label': 'order', 'amount': 20.0}], 'total': 20.0}. Not affected by the cents change."
+    }
+  ]
+}
