@@ -14,6 +14,17 @@
     { "id": "shop/payments/schemas.py#PaymentIn", "file": "shop/payments/schemas.py", "line": 9, "module": "payments", "hop": 1, "layer": "direct", "via": "requirements.txt#pydantic", "snippet": "card: str = Field(..., regex=r\"^\\d{16}$\")", "tests": ["tests/payments/test_routes.py"], "verdict": "will_break", "reason": "Field(regex=...) was renamed to pattern.", "fix": "Use Field(..., pattern=...).", "proof": { "status": "confirmed", "passesOnBase": true, "failsOnHead": true }, "repair": { "status": "fixed", "worker": "uplift-worker-payments", "filesChanged": ["shop/payments/schemas.py"] } }
   ],
   "contracts": [],
+  "infraImpact": [
+    { "file": "sample-app/Dockerfile", "layer": 3, "totalLayers": 7, "trigger": "requirements.txt changed (pydantic 1.10.13 -> 2.9.0)", "layersRebuilt": "3-7", "suggestion": "The dependency install layer is invalidated by the version bump; this rebuild is expected for a real upgrade. Keep requirements.txt in its own COPY so unrelated code changes do not trigger it." }
+  ],
+  "conventions": {
+    "naming": "snake_case for functions and variables, PascalCase for Pydantic models",
+    "imports": "absolute imports from shop.*, one schema class per file",
+    "errorHandling": "raise NotFoundError / ValidationError; never return None on not-found",
+    "fileLayout": "one module folder per domain (users, orders, payments) with a mirrored tests/<module>/ tree",
+    "evidenceFiles": ["shop/users/service.py", "shop/orders/service.py", "shop/payments/schemas.py", "shop/config.py", "tests/users/test_routes.py"],
+    "compliance": { "checkedLines": 22, "violations": 1, "retried": true }
+  },
   "testsToRun": ["tests/notifications/test_email.py", "tests/users/test_routes.py", "tests/orders/test_service.py", "tests/payments/test_routes.py"],
   "untested": [],
   "risk": { "score": 40, "level": "medium", "factors": ["4 will_break (+40)"] },
