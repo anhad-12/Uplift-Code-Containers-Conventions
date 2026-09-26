@@ -1,0 +1,16 @@
+dist/
+.env
+.env.*
+!.env.example
+.uplift/tmp/
+*.log
+.DS_Store
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+.venv*/
