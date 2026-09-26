@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "uplift": {
+      "command": "${workspaceFolder}/engine/.venv/bin/python",
+      "args": ["-m", "uplift", "mcp"],
+      "alwaysAllow": ["uplift_graph", "uplift_proof_run", "uplift_migrate_scan", "uplift_report"]
+    }
+  }
+}

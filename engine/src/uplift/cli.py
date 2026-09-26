@@ -525,5 +525,6 @@ def run_all(
 
 @app.command()
 def mcp() -> None:
-    """Start the MCP server (not yet implemented)."""
-    raise NotImplementedError("mcp: coming in B14")
+    """Start the Uplift MCP server on stdio transport."""
+    from uplift.mcp_server import run
+    run()
