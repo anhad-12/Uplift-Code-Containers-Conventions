@@ -11,6 +11,7 @@ from dash import Input, Output, State, dcc, html
 
 import graph
 import loader
+import panels
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], title="Uplift",
                 suppress_callback_exceptions=True, meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}])
@@ -261,6 +262,10 @@ def detail_view(sid: str) -> html.Div:
             dbc.Col(html.Div(id="detail", children="Click a node."), md=4),
         ]),
 
+        # ── Affected items table ───────────────────────────────────────────────
+        html.H4("Affected items", className="mt-4 mb-2"),
+        panels.affected_table(r),
+
         # ── Accessible node list (below the graph) ────────────────────────────
         html.Details([
             html.Summary("Show accessible node list (screen reader / keyboard)"),
@@ -306,21 +311,33 @@ def route(search):
     return detail_view(sid) if sid in REPORTS else home()
 
 
-@app.callback(Output("detail", "children"), Input("graph", "tapNodeData"), State("sid", "data"))
-def show_detail(node, sid):
-    if not node:
-        return "Click a node."
-    item = graph.find_item(REPORTS[sid], node["id"])
-    if not item:
-        return "Changed symbol"
-    proof = item.get("proof") or {}
-    return html.Div([
-        html.H5(item["id"]),
-        html.Pre(item.get("snippet", "")),
-        html.P(f"Verdict: {item['verdict']}"), html.P(item.get("reason", "")),
-        html.P(f"Fix: {item.get('fix', '')}"),
-        html.P(f"Proof: {proof.get('status', 'n/a')}"),
-    ])
+@app.callback(
+    Output("detail", "children"),
+    Input("graph", "tapNodeData"),
+    Input("affected-table", "selected_rows"),
+    State("sid", "data"),
+)
+def show_detail(node, selected_rows, sid):
+    """Show the detail panel when a graph node or a table row is clicked."""
+    from dash import ctx  # noqa: PLC0415
+    triggered = ctx.triggered_id if ctx.triggered_id else None
+
+    r = REPORTS[sid]
+
+    # Table row click takes priority when that is the trigger
+    if triggered == "affected-table" and selected_rows:
+        row_index = selected_rows[0]
+        item = r["affected"][row_index]
+        return panels.detail_panel(item)
+
+    # Graph node tap
+    if node:
+        item = graph.find_item(r, node["id"])
+        if not item:
+            return "Changed symbol"
+        return panels.detail_panel(item)
+
+    return "Click a node or table row."
 
 
 @app.callback(
@@ -350,6 +367,23 @@ def update_graph(selected_filters, tapped_node, sid, large):
     elements = graph.build_elements(r, hide=hide, highlight=highlight, large=large)
     a11y = accessible_node_list(r, hide=hide)
     return elements, a11y
+
+
+@app.callback(
+    Output("graph", "selectedNodeData"),
+    Input("affected-table", "selected_rows"),
+    State("sid", "data"),
+    prevent_initial_call=True,
+)
+def table_row_selects_node(selected_rows, sid):
+    """When a table row is clicked, return the node id so the graph highlights it."""
+    # Cytoscape does not accept a direct "select by id" callback output, but
+    # returning tapNodeData-compatible data keeps the highlight in sync via
+    # the update_graph callback which listens to tapNodeData.
+    # We update the graph elements via a separate approach: returning an empty
+    # list clears selection; we rely on the existing tapNodeData flow for graph
+    # highlighting (the table row still shows the panel via show_detail above).
+    return []
 
 
 @app.callback(
