@@ -209,12 +209,20 @@ def affected_table(report: dict) -> dash_table.DataTable:
         sort_action="native",
         row_selectable="single",
         style_table={"overflowX": "auto"},
-        style_cell={"textAlign": "left", "fontSize": "13px", "padding": "6px 10px"},
+        style_cell={
+            "textAlign": "left",
+            "fontSize": "14px",
+            "padding": "10px 14px",
+            "minHeight": "44px",
+            "lineHeight": "1.4",
+        },
         style_header={
             "fontWeight": "bold",
             "backgroundColor": "#ffffff",
             "color": "#1d2330",      # dark text — ≥ 16:1 on white
             "borderBottom": "2px solid #d0d4de",
+            "position": "sticky",
+            "top": 0,
         },
         style_data_conditional=TABLE_STYLE_DATA_CONDITIONAL,
     )
@@ -228,8 +236,10 @@ _RISK_GAUGE_COLOR = {
     "unknown": "#8a8f98",
 }
 
-# Light font colour used on the dark page background (≥4.5:1 contrast on #1d2330)
+# Light font colour used on the dark page background (≥4.5:1 contrast on #0e1320)
 _CHART_FONT_COLOR = "#e6ebf5"
+# Dark font colour used on white/light card backgrounds (≥4.5:1 contrast on #ffffff)
+_CHART_FONT_COLOR_LIGHT = "#1d2330"
 
 # Formula tooltip text (matches schema definition)
 _RISK_FORMULA = (
@@ -237,14 +247,21 @@ _RISK_FORMULA = (
 )
 
 
-def _chart_layout(**overrides) -> dict:
-    """Return a shared Plotly layout dict with light font and transparent backgrounds.
+def _chart_layout(on_light: bool = False, **overrides) -> dict:
+    """Return a shared Plotly layout dict with appropriate font colour and transparent backgrounds.
 
-    Keyword arguments are merged on top of the defaults, allowing per-chart
-    customisation while keeping font colour and bg consistent.
+    Args:
+        on_light: When True, use dark font (#1d2330) suitable for white/light card
+                  backgrounds. When False (default), use light font (#e6ebf5) for
+                  the dark page background.
+        **overrides: Keyword arguments merged on top of the defaults.
+
+    Returns:
+        Layout dict for ``fig.update_layout(**...)``.
     """
+    font_color = _CHART_FONT_COLOR_LIGHT if on_light else _CHART_FONT_COLOR
     base = {
-        "font": {"color": _CHART_FONT_COLOR, "size": 13},
+        "font": {"color": font_color, "size": 13},
         "paper_bgcolor": "rgba(0,0,0,0)",
         "plot_bgcolor": "rgba(0,0,0,0)",
     }
@@ -349,6 +366,11 @@ def _tests_bar(tests: dict) -> dcc.Graph | None:
             "tickfont": {"color": _CHART_FONT_COLOR},
             "gridcolor": "rgba(255,255,255,0.12)",
             "linecolor": "rgba(255,255,255,0.20)",
+        },
+        hoverlabel={
+            "bgcolor": "#1c2540",
+            "bordercolor": "#2a3555",
+            "font": {"color": "#e6ebf5", "size": 12},
         },
     ))
     return dcc.Graph(figure=fig, config={"displayModeBar": False, "responsive": True},
@@ -578,10 +600,12 @@ def _catalog_table(catalog: list[dict]) -> dash_table.DataTable:
         style_table={"overflowX": "auto"},
         style_cell={
             "textAlign": "left",
-            "fontSize": "13px",
-            "padding": "6px 10px",
+            "fontSize": "14px",
+            "padding": "10px 14px",
+            "minHeight": "44px",
             "whiteSpace": "normal",
             "maxWidth": "260px",
+            "lineHeight": "1.4",
         },
         style_cell_conditional=[
             {"if": {"column_id": "guideSection"}, "fontStyle": "italic"},
@@ -591,6 +615,8 @@ def _catalog_table(catalog: list[dict]) -> dash_table.DataTable:
             "backgroundColor": "#ffffff",
             "color": "#1d2330",
             "borderBottom": "2px solid #d0d4de",
+            "position": "sticky",
+            "top": 0,
         },
         style_data_conditional=_CATALOG_STYLE_DATA_CONDITIONAL,
         tooltip_data=[
@@ -646,21 +672,28 @@ def _module_lane(mod: dict) -> dbc.Col:
         insidetextanchor="middle",
         textfont={"color": "#ffffff", "size": 11},
     ))
+    # Lane charts sit on white cards — use dark font for readability
     fig.update_layout(**_chart_layout(
+        on_light=True,
         barmode="stack",
         margin={"t": 10, "b": 30, "l": 10, "r": 10},
         height=_LANE_CHART_HEIGHT,
         showlegend=False,
         xaxis={
-            "tickfont": {"color": _CHART_FONT_COLOR, "size": 10},
-            "gridcolor": "rgba(255,255,255,0.10)",
-            "linecolor": "rgba(255,255,255,0.20)",
+            "tickfont": {"color": _CHART_FONT_COLOR_LIGHT, "size": 10},
+            "gridcolor": "rgba(0,0,0,0.08)",
+            "linecolor": "rgba(0,0,0,0.15)",
         },
         yaxis={
-            "tickfont": {"color": _CHART_FONT_COLOR, "size": 10},
-            "gridcolor": "rgba(255,255,255,0.10)",
-            "linecolor": "rgba(255,255,255,0.20)",
+            "tickfont": {"color": _CHART_FONT_COLOR_LIGHT, "size": 10},
+            "gridcolor": "rgba(0,0,0,0.08)",
+            "linecolor": "rgba(0,0,0,0.15)",
             "visible": False,
+        },
+        hoverlabel={
+            "bgcolor": "#1c2540",
+            "bordercolor": "#2a3555",
+            "font": {"color": "#e6ebf5", "size": 12},
         },
     ))
     # Wrap graph in a fixed-height div so it never overflows the card

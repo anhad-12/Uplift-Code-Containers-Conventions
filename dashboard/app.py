@@ -209,25 +209,33 @@ def _pr_comment_tab(r: dict) -> dbc.Tab:
     comment_text = _comment_mod.pr_comment(r)
     return dbc.Tab(
         html.Div([
-            html.Div(
+            html.Div([
                 dcc.Clipboard(
                     target_id="pr-comment-md",
-                    title="Copy to clipboard",
-                    style={"fontSize": "1.1rem", "cursor": "pointer",
-                           "color": "#3b82d4"},
+                    title="Copy comment",
+                    className="copy-comment-btn",
+                    style={"fontSize": "13px", "cursor": "pointer"},
                 ),
-                className="d-flex justify-content-end mb-2",
+                html.Span("📋 Copy comment", className="ms-1", style={"pointerEvents": "none", "fontSize": "13px", "color": "var(--text)"}),
+            ], className="d-flex align-items-center gap-2 mb-1"),
+            html.P(
+                "This is the exact comment Uplift posts on the pull request.",
+                className="pr-comment-caption",
             ),
-            dbc.Card(
-                dbc.CardBody(
-                    dcc.Markdown(
-                        comment_text,
-                        id="pr-comment-md",
-                        className="release-notes-md",
+            html.Div(
+                dbc.Card(
+                    dbc.CardBody(
+                        dcc.Markdown(
+                            comment_text,
+                            id="pr-comment-md",
+                            className="release-notes-md pr-md-content",
+                        ),
+                        style={"backgroundColor": "#ffffff", "padding": "16px"},
                     ),
-                    style={"backgroundColor": "#ffffff", "padding": "16px"},
+                    className="pr-comment-card",
+                    style={"border": "1px solid #e5e7eb"},
                 ),
-                style={"border": "1px solid #e5e7eb"},
+                className="pr-comment-scroll",
             ),
         ], className="mt-3"),
         label="PR comment",
@@ -373,11 +381,26 @@ def home() -> html.Div:
                     "and repairs it with sandboxed IBM Bob workers.",
                     className="hero-sub",
                 ),
+                html.Div([
+                    dcc.Link(
+                        "Open the S1 demo",
+                        href="/?scenario=s1-null-user",
+                        className="btn-primary-cta",
+                    ),
+                    html.A(
+                        "Read how it works",
+                        href="#how-it-works",
+                        className="btn-secondary-cta",
+                    ),
+                ], className="hero-cta"),
             ],
             className="hero-section",
         ),
         # ── How it works strip ────────────────────────────────────────────────
-        how_it_works(),
+        html.Section(
+            how_it_works(),
+            id="how-it-works",
+        ),
         # ── Scenario cards ────────────────────────────────────────────────────
         html.H2("Scenarios", className="section-heading"),
         scenario_cards(),
@@ -391,34 +414,53 @@ app.layout = dbc.Container([
     # ── Upload area ───────────────────────────────────────────────────────────
     dcc.Upload(
         id="upload",
-        children=html.Div("Drop a report.json here"),
+        children=html.Div([
+            html.Span("Drop a report.json here or click to browse"),
+        ]),
         className="upload",
     ),
     # ── Paste JSON area ───────────────────────────────────────────────────────
     html.Div([
         dbc.Textarea(
             id="paste-json",
-            placeholder="…or paste report JSON here",
-            rows=4,
+            placeholder="or paste report JSON here",
+            rows=5,
+            className="paste-json-textarea",
             style={
-                "backgroundColor": "#2a2f3d",
+                "backgroundColor": "#1c2540",
                 "color": "#e6ebf5",
-                "border": "1px solid #3d4455",
-                "borderRadius": "6px",
-                "fontFamily": "monospace",
-                "fontSize": "0.82rem",
+                "border": "1px solid #3a4763",
+                "borderRadius": "10px",
+                "fontFamily": "ui-monospace, 'Cascadia Code', monospace",
+                "fontSize": "14px",
+                "minHeight": "140px",
                 "resize": "vertical",
                 "width": "100%",
             },
         ),
-        dbc.Button(
-            "Validate",
-            id="paste-validate-btn",
-            color="primary",
-            size="sm",
-            className="mt-2",
-            style={"color": "#ffffff"},
-        ),
+        html.Div([
+            dbc.Button(
+                "Validate",
+                id="paste-validate-btn",
+                className="btn-uplift-primary",
+                style={
+                    "backgroundColor": "#4f6df5",
+                    "color": "#ffffff",
+                    "border": "none",
+                    "borderRadius": "8px",
+                    "padding": "10px 20px",
+                    "fontSize": "15px",
+                    "fontWeight": "600",
+                    "minHeight": "44px",
+                    "cursor": "pointer",
+                },
+            ),
+            html.Span(
+                "Reports are validated in your browser session and never uploaded.",
+                className="paste-helper-text",
+                style={"fontSize": "12px", "color": "#9fb0cc", "fontStyle": "italic"},
+            ),
+        ], className="paste-action-row"),
     ], className="mt-2"),
     html.Div(id="upload-msg"),
     # ── In-memory store for uploaded/pasted reports ───────────────────────────
@@ -449,15 +491,11 @@ def _process_report_dict(report: dict):
     errors = loader.validate(report)
     if not errors:
         return report, dbc.Alert("Report loaded — rendering now…", color="success"), "/?scenario=uploaded"
-    error_items = [html.Li(e, style={"color": "#1d2330"}) for e in errors[:5]]
+    error_items = [html.Li(e) for e in errors[:5]]
     msg = html.Div([
         dbc.Alert("Report has schema errors:", color="danger",
                   style={"marginBottom": "4px"}),
-        html.Ul(error_items,
-                style={"paddingLeft": "1.4rem", "marginTop": "4px",
-                       "color": "#1d2330", "backgroundColor": "#fff3f3",
-                       "border": "1px solid #f5c6c6", "borderRadius": "4px",
-                       "padding": "8px 8px 8px 1.4rem"}),
+        html.Ul(error_items, className="upload-error-list"),
     ])
     return None, msg, dash.no_update
 
