@@ -1,0 +1,31 @@
+name: uplift
+on: [pull_request]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  uplift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e engine -r sample-app/requirements.txt
+      - name: Build PR patch
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD --relative=sample-app -- sample-app > /tmp/pr.patch
+          if [ ! -s /tmp/pr.patch ]; then
+            echo "No changes in sample-app — skipping Uplift analysis."
+            exit 0
+          fi
+      - name: Run Uplift graph
+        run: uplift graph --repo sample-app --patch /tmp/pr.patch --applied --out .uplift/graph.json
+      - name: Assemble report
+        run: uplift report --graph .uplift/graph.json --scenario pr --title "Pull request" --out reports/pr.json
+      - name: Generate PR comment
+        run: uplift comment --report reports/pr.json > comment.md
+      - name: Post PR comment
+        run: gh pr comment ${{ github.event.pull_request.number }} --edit-last --create-if-none --body-file comment.md
+        env:
+          GH_TOKEN: ${{ github.token }}
