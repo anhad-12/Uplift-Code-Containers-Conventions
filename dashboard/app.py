@@ -208,6 +208,22 @@ def detail_view(sid: str) -> html.Div:
     if r.get("_errors"):
         return html.Div([dbc.Alert("This report does not match the schema:", color="danger"),
                          html.Ul([html.Li(e) for e in r["_errors"][:10]])])
+
+    # ── Migrate mode: dedicated view ──────────────────────────────────────────
+    if r.get("mode") == "migrate":
+        return html.Div([
+            html.H3(r["scenario"]["title"]),
+            stepper(r["pipeline"]),
+            panels.summary_strip(r),
+            panels.migrate_view(r),
+            dcc.Store(id="sid", data=sid),
+            dcc.Store(id="large-flag", data=False),
+            # Stub components for callbacks that expect these ids regardless of mode
+            html.Div(id="detail", style={"display": "none"}),
+            html.Div(id="a11y-list", style={"display": "none"}),
+            dcc.Checklist(id="filter-chips", options=[], value=[], style={"display": "none"}),
+        ])
+
     node_count = len(r.get("affected", [])) + len(r.get("changedSymbols", []))
     large = node_count > 60
     initial_elements = graph.build_elements(r, large=large)

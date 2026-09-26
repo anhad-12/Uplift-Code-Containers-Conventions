@@ -484,3 +484,245 @@ def summary_strip(report: dict, reports_dir: Path | None = None) -> html.Div:
         top_row,
         lists_row,
     ], className="summary-strip mb-3")
+
+
+# ── Migrate view ──────────────────────────────────────────────────────────────
+
+# Catalog table column definitions
+_CATALOG_COLUMNS = [
+    {"name": "Title",         "id": "title"},
+    {"name": "Kind",          "id": "kind"},
+    {"name": "Guide section", "id": "guideSection"},
+    {"name": "Occurrences",   "id": "occurrences"},
+    {"name": "Replacement",   "id": "replacement"},
+]
+
+_CATALOG_STYLE_DATA_CONDITIONAL = [
+    {"if": {"filter_query": '{kind} = "api_removed"'},   "backgroundColor": "#fdf0f0", "color": "#7b1d1d"},
+    {"if": {"filter_query": '{kind} = "api_changed"'},   "backgroundColor": "#fefae8", "color": "#7b5900"},
+    {"if": {"filter_query": '{kind} = "behavior_changed"'}, "backgroundColor": "#f0f4ff", "color": "#1e3a5f"},
+    {"if": {"state": "selected"},                        "backgroundColor": "#dbeafe", "border": "1px solid #3b82d4"},
+]
+
+
+def _catalog_table(catalog: list[dict]) -> dash_table.DataTable:
+    """Build a filterable DataTable for the migration catalog entries."""
+    rows = [
+        {
+            "title":        entry.get("title", ""),
+            "kind":         entry.get("kind", ""),
+            "guideSection": entry.get("guideSection", ""),
+            "occurrences":  entry.get("occurrences", 0),
+            "replacement":  entry.get("replacement", ""),
+        }
+        for entry in catalog
+    ]
+    return dash_table.DataTable(
+        id="catalog-table",
+        columns=_CATALOG_COLUMNS,
+        data=rows,
+        sort_action="native",
+        filter_action="native",
+        style_table={"overflowX": "auto"},
+        style_cell={
+            "textAlign": "left",
+            "fontSize": "13px",
+            "padding": "6px 10px",
+            "whiteSpace": "normal",
+            "maxWidth": "260px",
+        },
+        style_cell_conditional=[
+            {"if": {"column_id": "guideSection"}, "fontStyle": "italic"},
+        ],
+        style_header={
+            "fontWeight": "bold",
+            "backgroundColor": "#ffffff",
+            "color": "#1d2330",
+            "borderBottom": "2px solid #d0d4de",
+        },
+        style_data_conditional=_CATALOG_STYLE_DATA_CONDITIONAL,
+        tooltip_data=[
+            {
+                "guideSection": {"value": row["guideSection"], "type": "markdown"},
+                "replacement":  {"value": f"`{row['replacement']}`", "type": "markdown"},
+            }
+            for row in rows
+        ],
+        tooltip_delay=0,
+        tooltip_duration=None,
+    )
+
+
+def _module_lane(mod: dict) -> dbc.Col:
+    """Build a single worker-lane card for one entry in migration.modules."""
+    worker   = mod.get("worker", "—")
+    module   = mod.get("module", "—")
+    files    = mod.get("filesChanged") or []
+    fixes    = mod.get("fixesApplied", 0)
+    tb       = mod.get("testsBefore") or {}
+    ta       = mod.get("testsAfter")  or {}
+
+    before_pass = tb.get("passed", 0)
+    before_fail = tb.get("failed", 0)
+    after_pass  = ta.get("passed", 0)
+    after_fail  = ta.get("failed", 0)
+
+    # Small inline before/after bar using Plotly
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name="Passed",
+        x=["Before", "After"],
+        y=[before_pass, after_pass],
+        marker_color="#3fa66a",
+        text=[str(before_pass), str(after_pass)],
+        textposition="inside",
+        textfont={"color": "#ffffff", "size": 11},
+    ))
+    fig.add_trace(go.Bar(
+        name="Failed",
+        x=["Before", "After"],
+        y=[before_fail, after_fail],
+        marker_color="#d64545",
+        text=[str(before_fail), str(after_fail)],
+        textposition="inside",
+        textfont={"color": "#ffffff", "size": 11},
+    ))
+    fig.update_layout(**_chart_layout(
+        barmode="stack",
+        margin={"t": 20, "b": 30, "l": 10, "r": 10},
+        height=120,
+        showlegend=False,
+        xaxis={
+            "tickfont": {"color": _CHART_FONT_COLOR, "size": 10},
+            "gridcolor": "rgba(255,255,255,0.10)",
+            "linecolor": "rgba(255,255,255,0.20)",
+        },
+        yaxis={
+            "tickfont": {"color": _CHART_FONT_COLOR, "size": 10},
+            "gridcolor": "rgba(255,255,255,0.10)",
+            "linecolor": "rgba(255,255,255,0.20)",
+            "visible": False,
+        },
+    ))
+    bar = dcc.Graph(figure=fig, config={"displayModeBar": False, "responsive": True},
+                    style={"width": "100%"})
+
+    file_items = [html.Li(html.Code(f, className="small"), className="small") for f in files] or [html.Li("—")]
+
+    card_body = dbc.CardBody([
+        html.Div(module.upper(), className="fw-bold small mb-1",
+                 style={"color": "#1d2330", "letterSpacing": "0.05em"}),
+        html.Dl([
+            html.Dt("Worker", className="small"),
+            html.Dd(html.Code(worker, className="small"),
+                    style={"wordBreak": "break-all"}),
+            html.Dt("Fixes applied", className="small"),
+            html.Dd(str(fixes), className="small"),
+        ], className="row-dl mb-1"),
+        html.Div("Files changed:", className="small fw-semibold mb-0"),
+        html.Ul(file_items, style={"paddingLeft": "1.2rem", "marginBottom": "0.4rem"}),
+        html.Div(f"Tests: {before_pass + before_fail} → {after_pass + after_fail}",
+                 className="small mb-1",
+                 style={"color": "#1d2330"}),
+        bar,
+    ])
+
+    return dbc.Col(
+        dbc.Card(card_body, className="h-100",
+                 style={"backgroundColor": "#ffffff", "border": "1px solid #e5e7eb"}),
+        xs=12, sm=6, md=3,
+        className="mb-3",
+    )
+
+
+def migrate_view(report: dict) -> html.Div:
+    """Build the full migrate-mode detail view.
+
+    Sections (top to bottom):
+    1. Summary strip (risk, metrics, tests bar).
+    2. Dependency-change graph (changed symbol in centre, occurrences on ring 1).
+    3. Catalog table — title, kind, guide section (italic), occurrences, replacement.
+    4. Worker lanes — one dbc.Col per migration.modules entry, 4 on desktop.
+    5. Release notes — dcc.Markdown from migration.releaseNotes.
+
+    Args:
+        report: Parsed report dict with ``mode == "migrate"``.
+
+    Returns:
+        A ``html.Div`` Dash component.
+    """
+    import graph as _graph  # local import to avoid circular at module level
+    import dash_cytoscape as _cyto  # noqa: PLC0415
+
+    migration     = report.get("migration") or {}
+    catalog       = migration.get("catalog") or []
+    modules       = migration.get("modules") or []
+    release_notes = migration.get("releaseNotes") or ""
+
+    # ── 1. Graph ──────────────────────────────────────────────────────────────
+    elements  = _graph.build_elements(report)
+    stylesheet = _graph.build_stylesheet()
+    cyto_graph = _cyto.Cytoscape(
+        id="migrate-graph",
+        elements=elements,
+        stylesheet=stylesheet,
+        layout={"name": "preset", "fit": True, "padding": 30},
+        style={"width": "100%", "height": "340px"},
+        minZoom=0.15,
+        maxZoom=3.0,
+    )
+
+    # ── 2. Catalog section ────────────────────────────────────────────────────
+    if catalog:
+        catalog_section = html.Div([
+            html.H4("Migration catalog", className="mt-4 mb-2",
+                    style={"color": _CHART_FONT_COLOR}),
+            html.P(
+                "Filter by kind using the search row (e.g. api_changed). "
+                "Guide-section cells show the verbatim quote from the migration guide.",
+                className="small mb-2",
+                style={"color": _CHART_FONT_COLOR},
+            ),
+            _catalog_table(catalog),
+        ])
+    else:
+        catalog_section = html.P("No catalog entries.", className="text-muted small mt-3")
+
+    # ── 3. Worker lanes ───────────────────────────────────────────────────────
+    lanes = [_module_lane(m) for m in modules]
+    if lanes:
+        lanes_section = html.Div([
+            html.H4("Worker lanes", className="mt-4 mb-1",
+                    style={"color": _CHART_FONT_COLOR}),
+            html.P(
+                "Each lane is an independent sandboxed Bob worker. They run in parallel.",
+                className="small mb-2",
+                style={"color": _CHART_FONT_COLOR},
+            ),
+            dbc.Row(lanes, className="g-3"),
+        ])
+    else:
+        lanes_section = html.P("No worker lanes.", className="text-muted small mt-3")
+
+    # ── 4. Release notes ──────────────────────────────────────────────────────
+    if release_notes:
+        rn_section = html.Div([
+            html.H4("Release notes", className="mt-4 mb-2",
+                    style={"color": _CHART_FONT_COLOR}),
+            dbc.Card(
+                dbc.CardBody(
+                    dcc.Markdown(release_notes, className="small"),
+                    style={"backgroundColor": "#ffffff"},
+                ),
+                style={"border": "1px solid #e5e7eb"},
+            ),
+        ])
+    else:
+        rn_section = html.Div()
+
+    return html.Div([
+        cyto_graph,
+        catalog_section,
+        lanes_section,
+        rn_section,
+    ])

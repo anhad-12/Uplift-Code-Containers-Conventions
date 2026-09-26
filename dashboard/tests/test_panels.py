@@ -394,3 +394,201 @@ def test_untested_empty_shows_none():
     assert "Untested affected code" in rendered
     # "None" must appear (as the empty placeholder)
     assert "None" in rendered
+
+
+# ── C6: migrate_view() ────────────────────────────────────────────────────────
+
+def _migrate_report() -> dict:
+    return _report("migrate-pydantic2.mock.json")
+
+
+def test_migrate_view_returns_html_div():
+    """migrate_view must return an html.Div."""
+    from dash import html as _html  # noqa: PLC0415
+    r = _migrate_report()
+    result = panels.migrate_view(r)
+    assert isinstance(result, _html.Div)
+
+
+def test_migrate_view_has_four_lane_columns():
+    """migrate_view must produce exactly 4 worker-lane dbc.Col components
+    (one per entry in migration.modules in the pydantic2 mock)."""
+    import dash_bootstrap_components as _dbc  # noqa: PLC0415
+    r = _migrate_report()
+    view = panels.migrate_view(r)
+
+    def _collect(component, found):
+        # Walk the component tree looking for dbc.Col with md=3 (lane columns)
+        if isinstance(component, _dbc.Col) and getattr(component, "md", None) == 3:
+            found.append(component)
+        children = getattr(component, "children", None)
+        if children is None:
+            return
+        if isinstance(children, (list, tuple)):
+            for child in children:
+                _collect(child, found)
+        else:
+            _collect(children, found)
+
+    lane_cols: list = []
+    _collect(view, lane_cols)
+    assert len(lane_cols) == 4, f"Expected 4 lane columns, found {len(lane_cols)}"
+
+
+def test_migrate_view_catalog_table_has_four_rows():
+    """The catalog DataTable must have 4 rows (one per entry in the mock catalog)."""
+    from dash import dash_table as _dash_table  # noqa: PLC0415
+    r = _migrate_report()
+
+    def _find_datatable(component):
+        if isinstance(component, _dash_table.DataTable) and getattr(component, "id", None) == "catalog-table":
+            return component
+        children = getattr(component, "children", None)
+        if children is None:
+            return None
+        if isinstance(children, (list, tuple)):
+            for child in children:
+                result = _find_datatable(child)
+                if result is not None:
+                    return result
+        else:
+            return _find_datatable(children)
+        return None
+
+    view = panels.migrate_view(r)
+    table = _find_datatable(view)
+    assert table is not None, "catalog DataTable not found in migrate_view output"
+    assert len(table.data) == 4, f"Expected 4 catalog rows, got {len(table.data)}"
+
+
+def test_migrate_view_catalog_table_columns():
+    """Catalog table must have title, kind, guideSection, occurrences, replacement columns."""
+    from dash import dash_table as _dash_table  # noqa: PLC0415
+    r = _migrate_report()
+
+    def _find_datatable(component):
+        if isinstance(component, _dash_table.DataTable) and getattr(component, "id", None) == "catalog-table":
+            return component
+        children = getattr(component, "children", None)
+        if children is None:
+            return None
+        if isinstance(children, (list, tuple)):
+            for child in children:
+                result = _find_datatable(child)
+                if result is not None:
+                    return result
+        else:
+            return _find_datatable(children)
+        return None
+
+    view = panels.migrate_view(r)
+    table = _find_datatable(view)
+    assert table is not None
+    col_ids = {c["id"] for c in table.columns}
+    assert col_ids == {"title", "kind", "guideSection", "occurrences", "replacement"}
+
+
+def test_migrate_view_catalog_table_filter_action():
+    """Catalog table must be filterable by kind (filter_action=native)."""
+    from dash import dash_table as _dash_table  # noqa: PLC0415
+    r = _migrate_report()
+
+    def _find_datatable(component):
+        if isinstance(component, _dash_table.DataTable) and getattr(component, "id", None) == "catalog-table":
+            return component
+        children = getattr(component, "children", None)
+        if children is None:
+            return None
+        if isinstance(children, (list, tuple)):
+            for child in children:
+                result = _find_datatable(child)
+                if result is not None:
+                    return result
+        else:
+            return _find_datatable(children)
+        return None
+
+    view = panels.migrate_view(r)
+    table = _find_datatable(view)
+    assert table is not None
+    assert table.filter_action == "native"
+
+
+def test_migrate_view_catalog_guide_section_is_italic():
+    """guideSection column must have italic font style."""
+    from dash import dash_table as _dash_table  # noqa: PLC0415
+    r = _migrate_report()
+
+    def _find_datatable(component):
+        if isinstance(component, _dash_table.DataTable) and getattr(component, "id", None) == "catalog-table":
+            return component
+        children = getattr(component, "children", None)
+        if children is None:
+            return None
+        if isinstance(children, (list, tuple)):
+            for child in children:
+                result = _find_datatable(child)
+                if result is not None:
+                    return result
+        else:
+            return _find_datatable(children)
+        return None
+
+    view = panels.migrate_view(r)
+    table = _find_datatable(view)
+    assert table is not None
+    cond = table.style_cell_conditional or []
+    italic_cols = [c["if"]["column_id"] for c in cond if c.get("fontStyle") == "italic"]
+    assert "guideSection" in italic_cols
+
+
+def test_migrate_view_release_notes_rendered():
+    """migrate_view must render the releaseNotes field via dcc.Markdown."""
+    r = _migrate_report()
+    rendered = str(panels.migrate_view(r))
+    # The release notes in the mock start with "## Pydantic v2 upgrade"
+    assert "Pydantic v2 upgrade" in rendered
+    assert "Markdown" in rendered
+
+
+def test_migrate_view_lane_module_names_present():
+    """Each module name (users, orders, payments, core) must appear in the view."""
+    r = _migrate_report()
+    rendered = str(panels.migrate_view(r))
+    for module_name in ("users", "orders", "payments", "core"):
+        assert module_name.upper() in rendered or module_name in rendered
+
+
+def test_migrate_view_graph_present():
+    """migrate_view must include a Cytoscape graph component."""
+    r = _migrate_report()
+    rendered = str(panels.migrate_view(r))
+    assert "Cytoscape" in rendered
+
+
+def test_migrate_view_header_text_contrast():
+    """Heading and caption text must use the light chart font color (not bare white on dark
+    which would fail contrast, and not dark-on-dark which fails entirely).
+    The _CHART_FONT_COLOR constant must be used for headings."""
+    r = _migrate_report()
+    rendered = str(panels.migrate_view(r))
+    # The light font color must be referenced (headings use it via style dict)
+    assert panels._CHART_FONT_COLOR in rendered
+
+
+def test_detail_view_migrate_uses_migrate_view():
+    """detail_view on the migrate scenario must include the catalog table id."""
+    import app as _app  # noqa: PLC0415
+    rendered = str(_app.detail_view("s3-pydantic2"))
+    assert "catalog-table" in rendered
+    assert "Worker lanes" in rendered
+    assert "Release notes" in rendered
+
+
+def test_detail_view_migrate_includes_summary_strip():
+    """detail_view on the migrate scenario must include the summary strip."""
+    import app as _app  # noqa: PLC0415
+    rendered = str(_app.detail_view("s3-pydantic2"))
+    # summary_strip emits 'summary-strip' class
+    assert "summary-strip" in rendered
+
