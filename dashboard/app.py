@@ -211,6 +211,8 @@ def detail_view(sid: str) -> html.Div:
 
     # ── Migrate mode: dedicated view ──────────────────────────────────────────
     if r.get("mode") == "migrate":
+        migration = r.get("migration") or {}
+        has_catalog = bool(migration.get("catalog"))
         return html.Div([
             html.H3(r["scenario"]["title"]),
             stepper(r["pipeline"]),
@@ -222,6 +224,9 @@ def detail_view(sid: str) -> html.Div:
             html.Div(id="detail", style={"display": "none"}),
             html.Div(id="a11y-list", style={"display": "none"}),
             dcc.Checklist(id="filter-chips", options=[], value=[], style={"display": "none"}),
+            # Stub for catalog filter when catalog is absent
+            *([dcc.Dropdown(id="catalog-kind-filter", style={"display": "none"})]
+              if not has_catalog else []),
         ])
 
     node_count = len(r.get("affected", [])) + len(r.get("changedSymbols", []))
@@ -287,6 +292,8 @@ def detail_view(sid: str) -> html.Div:
 
         dcc.Store(id="sid", data=sid),
         dcc.Store(id="large-flag", data=large),
+        # Stub — catalog filter only exists on migrate pages
+        dcc.Dropdown(id="catalog-kind-filter", style={"display": "none"}),
     ])
 
 
@@ -407,6 +414,35 @@ def table_row_selects_node(selected_rows, sid):
 def fit_graph(_n):
     """Reset zoom/pan by re-applying the preset layout with fit=True."""
     return {"name": "preset", "fit": True, "padding": 30}
+
+
+@app.callback(
+    Output("catalog-table", "data"),
+    Input("catalog-kind-filter", "value"),
+    State("sid", "data"),
+    prevent_initial_call=True,
+)
+def filter_catalog(kind_value, sid):
+    """Filter the catalog DataTable rows by kind when the dropdown changes."""
+    if sid not in REPORTS:
+        return []
+    r = REPORTS[sid]
+    migration = r.get("migration") or {}
+    catalog = migration.get("catalog") or []
+    if not catalog or kind_value in (None, "all"):
+        rows = catalog
+    else:
+        rows = [e for e in catalog if e.get("kind") == kind_value]
+    return [
+        {
+            "title":        entry.get("title", ""),
+            "kind":         panels._KIND_LABELS.get(entry.get("kind", ""), entry.get("kind", "")),
+            "guideSection": entry.get("guideSection", ""),
+            "occurrences":  entry.get("occurrences", 0),
+            "replacement":  entry.get("replacement", ""),
+        }
+        for entry in rows
+    ]
 
 
 @app.callback(Output("upload-msg", "children"), Input("upload", "contents"))

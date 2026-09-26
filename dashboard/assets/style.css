@@ -255,6 +255,14 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 }
 .a11y-node { padding: 2px 0; border-bottom: 1px solid var(--card); font-family: monospace; font-size: 0.78rem; }
 
+/* ── Release notes markdown ──────────────────────────────────────────────── */
+/* Scale down headings inside the white release-notes card */
+.release-notes-md h1 { font-size: 1.4rem; font-weight: 700; margin-top: 0; color: #1d2330; }
+.release-notes-md h2 { font-size: 1.15rem; font-weight: 600; color: #1d2330; }
+.release-notes-md h3, .release-notes-md h4 { font-size: 1rem; font-weight: 600; color: #1d2330; }
+.release-notes-md p, .release-notes-md li { font-size: 0.9rem; color: #1d2330; }
+.release-notes-md { padding: 0; }
+
 /* ── 375 px safety net – no horizontal scrollbar ───────────────────────── */
 @media (max-width: 400px) {
   .hero-h1 { font-size: 1.45rem; }

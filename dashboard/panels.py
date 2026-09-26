@@ -1,7 +1,6 @@
 """Right-hand detail panel, summary strip, and affected-items DataTable. Pure Dash components."""
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import dash_bootstrap_components as dbc
@@ -293,18 +292,22 @@ def _tests_bar(tests: dict) -> dcc.Graph | None:
         x=labels,
         y=passed,
         marker_color="#3fa66a",
-        text=[str(v) for v in passed],
+        text=[str(v) if v > 0 else "" for v in passed],
         textposition="inside",
-        textfont={"color": "#ffffff"},
+        textangle=0,
+        insidetextanchor="middle",
+        textfont={"color": "#ffffff", "size": 13},
     ))
     fig.add_trace(go.Bar(
         name="Failed",
         x=labels,
         y=failed,
         marker_color="#d64545",
-        text=[str(v) for v in failed],
+        text=[str(v) if v > 0 else "" for v in failed],
         textposition="inside",
-        textfont={"color": "#ffffff"},
+        textangle=0,
+        insidetextanchor="middle",
+        textfont={"color": "#ffffff", "size": 13},
     ))
     fig.update_layout(**_chart_layout(
         barmode="stack",
@@ -453,7 +456,11 @@ def summary_strip(report: dict, reports_dir: Path | None = None) -> html.Div:
 
     def _bullet_list(items: list[str], empty: str = "—") -> html.Ul | html.P:
         if not items:
-            return html.P(empty, className="text-muted small mb-0")
+            return html.P(
+                empty,
+                className="small mb-0",
+                style={"color": "#c9d3e6", "fontStyle": "italic"},
+            )
         return html.Ul([html.Li(html.Code(t, className="small"), className="small") for t in items],
                        style={"paddingLeft": "1.2rem", "marginBottom": 0})
 
@@ -498,19 +505,43 @@ _CATALOG_COLUMNS = [
 ]
 
 _CATALOG_STYLE_DATA_CONDITIONAL = [
-    {"if": {"filter_query": '{kind} = "api_removed"'},   "backgroundColor": "#fdf0f0", "color": "#7b1d1d"},
-    {"if": {"filter_query": '{kind} = "api_changed"'},   "backgroundColor": "#fefae8", "color": "#7b5900"},
-    {"if": {"filter_query": '{kind} = "behavior_changed"'}, "backgroundColor": "#f0f4ff", "color": "#1e3a5f"},
-    {"if": {"state": "selected"},                        "backgroundColor": "#dbeafe", "border": "1px solid #3b82d4"},
+    {"if": {"filter_query": '{kind} contains "api_removed"'},
+     "backgroundColor": "#fdf0f0", "color": "#7b1d1d"},
+    {"if": {"filter_query": '{kind} contains "api_changed"'},
+     "backgroundColor": "#fefae8", "color": "#7b5900"},
+    {"if": {"filter_query": '{kind} contains "behavior_changed"'},
+     "backgroundColor": "#f0f4ff", "color": "#1e3a5f"},
+    {"if": {"state": "selected"},
+     "backgroundColor": "#dbeafe", "border": "1px solid #3b82d4"},
+]
+
+# Kind label map: adds a text label so colour is not the only signal
+_KIND_LABELS = {
+    "api_removed":     "🔴 api_removed",
+    "api_changed":     "🟡 api_changed",
+    "behavior_changed": "🔵 behavior_changed",
+}
+
+# Options for the kind filter dropdown (above the catalog table)
+CATALOG_KIND_OPTIONS = [
+    {"label": "All kinds",        "value": "all"},
+    {"label": "api_removed",      "value": "api_removed"},
+    {"label": "api_changed",      "value": "api_changed"},
+    {"label": "behavior_changed", "value": "behavior_changed"},
 ]
 
 
 def _catalog_table(catalog: list[dict]) -> dash_table.DataTable:
-    """Build a filterable DataTable for the migration catalog entries."""
+    """Build a sortable DataTable for the migration catalog entries.
+
+    Rows are filtered externally via the ``catalog-kind-filter`` Dropdown
+    callback.  The built-in Dash filter row is disabled; kind values are
+    prefixed with a coloured label so colour is not the only signal.
+    """
     rows = [
         {
             "title":        entry.get("title", ""),
-            "kind":         entry.get("kind", ""),
+            "kind":         _KIND_LABELS.get(entry.get("kind", ""), entry.get("kind", "")),
             "guideSection": entry.get("guideSection", ""),
             "occurrences":  entry.get("occurrences", 0),
             "replacement":  entry.get("replacement", ""),
@@ -522,7 +553,7 @@ def _catalog_table(catalog: list[dict]) -> dash_table.DataTable:
         columns=_CATALOG_COLUMNS,
         data=rows,
         sort_action="native",
-        filter_action="native",
+        filter_action="none",
         style_table={"overflowX": "auto"},
         style_cell={
             "textAlign": "left",
@@ -567,15 +598,19 @@ def _module_lane(mod: dict) -> dbc.Col:
     after_pass  = ta.get("passed", 0)
     after_fail  = ta.get("failed", 0)
 
-    # Small inline before/after bar using Plotly
+    # Fixed-size inline before/after bar — height 140px so it stays inside the card
+    _LANE_CHART_HEIGHT = 140
     fig = go.Figure()
     fig.add_trace(go.Bar(
         name="Passed",
         x=["Before", "After"],
         y=[before_pass, after_pass],
         marker_color="#3fa66a",
-        text=[str(before_pass), str(after_pass)],
+        text=[str(before_pass) if before_pass > 0 else "",
+              str(after_pass)  if after_pass  > 0 else ""],
         textposition="inside",
+        textangle=0,
+        insidetextanchor="middle",
         textfont={"color": "#ffffff", "size": 11},
     ))
     fig.add_trace(go.Bar(
@@ -583,14 +618,17 @@ def _module_lane(mod: dict) -> dbc.Col:
         x=["Before", "After"],
         y=[before_fail, after_fail],
         marker_color="#d64545",
-        text=[str(before_fail), str(after_fail)],
+        text=[str(before_fail) if before_fail > 0 else "",
+              str(after_fail)  if after_fail  > 0 else ""],
         textposition="inside",
+        textangle=0,
+        insidetextanchor="middle",
         textfont={"color": "#ffffff", "size": 11},
     ))
     fig.update_layout(**_chart_layout(
         barmode="stack",
-        margin={"t": 20, "b": 30, "l": 10, "r": 10},
-        height=120,
+        margin={"t": 10, "b": 30, "l": 10, "r": 10},
+        height=_LANE_CHART_HEIGHT,
         showlegend=False,
         xaxis={
             "tickfont": {"color": _CHART_FONT_COLOR, "size": 10},
@@ -604,32 +642,49 @@ def _module_lane(mod: dict) -> dbc.Col:
             "visible": False,
         },
     ))
-    bar = dcc.Graph(figure=fig, config={"displayModeBar": False, "responsive": True},
-                    style={"width": "100%"})
+    # Wrap graph in a fixed-height div so it never overflows the card
+    bar = html.Div(
+        dcc.Graph(
+            figure=fig,
+            config={"displayModeBar": False, "responsive": True},
+            style={"height": f"{_LANE_CHART_HEIGHT}px", "width": "100%"},
+        ),
+        style={"height": f"{_LANE_CHART_HEIGHT}px", "overflow": "hidden"},
+    )
 
     file_items = [html.Li(html.Code(f, className="small"), className="small") for f in files] or [html.Li("—")]
 
-    card_body = dbc.CardBody([
-        html.Div(module.upper(), className="fw-bold small mb-1",
-                 style={"color": "#1d2330", "letterSpacing": "0.05em"}),
-        html.Dl([
-            html.Dt("Worker", className="small"),
-            html.Dd(html.Code(worker, className="small"),
-                    style={"wordBreak": "break-all"}),
-            html.Dt("Fixes applied", className="small"),
-            html.Dd(str(fixes), className="small"),
-        ], className="row-dl mb-1"),
-        html.Div("Files changed:", className="small fw-semibold mb-0"),
-        html.Ul(file_items, style={"paddingLeft": "1.2rem", "marginBottom": "0.4rem"}),
-        html.Div(f"Tests: {before_pass + before_fail} → {after_pass + after_fail}",
-                 className="small mb-1",
-                 style={"color": "#1d2330"}),
-        bar,
-    ])
+    card_body = dbc.CardBody(
+        [
+            html.Div(module.upper(), className="fw-bold small mb-1",
+                     style={"color": "#1d2330", "letterSpacing": "0.05em"}),
+            html.Dl([
+                html.Dt("Worker", className="small"),
+                html.Dd(html.Code(worker, className="small"),
+                        style={"wordBreak": "break-all"}),
+                html.Dt("Fixes applied", className="small"),
+                html.Dd(str(fixes), className="small"),
+            ], className="row-dl mb-1"),
+            html.Div("Files changed:", className="small fw-semibold mb-0"),
+            html.Ul(file_items, style={"paddingLeft": "1.2rem", "marginBottom": "0.4rem"}),
+            html.Div(f"Tests: {before_pass + before_fail} → {after_pass + after_fail}",
+                     className="small mb-1",
+                     style={"color": "#1d2330"}),
+            bar,
+        ],
+        style={"display": "flex", "flexDirection": "column"},
+    )
 
     return dbc.Col(
-        dbc.Card(card_body, className="h-100",
-                 style={"backgroundColor": "#ffffff", "border": "1px solid #e5e7eb"}),
+        dbc.Card(
+            card_body,
+            className="h-100",
+            style={
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #e5e7eb",
+                "overflow": "hidden",
+            },
+        ),
         xs=12, sm=6, md=3,
         className="mb-3",
     )
@@ -667,22 +722,35 @@ def migrate_view(report: dict) -> html.Div:
         elements=elements,
         stylesheet=stylesheet,
         layout={"name": "preset", "fit": True, "padding": 30},
-        style={"width": "100%", "height": "340px"},
+        style={"width": "100%", "height": "100%"},
         minZoom=0.15,
         maxZoom=3.0,
     )
 
     # ── 2. Catalog section ────────────────────────────────────────────────────
     if catalog:
+        kind_filter = dcc.Dropdown(
+            id="catalog-kind-filter",
+            options=CATALOG_KIND_OPTIONS,
+            value="all",
+            clearable=False,
+            style={
+                "width": "220px",
+                "fontSize": "13px",
+                "marginBottom": "8px",
+                "color": "#1d2330",
+            },
+        )
         catalog_section = html.Div([
-            html.H4("Migration catalog", className="mt-4 mb-2",
+            html.H4("Migration catalog", className="mt-4 mb-2 section-heading",
                     style={"color": _CHART_FONT_COLOR}),
             html.P(
-                "Filter by kind using the search row (e.g. api_changed). "
+                "Use the dropdown to filter by kind. "
                 "Guide-section cells show the verbatim quote from the migration guide.",
                 className="small mb-2",
                 style={"color": _CHART_FONT_COLOR},
             ),
+            kind_filter,
             _catalog_table(catalog),
         ])
     else:
@@ -692,27 +760,27 @@ def migrate_view(report: dict) -> html.Div:
     lanes = [_module_lane(m) for m in modules]
     if lanes:
         lanes_section = html.Div([
-            html.H4("Worker lanes", className="mt-4 mb-1",
+            html.H4("Worker lanes", className="mt-4 mb-1 section-heading",
                     style={"color": _CHART_FONT_COLOR}),
             html.P(
                 "Each lane is an independent sandboxed Bob worker. They run in parallel.",
                 className="small mb-2",
                 style={"color": _CHART_FONT_COLOR},
             ),
-            dbc.Row(lanes, className="g-3"),
-        ])
+            dbc.Row(lanes, className="g-3", style={"alignItems": "stretch"}),
+        ], style={"marginBottom": "24px"})
     else:
         lanes_section = html.P("No worker lanes.", className="text-muted small mt-3")
 
     # ── 4. Release notes ──────────────────────────────────────────────────────
     if release_notes:
         rn_section = html.Div([
-            html.H4("Release notes", className="mt-4 mb-2",
+            html.H4("Release notes", className="mt-2 mb-2 section-heading",
                     style={"color": _CHART_FONT_COLOR}),
             dbc.Card(
                 dbc.CardBody(
-                    dcc.Markdown(release_notes, className="small"),
-                    style={"backgroundColor": "#ffffff"},
+                    dcc.Markdown(release_notes, className="release-notes-md"),
+                    style={"backgroundColor": "#ffffff", "padding": "16px"},
                 ),
                 style={"border": "1px solid #e5e7eb"},
             ),
@@ -720,8 +788,18 @@ def migrate_view(report: dict) -> html.Div:
     else:
         rn_section = html.Div()
 
-    return html.Div([
+    # ── 5. Graph container ────────────────────────────────────────────────────
+    graph_section = html.Div(
         cyto_graph,
+        style={
+            "height": "420px",
+            "marginBottom": "8px",
+            "overflow": "hidden",
+        },
+    )
+
+    return html.Div([
+        graph_section,
         catalog_section,
         lanes_section,
         rn_section,

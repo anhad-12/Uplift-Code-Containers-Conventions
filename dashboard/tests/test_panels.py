@@ -489,7 +489,7 @@ def test_migrate_view_catalog_table_columns():
 
 
 def test_migrate_view_catalog_table_filter_action():
-    """Catalog table must be filterable by kind (filter_action=native)."""
+    """Catalog table filter is handled by the external Dropdown; filter_action must be 'none'."""
     from dash import dash_table as _dash_table  # noqa: PLC0415
     r = _migrate_report()
 
@@ -511,7 +511,8 @@ def test_migrate_view_catalog_table_filter_action():
     view = panels.migrate_view(r)
     table = _find_datatable(view)
     assert table is not None
-    assert table.filter_action == "native"
+    # Built-in filter row is disabled; rows are filtered by the kind Dropdown callback
+    assert table.filter_action == "none"
 
 
 def test_migrate_view_catalog_guide_section_is_italic():
@@ -591,4 +592,90 @@ def test_detail_view_migrate_includes_summary_strip():
     rendered = str(_app.detail_view("s3-pydantic2"))
     # summary_strip emits 'summary-strip' class
     assert "summary-strip" in rendered
+
+
+# ── C6 visual bug fix tests ───────────────────────────────────────────────────
+
+def _find_graph_in_lane(component):
+    """Walk the component tree and return the first dcc.Graph inside a lane card."""
+    from dash import dcc as _dcc  # noqa: PLC0415
+    if isinstance(component, _dcc.Graph):
+        return component
+    children = getattr(component, "children", None)
+    if children is None:
+        return None
+    if isinstance(children, (list, tuple)):
+        for child in children:
+            result = _find_graph_in_lane(child)
+            if result is not None:
+                return result
+    else:
+        return _find_graph_in_lane(children)
+    return None
+
+
+def test_lane_chart_has_fixed_height():
+    """Lane bar chart layout height must be 140 and the dcc.Graph style must set height."""
+    r = _migrate_report()
+    view = panels.migrate_view(r)
+    graph = _find_graph_in_lane(view)
+    assert graph is not None, "No dcc.Graph found inside migrate_view"
+    # Layout height must be 140
+    assert graph.figure.layout.height == 140, (
+        f"Expected lane chart height=140, got {graph.figure.layout.height}"
+    )
+    # dcc.Graph style must declare height
+    style = graph.style or {}
+    assert "height" in style, "dcc.Graph inside a lane must have an explicit height in style"
+    assert "140px" in style.get("height", ""), (
+        f"Expected '140px' in graph style height, got {style.get('height')}"
+    )
+
+
+def test_lane_chart_textangle_zero():
+    """All bar traces in the lane chart must have textangle=0."""
+    r = _migrate_report()
+    view = panels.migrate_view(r)
+    graph = _find_graph_in_lane(view)
+    assert graph is not None
+    for trace in graph.figure.data:
+        assert trace.textangle == 0, (
+            f"Expected textangle=0 on trace '{trace.name}', got {trace.textangle}"
+        )
+
+
+def test_lane_chart_zero_value_has_empty_label():
+    """A lane bar trace with a zero y-value must have an empty string text label."""
+    # The 'core' module has testsBefore.passed=0, so the Passed trace Before bar is 0
+    r = _migrate_report()
+    # Build just the core lane directly
+    core_mod = next(m for m in r["migration"]["modules"] if m["module"] == "core")
+    lane_col = panels._module_lane(core_mod)
+    graph = _find_graph_in_lane(lane_col)
+    assert graph is not None
+    passed_trace = next(t for t in graph.figure.data if t.name == "Passed")
+    # Before value is 0 → text label must be ""
+    assert passed_trace.text[0] == "", (
+        f"Expected empty label for zero value, got '{passed_trace.text[0]}'"
+    )
+
+
+def test_empty_state_none_has_light_color():
+    """The 'None' empty-state element for untested must have a light colour style."""
+    r = _migrate_report()
+    # untested is [] in the pydantic mock — so it hits the empty state
+    strip = panels.summary_strip(r)
+    rendered = str(strip)
+    # The light colour #c9d3e6 must be present in the rendered output
+    assert "#c9d3e6" in rendered, (
+        "Empty-state text must use #c9d3e6 light colour for contrast on dark bg"
+    )
+    assert "italic" in rendered, "Empty-state text must be italic"
+
+
+def test_catalog_kind_filter_dropdown_has_four_options():
+    """The kind filter dropdown must have exactly four options: all + three kinds."""
+    assert len(panels.CATALOG_KIND_OPTIONS) == 4
+    values = {opt["value"] for opt in panels.CATALOG_KIND_OPTIONS}
+    assert values == {"all", "api_removed", "api_changed", "behavior_changed"}
 
