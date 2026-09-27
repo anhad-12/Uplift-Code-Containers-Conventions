@@ -454,6 +454,44 @@ def home() -> html.Div:
         # ── Scenario cards ────────────────────────────────────────────────────
         html.H2("Scenarios", className="section-heading"),
         scenario_cards(),
+        # ── Integrate strip ───────────────────────────────────────────────────
+        html.Section([
+            html.H2("Built for IBM Bob", className="integrate-heading"),
+            html.P(
+                "Uplift ships a native MCP server and CLI — Bob workers call it directly. "
+                "No wrappers, no glue code.",
+                className="integrate-sub",
+            ),
+            html.Div([
+                html.Div([
+                    html.Span("MCP Server", className="integrate-pill-label"),
+                    html.Code("uplift mcp", className="integrate-code"),
+                    html.P(
+                        "Exposes uplift_graph, uplift_proof_run, uplift_migrate_scan, uplift_report "
+                        "as MCP tools. Bob modes call them directly via .bob/mcp.json.",
+                        className="integrate-pill-desc",
+                    ),
+                ], className="integrate-pill"),
+                html.Div([
+                    html.Span("CLI", className="integrate-pill-label"),
+                    html.Code("uplift graph | proof-run | report | comment", className="integrate-code"),
+                    html.P(
+                        "Run the full pipeline from any terminal or CI step. "
+                        "GitHub Action included — posts impact comment on every PR.",
+                        className="integrate-pill-desc",
+                    ),
+                ], className="integrate-pill"),
+                html.Div([
+                    html.Span("Parallel Workers", className="integrate-pill-label"),
+                    html.Code(".bob/custom_modes.yaml", className="integrate-code"),
+                    html.P(
+                        "Four sandboxed Bob repair workers (users, orders, payments, core) "
+                        "run concurrently via uplift-worker-* modes with file-level edit restrictions.",
+                        className="integrate-pill-desc",
+                    ),
+                ], className="integrate-pill"),
+            ], className="integrate-grid"),
+        ], className="integrate-section"),
     ])
 
 
