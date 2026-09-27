@@ -1,0 +1,97 @@
+{
+  "scenario": "s3-pydantic2",
+  "interpreter": "sample-app/.venv-v2/Scripts/python.exe",
+  "pydantic_version": "2.9.2",
+  "fastapi_version": "0.115.0",
+  "command": "pytest sample-app/tests/<module>/ --tb=no -q",
+  "modules": {
+    "core": {
+      "test_files": ["tests/config/test_config.py"],
+      "collected": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 1,
+      "collection_errors": [
+        "tests/config/test_config.py: PydanticImportError: BaseSettings has been moved to pydantic-settings"
+      ],
+      "notes": "Entire module fails to import; 1 test (test_get_settings_defaults) blocked"
+    },
+    "notifications": {
+      "test_files": ["tests/notifications/test_email.py"],
+      "collected": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 1,
+      "collection_errors": [
+        "tests/notifications/test_email.py: PydanticImportError: BaseSettings has been moved to pydantic-settings (via shop.config)"
+      ],
+      "notes": "Entire module fails to import due to transitive dependency on shop.config.BaseSettings"
+    },
+    "users": {
+      "test_files": [
+        "tests/users/test_repo.py",
+        "tests/users/test_routes.py",
+        "tests/users/test_schemas.py",
+        "tests/users/test_service.py"
+      ],
+      "collected": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 2,
+      "collection_errors": [
+        "tests/users/test_routes.py: TypeError: constr() got an unexpected keyword argument 'regex'",
+        "tests/users/test_schemas.py: TypeError: constr() got an unexpected keyword argument 'regex'"
+      ],
+      "notes": "2 test files cannot be collected; 2 others (test_repo, test_service) pass but also blocked by collection interrupt"
+    },
+    "orders": {
+      "test_files": [
+        "tests/orders/test_invoice.py",
+        "tests/orders/test_repo.py",
+        "tests/orders/test_routes.py",
+        "tests/orders/test_schemas.py",
+        "tests/orders/test_service.py"
+      ],
+      "collected": 17,
+      "passed": 9,
+      "failed": 8,
+      "errors": 0,
+      "failing_tests": [
+        "tests/orders/test_routes.py::test_post_order_ok",
+        "tests/orders/test_routes.py::test_get_order_route_ok",
+        "tests/orders/test_schemas.py::test_tag_stripping",
+        "tests/orders/test_schemas.py::test_tag_empty_stays_empty_string",
+        "tests/orders/test_schemas.py::test_note_defaults_to_none",
+        "tests/orders/test_service.py::test_create_order_totals_items",
+        "tests/orders/test_service.py::test_get_order_roundtrip",
+        "tests/orders/test_service.py::test_create_order_empty_items_totals_zero"
+      ],
+      "notes": "@validator each_item=True no longer works; Optional[str] note field now required (no implicit None default)"
+    },
+    "payments": {
+      "test_files": [
+        "tests/payments/test_charge.py",
+        "tests/payments/test_receipt.py",
+        "tests/payments/test_receipt_more.py",
+        "tests/payments/test_repo.py",
+        "tests/payments/test_routes.py",
+        "tests/payments/test_schemas.py"
+      ],
+      "collected": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 2,
+      "collection_errors": [
+        "tests/payments/test_routes.py: PydanticUserError: Field(regex=...) is removed, use pattern= instead",
+        "tests/payments/test_schemas.py: PydanticUserError: Field(regex=...) is removed, use pattern= instead"
+      ],
+      "notes": "PaymentIn model raises at class definition time; 4 other test files also blocked by collection interrupt"
+    }
+  },
+  "summary": {
+    "total_passed": 9,
+    "total_failed": 8,
+    "total_collection_errors": 6,
+    "total_tests_blocked": 25
+  }
+}
