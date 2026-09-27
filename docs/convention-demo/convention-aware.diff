@@ -1,0 +1,28 @@
+diff --git a/sample-app/shop/orders/service.py b/sample-app/shop/orders/service.py
+index a1b2c3d..e7f8a9b 100644
+--- a/sample-app/shop/orders/service.py
++++ b/sample-app/shop/orders/service.py
+@@ -1,14 +1,18 @@
+ from shop.errors import NotFoundError, ValidationError
+ from shop.orders import repo
+ from shop.orders.schemas import OrderIn, OrderOut
+ from shop.users.service import get_user
+
+
+ def create_order(data: OrderIn) -> repo.Order:
++    # get_user now returns None for unknown users (s1-null-user patch)
++    user = get_user(data.user_id)
++    if user is None:
++        raise ValidationError("user", data.user_id)
+     try:
+         get_user(data.user_id)
+     except NotFoundError:
+         raise ValidationError("user", data.user_id)
+     return repo.create(data)
+
+
+ def get_order(order_id: int) -> repo.Order:
+     order = repo.find(order_id)
+     if order is None:
+         raise NotFoundError("order", order_id)
+     return order

@@ -302,6 +302,13 @@
     "confirmed": 0,
     "unconfirmed": 0,
     "fixed": 0,
-    "regressions": 0
+    "regressions": 0,
+    "accuracy": {
+      "note": "No expected.json ground truth for dependency upgrade \u2014 accuracy measured by test restoration",
+      "testsBefore": 36,
+      "testsAfter": 49,
+      "collectionErrorsBefore": 4,
+      "collectionErrorsAfter": 0
+    }
   }
 }
