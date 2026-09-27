@@ -1,0 +1,26 @@
+[
+  {
+    "id": "shop/payments/receipt.py#render_receipt",
+    "verdict": "will_break",
+    "proof_file": "sample-app/tests/uplift_proofs/test_payments_render_receipt.py",
+    "status": "blocked_by_mode",
+    "note": "Uplift-impact-analyst mode cannot write outside .uplift/. Proof test code is recorded here for the prover step.",
+    "test_code": "# uplift:item shop/payments/receipt.py#render_receipt\nfrom shop.payments.charge import Payment\nfrom shop.payments.receipt import render_receipt\n\n\ndef test_render_receipt_shows_dollar_amount():\n    \"\"\"OLD contract: render_receipt formats amount as dollars (e.g. 103.2 -> $103.20).\"\"\"\n    assert render_receipt(Payment(1, 103.2)) == \"Receipt for Asha Rao: $103.20\"\n"
+  },
+  {
+    "id": "shop/admin/reports.py#revenue_total",
+    "verdict": "will_break",
+    "proof_file": "sample-app/tests/uplift_proofs/test_admin_revenue_total.py",
+    "status": "blocked_by_mode",
+    "note": "Uplift-impact-analyst mode cannot write outside .uplift/. Proof test code is recorded here for the prover step.",
+    "test_code": "# uplift:item shop/admin/reports.py#revenue_total\nfrom shop.payments.charge import charge\nfrom shop.admin.reports import revenue_total\n\n\ndef test_revenue_total_returns_dollars():\n    \"\"\"OLD contract: revenue_total sums payment amounts in dollars (e.g. charge(1, 100.0).amount ~ 103.2).\"\"\"\n    payment = charge(1, 100.0)\n    result = revenue_total([payment])\n    assert result < 200, f\"Expected dollar total ~103.2, got {result} (looks like cents)\"\n"
+  },
+  {
+    "id": "shop/notifications/email.py#send_receipt_email",
+    "verdict": "will_break",
+    "proof_file": "sample-app/tests/uplift_proofs/test_notifications_send_receipt_email.py",
+    "status": "blocked_by_mode",
+    "note": "Uplift-impact-analyst mode cannot write outside .uplift/. Proof test code is recorded here for the prover step.",
+    "test_code": "# uplift:item shop/notifications/email.py#send_receipt_email\nfrom shop.payments.charge import Payment\nfrom shop.notifications.email import send_receipt_email\n\n\ndef test_send_receipt_email_formats_dollars():\n    \"\"\"OLD contract: send_receipt_email formats amount as dollars (e.g. 103.2 -> $103.20).\"\"\"\n    assert send_receipt_email(Payment(1, 103.2)) == \"Thanks! We charged $103.20\"\n"
+  }
+]
