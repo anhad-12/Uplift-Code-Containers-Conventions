@@ -41,8 +41,13 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
+<<<<<<< HEAD
       "reason": "Line 11 calls get_user(order.user_id).name; when get_user now returns None for an unknown user_id, this raises AttributeError instead of propagating NotFoundError.",
       "fix": "Assign user = get_user(order.user_id) and skip the row (or use a fallback name) when user is None before accessing .name.",
+=======
+      "reason": "Calls get_user(order.user_id).name \u2014 None.name raises AttributeError",
+      "fix": "",
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_admin_user_spend_report.py",
@@ -87,8 +92,13 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
+<<<<<<< HEAD
       "reason": "Line 9: `user.email` raises AttributeError when get_user returns None for an unknown user_id.",
       "fix": "Add a None-check after get_user: `if user is None: raise NotFoundError('user', order.user_id)`.",
+=======
+      "reason": "Calls get_user(order.user_id).email \u2014 None.email raises AttributeError",
+      "fix": "",
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_orders_build_invoice.py",
@@ -117,11 +127,19 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
+<<<<<<< HEAD
       "reason": "Lines 8-11: the except NotFoundError branch is never reached now that get_user returns None, so an unknown user_id bypasses the validation guard and reaches repo.save_order.",
       "fix": "Replace the try/except with `if get_user(data.user_id) is None: raise ValidationError('unknown user')`.",
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_orders_create_order_unknown_user.py",
+=======
+      "reason": "get_user returns None; except NotFoundError guard never fires; unknown users silently create orders",
+      "fix": "",
+      "proof": {
+        "status": "confirmed",
+        "testFile": "tests/uplift_proofs/test_orders_create_order.py",
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
         "passesOnBase": true,
         "failsOnHead": true
       },
@@ -134,11 +152,20 @@
       ],
       "repair": {
         "status": "fixed",
+<<<<<<< HEAD
         "worker": "codex-orders",
         "filesChanged": [
           "shop/orders/invoice.py",
           "shop/orders/service.py"
         ]
+=======
+        "file": "shop/orders/service.py",
+        "summary": "Check for None after get_user call and raise ValidationError; remove reliance on NotFoundError propagation",
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0
+        }
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       }
     },
     {
@@ -148,11 +175,19 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
+<<<<<<< HEAD
       "reason": "Line 13: get_user is called solely as an existence check relying on it raising NotFoundError; it now returns None silently, so charge proceeds for non-existent users without any error.",
       "fix": "Capture the return value and raise explicitly: `if get_user(user_id) is None: raise NotFoundError('user', user_id)`.",
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_payments_charge.py",
+=======
+      "reason": "get_user returns None; charge proceeds and returns Payment for non-existent user without raising",
+      "fix": "",
+      "proof": {
+        "status": "confirmed",
+        "testFile": "tests/uplift_proofs/test_payments_charge_user.py",
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
         "passesOnBase": true,
         "failsOnHead": true
       },
@@ -170,11 +205,20 @@
       ],
       "repair": {
         "status": "fixed",
+<<<<<<< HEAD
         "worker": "codex-payments",
         "filesChanged": [
           "shop/payments/charge.py",
           "shop/payments/receipt.py"
         ]
+=======
+        "file": "shop/payments/charge.py",
+        "summary": "Validate get_user result is not None before proceeding; raise NotFoundError if user is missing",
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0
+        }
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       }
     },
     {
@@ -184,8 +228,13 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
+<<<<<<< HEAD
       "reason": "Line 7: when user_id is unknown, get_user now returns None, so user.name raises AttributeError instead of propagating NotFoundError.",
       "fix": "Check the return value before use: `if user is None: raise NotFoundError('user', payment.user_id)` after line 6.",
+=======
+      "reason": "Calls get_user(payment.user_id).name \u2014 None.name raises AttributeError",
+      "fix": "",
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_payments_render_receipt.py",
@@ -215,8 +264,13 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
+<<<<<<< HEAD
       "reason": "Line 13 returns None directly to FastAPI, which will fail response_model=UserOut validation (500) or return null with 200, breaking the HTTP contract for unknown user_ids.",
       "fix": "After calling service.get_user, check for None and raise HTTPException(status_code=404) before returning.",
+=======
+      "reason": "FastAPI serialises None as UserOut; Pydantic raises ValidationError \u2192 HTTP 500 instead of 404",
+      "fix": "",
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_users_get_user_route.py",
@@ -231,10 +285,19 @@
       ],
       "repair": {
         "status": "fixed",
+<<<<<<< HEAD
         "worker": "codex-users",
         "filesChanged": [
           "shop/users/routes.py"
         ]
+=======
+        "file": "shop/users/routes.py",
+        "summary": "Add None guard: if user is None: raise HTTPException(status_code=404, detail='User not found')",
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0
+        }
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       }
     },
     {
@@ -312,7 +375,11 @@
     "shop/admin/reports.py#user_spend_report"
   ],
   "risk": {
+<<<<<<< HEAD
     "score": 87,
+=======
+    "score": 72,
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
     "level": "critical",
     "factors": [
       "6 will_break (+60)",
@@ -330,9 +397,15 @@
   "migration": null,
   "metrics": {
     "filesScanned": 25,
+<<<<<<< HEAD
     "secondsTaken": 12.585,
     "predicted": 7,
     "confirmed": 6,
+=======
+    "secondsTaken": 0.5,
+    "predicted": 6,
+    "confirmed": 3,
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
     "unconfirmed": 0,
     "fixed": 6,
     "regressions": 0,

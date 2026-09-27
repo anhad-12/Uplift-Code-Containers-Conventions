@@ -61,11 +61,20 @@
       "tests": [],
       "repair": {
         "status": "fixed",
+<<<<<<< HEAD
         "worker": "codex-core",
         "filesChanged": [
           "shop/admin/reports.py",
           "shop/notifications/email.py"
         ]
+=======
+        "file": "shop/admin/reports.py",
+        "summary": "Divide sum by 100 before returning: return round(sum(p.amount for p in payments) / 100, 2)",
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0
+        }
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       }
     },
     {
@@ -91,11 +100,20 @@
       ],
       "repair": {
         "status": "fixed",
+<<<<<<< HEAD
         "worker": "codex-core",
         "filesChanged": [
           "shop/admin/reports.py",
           "shop/notifications/email.py"
         ]
+=======
+        "file": "shop/notifications/email.py",
+        "summary": "Divide payment.amount by 100 in format string: f\"Thanks! We charged ${payment.amount/100:.2f}\"",
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0
+        }
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       }
     },
     {
@@ -151,12 +169,21 @@
       ],
       "repair": {
         "status": "fixed",
+<<<<<<< HEAD
         "worker": "codex-payments",
         "filesChanged": [
           "shop/payments/amounts.py",
           "shop/payments/receipt.py",
           "shop/payments/repo.py"
         ]
+=======
+        "file": "shop/payments/receipt.py",
+        "summary": "Divide payment.amount by 100 in format string: f\"Receipt for {user.name}: ${payment.amount/100:.2f}\"",
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0
+        }
+>>>>>>> 7e90b35c10e48831feed78bc05b40c7e310089ca
       }
     },
     {

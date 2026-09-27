@@ -21,7 +21,7 @@ Measured scenario results:
 
 Validation: scripts/check_evidence.py checks schema, identical published copies,
 raw JUnit counts, risk calculation, proof conditions and accuracy. All scenarios
-pass. The full readiness run recorded 99 PASS, 0 FAIL, 3 historical-evidence
+pass. The full readiness run recorded 101 PASS, 0 FAIL, 1 historical-evidence
 warnings; engine, baseline app and dashboard suites all passed. See
 .uplift/a8-audit/final-readiness.txt and the final focused regression log.
 
@@ -30,8 +30,8 @@ materializer can append corrected snapshots to the scenario branches, retaining
 their history and requiring an exact match with measured source hashes before
 committing. docs/scenario-branches.json records those commits when materialized.
 
-Limits retained honestly: no new Bob sessions/screenshots are claimed; original
-Member A/B screenshot targets are not fully documented. --require-bob-evidence
+Limits retained honestly: no new Bob sessions/screenshots are claimed; the original
+Member A screenshot target has four recorded screenshots against five required. --require-bob-evidence
 still enforces that historical requirement. Docker build durations are not
 measured. No public deployment or remote Git push is claimed.
 

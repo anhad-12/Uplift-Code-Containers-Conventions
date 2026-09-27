@@ -8,7 +8,8 @@
       "uplift-convention-scanner",
       "uplift-worker-users",
       "uplift-worker-core",
-      "uplift-verifier"
+      "uplift-verifier",
+      "uplift-worker-payments"
     ],
     "generatedAt": "2026-09-27T10:02:49.188131+00:00"
   },
@@ -227,7 +228,72 @@
         "replacement": "Model.model_validate(obj) after model_config = ConfigDict(from_attributes=True)"
       }
     ],
-    "modules": []
+    "modules": [
+      {
+        "name": "core",
+        "status": "fixed",
+        "catalogEntries": [
+          "basesettings-moved"
+        ],
+        "filesChanged": [
+          "shop/config.py",
+          "requirements.txt"
+        ],
+        "summary": "Moved BaseSettings import from pydantic to pydantic_settings; added pydantic-settings>=2.0 to requirements.txt",
+        "testsBefore": {
+          "passed": 0,
+          "failed": 0,
+          "errors": 1
+        },
+        "testsAfter": {
+          "passed": 1,
+          "failed": 0,
+          "errors": 0
+        }
+      },
+      {
+        "name": "payments",
+        "status": "fixed",
+        "catalogEntries": [
+          "field-regex-removed"
+        ],
+        "filesChanged": [
+          "shop/payments/schemas.py"
+        ],
+        "summary": "Changed Field(regex=r'^\\d{16}$') to Field(pattern=r'^\\d{16}$') in PaymentIn schema",
+        "testsBefore": {
+          "passed": 0,
+          "failed": 0,
+          "errors": 2
+        },
+        "testsAfter": {
+          "passed": 8,
+          "failed": 0,
+          "errors": 0
+        }
+      },
+      {
+        "name": "users",
+        "status": "fixed",
+        "catalogEntries": [
+          "constr-regex-removed"
+        ],
+        "filesChanged": [
+          "shop/users/schemas.py"
+        ],
+        "summary": "Replaced constr(regex=...) with Annotated[str, StringConstraints(pattern=...)] for email and username fields",
+        "testsBefore": {
+          "passed": 11,
+          "failed": 0,
+          "errors": 0
+        },
+        "testsAfter": {
+          "passed": 11,
+          "failed": 0,
+          "errors": 0
+        }
+      }
+    ]
   },
   "metrics": {
     "filesScanned": 25,
