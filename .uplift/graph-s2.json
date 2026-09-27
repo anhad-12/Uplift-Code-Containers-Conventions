@@ -1,0 +1,141 @@
+{
+  "changedSymbols": [
+    {
+      "id": "shop/payments/charge.py#Payment",
+      "kind": "class",
+      "changeType": "behavior",
+      "hints": []
+    },
+    {
+      "id": "shop/payments/charge.py#charge",
+      "kind": "function",
+      "changeType": "behavior",
+      "hints": [
+        "unit scaling added",
+        "numeric literal changed"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "shop/admin/reports.py#revenue_total",
+      "file": "shop/admin/reports.py",
+      "line": 15,
+      "hop": 1,
+      "via": "shop/payments/charge.py#Payment",
+      "module": "admin",
+      "layer": "direct",
+      "snippet": "    return rows\n\n\ndef revenue_total(payments: List[Payment]) -> float:\n    return round(sum(p.amount for p in payments), 2)",
+      "resolution": "jedi",
+      "tests": []
+    },
+    {
+      "id": "shop/notifications/email.py#send_receipt_email",
+      "file": "shop/notifications/email.py",
+      "line": 14,
+      "hop": 1,
+      "via": "shop/payments/charge.py#Payment",
+      "module": "notifications",
+      "layer": "direct",
+      "snippet": "    return bool(f\"from {settings.sender} to {user.email}\")\n\n\ndef send_receipt_email(payment: Payment) -> str:\n    return f\"Thanks! We charged ${payment.amount:.2f}\"",
+      "resolution": "jedi",
+      "tests": [
+        "tests/notifications/test_email.py"
+      ]
+    },
+    {
+      "id": "shop/orders/invoice.py#payment_line",
+      "file": "shop/orders/invoice.py",
+      "line": 15,
+      "hop": 1,
+      "via": "shop/payments/charge.py#Payment",
+      "module": "orders",
+      "layer": "direct",
+      "snippet": "    }\n\n\ndef payment_line(payment: Payment) -> dict:\n    return {\"label\": \"payment\", \"amount\": payment.amount}",
+      "resolution": "jedi",
+      "tests": [
+        "tests/orders/test_invoice.py"
+      ]
+    },
+    {
+      "id": "shop/payments/receipt.py#render_receipt",
+      "file": "shop/payments/receipt.py",
+      "line": 5,
+      "hop": 1,
+      "via": "shop/payments/charge.py#Payment",
+      "module": "payments",
+      "layer": "direct",
+      "snippet": "from shop.users.service import get_user\n\n\ndef render_receipt(payment: Payment) -> str:\n    user = get_user(payment.user_id)\n    return f\"Receipt for {user.name}: ${payment.amount:.2f}\"",
+      "resolution": "jedi",
+      "tests": [
+        "tests/payments/test_receipt.py",
+        "tests/payments/test_receipt_more.py"
+      ]
+    },
+    {
+      "id": "shop/payments/repo.py#save_payment",
+      "file": "shop/payments/repo.py",
+      "line": 8,
+      "hop": 1,
+      "via": "shop/payments/charge.py#Payment",
+      "module": "payments",
+      "layer": "direct",
+      "snippet": "_PAYMENTS: List[Payment] = []\n\n\ndef save_payment(payment: Payment) -> Payment:\n    _PAYMENTS.append(payment)\n    return payment\n\n",
+      "resolution": "jedi",
+      "tests": [
+        "tests/payments/test_repo.py",
+        "tests/payments/test_routes.py"
+      ]
+    },
+    {
+      "id": "shop/payments/repo.py#all_payments",
+      "file": "shop/payments/repo.py",
+      "line": 13,
+      "hop": 1,
+      "via": "shop/payments/charge.py#Payment",
+      "module": "payments",
+      "layer": "direct",
+      "snippet": "    return payment\n\n\ndef all_payments() -> List[Payment]:\n    return list(_PAYMENTS)\n\n\ndef reset() -> None:",
+      "resolution": "jedi",
+      "tests": [
+        "tests/payments/test_repo.py",
+        "tests/payments/test_routes.py"
+      ]
+    },
+    {
+      "id": "shop/payments/routes.py#post_payment",
+      "file": "shop/payments/routes.py",
+      "line": 11,
+      "hop": 1,
+      "via": "shop/payments/charge.py#charge",
+      "module": "payments",
+      "layer": "direct",
+      "snippet": "\n@router.post(\"\")\ndef post_payment(payload: PaymentIn):\n    payment = repo.save_payment(charge.charge(payload.user_id, payload.amount))\n    return {\"user_id\": payment.user_id, \"amount\": payment.amount}",
+      "resolution": "jedi",
+      "tests": [
+        "tests/payments/test_routes.py"
+      ]
+    }
+  ],
+  "contracts": [
+    {
+      "type": "route",
+      "id": "POST /payments",
+      "handler": "shop/payments/routes.py#post_payment",
+      "verdict": "unknown"
+    }
+  ],
+  "testsToRun": [
+    "tests/notifications/test_email.py",
+    "tests/orders/test_invoice.py",
+    "tests/payments/test_receipt.py",
+    "tests/payments/test_receipt_more.py",
+    "tests/payments/test_repo.py",
+    "tests/payments/test_routes.py"
+  ],
+  "untested": [
+    "shop/admin/reports.py#revenue_total"
+  ],
+  "filesScanned": 25,
+  "secondsTaken": 0.462
+}

@@ -170,6 +170,8 @@ def report(
             typer.echo(f"ERROR: proofs file not found: {proofs_file}", err=True)
             raise typer.Exit(1)
         proofs = json.loads(proofs_file.read_text(encoding="utf-8"))
+        if isinstance(proofs, dict):
+            proofs = proofs.get("proofs", [])
 
     repair_dicts: list[dict] = []
     if repairs_glob:
