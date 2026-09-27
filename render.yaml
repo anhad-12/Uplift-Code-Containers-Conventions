@@ -1,10 +1,11 @@
 services:
   - type: web
     name: uplift-dashboard
+    plan: free
     runtime: python
     rootDir: dashboard
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:server
+    startCommand: gunicorn app:server --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.6
