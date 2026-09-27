@@ -1,62 +1,14 @@
-[
+﻿[
   {
-    "catalog_id": "basesettings-moved",
-    "file": "shop/config.py",
+    "catalogId": "basesettings-moved",
+    "file": "sample-app/shop/config.py",
     "line": 1,
     "text": "from pydantic import BaseSettings"
   },
   {
-    "catalog_id": "orm-mode-renamed",
-    "file": "shop/orders/schemas.py",
-    "line": 23,
-    "text": "        orm_mode = True"
-  },
-  {
-    "catalog_id": "orm-mode-renamed",
-    "file": "shop/users/schemas.py",
-    "line": 10,
-    "text": "        orm_mode = True"
-  },
-  {
-    "catalog_id": "config-class-deprecated",
-    "file": "shop/orders/schemas.py",
-    "line": 22,
-    "text": "    class Config:"
-  },
-  {
-    "catalog_id": "config-class-deprecated",
-    "file": "shop/users/schemas.py",
-    "line": 9,
-    "text": "    class Config:"
-  },
-  {
-    "catalog_id": "validator-deprecated",
-    "file": "shop/orders/schemas.py",
-    "line": 3,
-    "text": "from pydantic import BaseModel, validator"
-  },
-  {
-    "catalog_id": "validator-decorator",
-    "file": "shop/orders/schemas.py",
-    "line": 12,
-    "text": "    @validator(\"tags\", each_item=True)"
-  },
-  {
-    "catalog_id": "field-regex-renamed",
-    "file": "shop/payments/schemas.py",
+    "catalogId": "field-regex-removed",
+    "file": "sample-app/shop/payments/schemas.py",
     "line": 7,
-    "text": "    card: str = Field(..., regex=r\"^\\d{16}$\")"
-  },
-  {
-    "catalog_id": "constr-removed",
-    "file": "shop/users/schemas.py",
-    "line": 7,
-    "text": "    email: constr(regex=r\"^[^@]+@[^@]+$\")"
-  },
-  {
-    "catalog_id": "optional-field-semantics",
-    "file": "shop/orders/schemas.py",
-    "line": 9,
-    "text": "    note: Optional[str]"
+    "text": "card: str = Field(..., regex=r\"^\\d{16}$\")"
   }
 ]
