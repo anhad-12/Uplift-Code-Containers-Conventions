@@ -23,7 +23,7 @@ import comment as _comment  # noqa: E402
 import panels               # noqa: E402
 import app as _app          # noqa: E402
 
-_REPORTS = _DASH_ROOT / "reports"
+_REPORTS = _DASH_ROOT / "tests" / "fixtures"
 
 
 def _s1() -> dict:
@@ -168,7 +168,8 @@ def test_detail_view_has_bob_tab():
 def test_detail_view_pr_comment_contains_risk():
     """The PR comment content must be in the detail view."""
     rendered = str(_app.detail_view("s1-null-user"))
-    assert "Risk 71/100" in rendered
+    score = _app.REPORTS["s1-null-user"]["risk"]["score"]
+    assert f"Risk {score}/100" in rendered
 
 
 def test_detail_view_has_clipboard():

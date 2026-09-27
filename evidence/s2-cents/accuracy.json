@@ -1,0 +1,28 @@
+{
+  "accuracy": {
+    "precision": 1.0,
+    "recall": 0.5,
+    "truePositives": 3,
+    "falsePositives": 0,
+    "falseNegatives": 3
+  },
+  "predicted": [
+    "shop/admin/reports.py#revenue_total",
+    "shop/notifications/email.py#send_receipt_email",
+    "shop/payments/receipt.py#render_receipt"
+  ],
+  "truthBroken": [
+    "shop/admin/reports.py#revenue_total",
+    "shop/notifications/email.py#send_receipt_email",
+    "shop/orders/invoice.py#payment_line",
+    "shop/payments/receipt.py#render_receipt",
+    "shop/payments/repo.py#save_payment",
+    "shop/payments/routes.py#post_payment"
+  ],
+  "falsePositives": [],
+  "falseNegatives": [
+    "shop/orders/invoice.py#payment_line",
+    "shop/payments/repo.py#save_payment",
+    "shop/payments/routes.py#post_payment"
+  ]
+}

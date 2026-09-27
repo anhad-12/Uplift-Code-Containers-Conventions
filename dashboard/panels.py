@@ -506,7 +506,7 @@ def _tests_bar(tests: dict) -> dcc.Graph | None:
     after  = tests["after"]
     labels = ["Before", "After"]
     passed = [before.get("passed", 0), after.get("passed", 0)]
-    failed = [before.get("failed", 0), after.get("failed", 0)]
+    failed = [before.get("failed", 0) + before.get("errors", 0), after.get("failed", 0) + after.get("errors", 0)]
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -521,7 +521,7 @@ def _tests_bar(tests: dict) -> dcc.Graph | None:
         textfont={"color": "#ffffff", "size": 13},
     ))
     fig.add_trace(go.Bar(
-        name="Failed",
+        name="Failed / collection errors",
         x=labels,
         y=failed,
         marker_color="#d64545",
@@ -825,9 +825,9 @@ def _module_lane(mod: dict) -> dbc.Col:
     ta       = mod.get("testsAfter")  or {}
 
     before_pass = tb.get("passed", 0)
-    before_fail = tb.get("failed", 0)
+    before_fail = tb.get("failed", 0) + tb.get("errors", 0)
     after_pass  = ta.get("passed", 0)
-    after_fail  = ta.get("failed", 0)
+    after_fail  = ta.get("failed", 0) + ta.get("errors", 0)
 
     # Fixed-size inline before/after bar — height 140px so it stays inside the card
     _LANE_CHART_HEIGHT = 140
@@ -845,7 +845,7 @@ def _module_lane(mod: dict) -> dbc.Col:
         textfont={"color": "#ffffff", "size": 11},
     ))
     fig.add_trace(go.Bar(
-        name="Failed",
+        name="Failed / collection errors",
         x=["Before", "After"],
         y=[before_fail, after_fail],
         marker_color="#d64545",
@@ -1065,6 +1065,10 @@ def bob_panel(report: dict) -> dbc.Card:
     provenance = report.get("provenance") or {}
     bob_modes: list[str] = provenance.get("bobModes") or _STATIC_BOB_MODES
 
+    attribution = ("Original predictions/catalog: IBM Bob. Repairs, final verification and publication: Codex."
+                   if provenance.get("generatedBy") == "codex"
+                   else "Report generator: " + provenance.get("generatedBy", "unknown"))
+
     mode_rows = []
     for mode in bob_modes:
         summary = _BOB_MODE_SUMMARIES.get(mode, "custom mode")
@@ -1084,6 +1088,7 @@ def bob_panel(report: dict) -> dbc.Card:
             style={"backgroundColor": "#f7f8fa", "borderBottom": "1px solid #e5e7eb"},
         ),
         dbc.CardBody([
+            html.P(attribution, className="small"),
             html.Ul(mode_rows,
                     style={"paddingLeft": "1.2rem", "marginBottom": "0.75rem",
                            "listStyle": "disc"}),

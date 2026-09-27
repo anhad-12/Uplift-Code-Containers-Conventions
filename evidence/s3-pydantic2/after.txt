@@ -1,0 +1,13 @@
+..............................................                           [100%]
+============================== warnings summary ===============================
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\starlette\testclient.py:40
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\starlette\testclient.py:40: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+tests/users/test_schemas.py::test_user_out_from_orm
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\main.py:1255: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-evidence\after.xml -
+46 passed, 2 warnings in 0.33s

@@ -26,7 +26,7 @@ if str(_DASH_ROOT) not in sys.path:
 import graph  # noqa: E402
 import panels  # noqa: E402
 
-_REPORTS = _DASH_ROOT / "reports"
+_REPORTS = _DASH_ROOT / "tests" / "fixtures"
 _APP_SRC = (_DASH_ROOT / "app.py").read_text(encoding="utf-8")
 
 

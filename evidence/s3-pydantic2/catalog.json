@@ -1,0 +1,171 @@
+[
+  {
+    "id": "basesettings-moved",
+    "title": "BaseSettings moved to pydantic-settings package",
+    "kind": "api_removed",
+    "guideSection": "BaseSettings has moved to pydantic-settings",
+    "detect": {
+      "type": "import",
+      "pattern": "from pydantic import BaseSettings"
+    },
+    "replacement": "from pydantic_settings import BaseSettings  (pip install pydantic-settings)",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 1
+  },
+  {
+    "id": "config-class-deprecated",
+    "title": "Inner class Config is deprecated; use model_config = ConfigDict(...) instead",
+    "kind": "syntax",
+    "guideSection": "Changes to config",
+    "detect": {
+      "type": "regex",
+      "pattern": "^\\s+class Config:"
+    },
+    "replacement": "model_config = ConfigDict(...)",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 2
+  },
+  {
+    "id": "orm-mode-renamed",
+    "title": "Config key orm_mode renamed to from_attributes",
+    "kind": "api_changed",
+    "guideSection": "Changes to config",
+    "detect": {
+      "type": "identifier",
+      "pattern": "orm_mode"
+    },
+    "replacement": "model_config = ConfigDict(from_attributes=True)",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 2
+  },
+  {
+    "id": "validator-deprecated",
+    "title": "@validator deprecated; replace with @field_validator",
+    "kind": "api_changed",
+    "guideSection": "@validator and @root_validator are deprecated",
+    "detect": {
+      "type": "regex",
+      "pattern": "@validator\\("
+    },
+    "replacement": "@field_validator(...)",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 1
+  },
+  {
+    "id": "validator-each-item",
+    "title": "@validator each_item=True not supported in @field_validator; iterate in body instead",
+    "kind": "api_changed",
+    "guideSection": "@validator and @root_validator are deprecated",
+    "detect": {
+      "type": "regex",
+      "pattern": "each_item\\s*=\\s*True"
+    },
+    "replacement": "Use mode='before' and iterate: return [v.strip() for v in value]",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 1
+  },
+  {
+    "id": "root-validator-deprecated",
+    "title": "@root_validator deprecated; replace with @model_validator",
+    "kind": "api_changed",
+    "guideSection": "@validator and @root_validator are deprecated",
+    "detect": {
+      "type": "regex",
+      "pattern": "@root_validator"
+    },
+    "replacement": "@model_validator(mode='before') or mode='after'",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 0
+  },
+  {
+    "id": "field-regex-removed",
+    "title": "Field(regex=...) kwarg removed; use Field(pattern=...) instead",
+    "kind": "api_removed",
+    "guideSection": "Changes to pydantic.Field",
+    "detect": {
+      "type": "regex",
+      "pattern": "Field\\(.*regex\\s*="
+    },
+    "replacement": "Field(..., pattern=r'...')",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 1
+  },
+  {
+    "id": "constr-regex-removed",
+    "title": "constr regex parameter renamed to pattern; Annotated with StringConstraints is the migration form",
+    "kind": "api_removed",
+    "guideSection": "Constrained types",
+    "detect": {
+      "type": "regex",
+      "pattern": "constr\\(.*regex\\s*="
+    },
+    "replacement": "Annotated[str, StringConstraints(pattern=r'...')]",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 1
+  },
+  {
+    "id": "constrained-types-removed",
+    "title": "ConstrainedInt, ConstrainedStr, etc. removed; use Annotated[type, Field(...)] instead",
+    "kind": "api_removed",
+    "guideSection": "Constrained types",
+    "detect": {
+      "type": "regex",
+      "pattern": "Constrained(Int|Str|Float|Decimal|Bytes|List|Set|FrozenSet|Date)"
+    },
+    "replacement": "Annotated[int, Field(ge=0)] or Annotated[str, StringConstraints(...)]",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 0
+  },
+  {
+    "id": "optional-required-semantics",
+    "title": "Optional[T] without default is now required (no implicit None default)",
+    "kind": "behavior_changed",
+    "guideSection": "Required, optional, and nullable fields",
+    "detect": {
+      "type": "regex",
+      "pattern": ":\\s*Optional\\[\\w+\\]\\s*$"
+    },
+    "replacement": "Add = None if field should be optional: field: Optional[str] = None",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 1
+  },
+  {
+    "id": "dict-method-renamed",
+    "title": ".dict() renamed to .model_dump()",
+    "kind": "api_changed",
+    "guideSection": "Changes to pydantic.BaseModel",
+    "detect": {
+      "type": "regex",
+      "pattern": "\\.dict\\(\\)"
+    },
+    "replacement": ".model_dump()",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 0
+  },
+  {
+    "id": "parse-obj-renamed",
+    "title": "parse_obj() renamed to model_validate()",
+    "kind": "api_changed",
+    "guideSection": "Changes to pydantic.BaseModel",
+    "detect": {
+      "type": "call",
+      "pattern": "parse_obj"
+    },
+    "replacement": "Model.model_validate(data)",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 0
+  },
+  {
+    "id": "from-orm-deprecated",
+    "title": "from_orm() deprecated; use model_validate() with from_attributes=True in model_config",
+    "kind": "api_changed",
+    "guideSection": "Changes to pydantic.BaseModel",
+    "detect": {
+      "type": "call",
+      "pattern": "from_orm"
+    },
+    "replacement": "Model.model_validate(obj) after model_config = ConfigDict(from_attributes=True)",
+    "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+    "occurrences": 0
+  }
+]

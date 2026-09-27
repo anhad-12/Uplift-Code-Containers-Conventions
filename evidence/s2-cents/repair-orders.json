@@ -1,0 +1,25 @@
+{
+  "scenario": "s2-cents",
+  "module": "orders",
+  "worker": "codex-orders",
+  "filesChanged": [
+    "shop/orders/invoice.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/orders/invoice.py#payment_line"
+  ],
+  "testsBefore": {
+    "passed": 22,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 23,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

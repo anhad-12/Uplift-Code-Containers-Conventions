@@ -1,0 +1,16 @@
+.....................................................                    [100%]
+============================== warnings summary ===============================
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:29
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:29: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    [], typing.ContextManager[anyio.abc.BlockingPortal]
+
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+tests/uplift_proofs/test_payments_route_dollars.py::test_api_preserves_dollar_contract
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690: DeprecationWarning: The 'app' shortcut is now deprecated. Use the explicit style 'transport=WSGITransport(app=...)' instead.
+    warnings.warn(message, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s2-cents-evidence\after.xml -
+53 passed, 5 warnings in 2.36s

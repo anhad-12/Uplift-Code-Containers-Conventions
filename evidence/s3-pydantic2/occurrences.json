@@ -1,0 +1,72 @@
+[
+  {
+    "entry": "basesettings-moved",
+    "file": "shop/config.py",
+    "line": 1,
+    "module": "core",
+    "snippet": "from pydantic import BaseSettings\n"
+  },
+  {
+    "entry": "config-class-deprecated",
+    "file": "shop/orders/schemas.py",
+    "line": 22,
+    "module": "orders",
+    "snippet": "\n    class Config:\n        orm_mode = True"
+  },
+  {
+    "entry": "orm-mode-renamed",
+    "file": "shop/orders/schemas.py",
+    "line": 23,
+    "module": "orders",
+    "snippet": "    class Config:\n        orm_mode = True"
+  },
+  {
+    "entry": "validator-deprecated",
+    "file": "shop/orders/schemas.py",
+    "line": 12,
+    "module": "orders",
+    "snippet": "\n    @validator(\"tags\", each_item=True)\n    def strip_tag(cls, value):"
+  },
+  {
+    "entry": "validator-each-item",
+    "file": "shop/orders/schemas.py",
+    "line": 12,
+    "module": "orders",
+    "snippet": "\n    @validator(\"tags\", each_item=True)\n    def strip_tag(cls, value):"
+  },
+  {
+    "entry": "optional-required-semantics",
+    "file": "shop/orders/schemas.py",
+    "line": 9,
+    "module": "orders",
+    "snippet": "    items: List[float]\n    note: Optional[str]\n    tags: List[str] = []"
+  },
+  {
+    "entry": "field-regex-removed",
+    "file": "shop/payments/schemas.py",
+    "line": 7,
+    "module": "payments",
+    "snippet": "    amount: float\n    card: str = Field(..., regex=r\"^\\d{16}$\")"
+  },
+  {
+    "entry": "config-class-deprecated",
+    "file": "shop/users/schemas.py",
+    "line": 9,
+    "module": "users",
+    "snippet": "\n    class Config:\n        orm_mode = True"
+  },
+  {
+    "entry": "orm-mode-renamed",
+    "file": "shop/users/schemas.py",
+    "line": 10,
+    "module": "users",
+    "snippet": "    class Config:\n        orm_mode = True"
+  },
+  {
+    "entry": "constr-regex-removed",
+    "file": "shop/users/schemas.py",
+    "line": 7,
+    "module": "users",
+    "snippet": "    name: str\n    email: constr(regex=r\"^[^@]+@[^@]+$\")\n"
+  }
+]

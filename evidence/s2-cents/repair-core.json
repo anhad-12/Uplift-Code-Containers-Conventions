@@ -1,0 +1,27 @@
+{
+  "scenario": "s2-cents",
+  "module": "core",
+  "worker": "codex-core",
+  "filesChanged": [
+    "shop/admin/reports.py",
+    "shop/notifications/email.py"
+  ],
+  "fixesApplied": 2,
+  "fixedIds": [
+    "shop/admin/reports.py#revenue_total",
+    "shop/notifications/email.py#send_receipt_email"
+  ],
+  "testsBefore": {
+    "passed": 8,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 10,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

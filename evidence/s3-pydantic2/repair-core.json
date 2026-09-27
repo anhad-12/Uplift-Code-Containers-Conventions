@@ -1,0 +1,26 @@
+{
+  "scenario": "s3-pydantic2",
+  "module": "core",
+  "worker": "codex-core",
+  "filesChanged": [
+    "requirements.txt",
+    "shop/config.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/config.py#migration"
+  ],
+  "testsBefore": {
+    "passed": 3,
+    "failed": 0,
+    "errors": 3,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 8,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

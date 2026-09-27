@@ -46,7 +46,7 @@ def _iter_python_files(root: Path):
             continue
         # Skip anything under a tests/ directory
         rel_parts = rel.split("/")
-        if any(p in ("tests", "test") or p.startswith("test_") for p in rel_parts):
+        if any(p in ("tests", "test", "node_modules", "__pycache__") or p.startswith(("test_", ".")) for p in rel_parts):
             continue
         yield path, rel
 
@@ -159,7 +159,7 @@ def find_candidates(
                     except ValueError:
                         continue
                     ref_parts = ref_rel.replace("\\", "/").split("/")
-                    if any(p in ("tests", "test") or p.startswith("test_") for p in ref_parts):
+                    if any(p in ("tests", "test", "node_modules", "__pycache__") or p.startswith(("test_", ".")) for p in ref_parts):
                         continue
                     if not ref_rel.endswith(".py"):
                         continue

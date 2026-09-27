@@ -1,0 +1,24 @@
+{
+  "checkedLines": 2,
+  "violations": 0,
+  "retried": false,
+  "checks": [
+    "absolute imports",
+    "module-level imports",
+    "snake_case functions",
+    "typed domain exceptions"
+  ],
+  "details": [],
+  "addedLines": [
+    {
+      "file": "shop/orders/service.py",
+      "line": 9,
+      "text": "        if get_user(data.user_id) is None:"
+    },
+    {
+      "file": "shop/orders/service.py",
+      "line": 10,
+      "text": "            raise NotFoundError('user', data.user_id)"
+    }
+  ]
+}

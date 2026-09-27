@@ -1,0 +1,25 @@
+{
+  "scenario": "s3-pydantic2",
+  "module": "orders",
+  "worker": "codex-orders",
+  "filesChanged": [
+    "shop/orders/schemas.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/orders/schemas.py#migration"
+  ],
+  "testsBefore": {
+    "passed": 10,
+    "failed": 8,
+    "errors": 6,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 22,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

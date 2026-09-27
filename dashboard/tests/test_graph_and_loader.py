@@ -4,7 +4,7 @@ from pathlib import Path
 import graph
 import loader
 
-REPORTS = Path(__file__).resolve().parent.parent / "reports"
+REPORTS = Path(__file__).resolve().parent / "fixtures"
 
 
 def report(name: str) -> dict:

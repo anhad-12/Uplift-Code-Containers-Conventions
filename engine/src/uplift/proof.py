@@ -88,6 +88,9 @@ def parse_junit(xml_path: Path) -> dict:
                 continue
 
             key = f"{classname}::{name}"
+            if tc.find("skipped") is not None:
+                cases[key] = "skipped"
+                continue
             failure = tc.find("failure")
             error = tc.find("error")
             if failure is not None or error is not None:
@@ -133,8 +136,9 @@ def run_pytest(
             "-q",
             "--tb=no",
         ] + test_paths
-        subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
-        # We ignore returncode: non-zero just means tests failed, which is expected.
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        if result.returncode not in (0, 1) or not junit_xml.exists() or not junit_xml.stat().st_size:
+            raise RuntimeError("pytest did not complete a test run: " + result.stdout + result.stderr)
         return parse_junit(junit_xml)
     finally:
         if own_tmp and junit_xml.exists():
@@ -167,6 +171,8 @@ def _default_app_python(repo: Path) -> str:
     # Try <repo-parent>/sample-app/.venv/bin/python (Unix) or Scripts/python.exe (Windows)
     for parent in [repo.parent, repo.parent.parent]:
         for rel in (
+            "sample-app/.venv311/bin/python",
+            "sample-app/.venv311/Scripts/python.exe",
             "sample-app/.venv/bin/python",
             "sample-app/.venv/Scripts/python.exe",
         ):
@@ -276,7 +282,7 @@ def proof_run(
             # passes_on_base: file ran AND all cases passed
             passes_on_base = bool(base_statuses) and all(s == "passed" for s in base_statuses)
             # fails_on_head:  file did not run OR at least one case failed/errored
-            fails_on_head = (not head_statuses) or any(s in ("failed", "error") for s in head_statuses)
+            fails_on_head = bool(head_statuses) and any(s in ("failed", "error") for s in head_statuses)
 
             status = "confirmed" if passes_on_base and fails_on_head else "unconfirmed"
 
@@ -308,7 +314,9 @@ def proof_run(
                 f"--ignore={proofs_in_tree}",
                 tests_root_posix,
             ]
-            subprocess.run(cmd, cwd=tree, capture_output=True, text=True)
+            result = subprocess.run(cmd, cwd=tree, capture_output=True, text=True)
+            if result.returncode not in (0, 1) or not xml.exists():
+                raise RuntimeError("pytest did not complete a suite run: " + result.stdout + result.stderr)
             return parse_junit(xml)
 
         base_suite = _full_suite(base, xml_base_suite)

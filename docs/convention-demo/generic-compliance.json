@@ -1,0 +1,35 @@
+{
+  "checkedLines": 3,
+  "violations": 1,
+  "retried": false,
+  "checks": [
+    "absolute imports",
+    "module-level imports",
+    "snake_case functions",
+    "typed domain exceptions"
+  ],
+  "details": [
+    {
+      "file": "shop/orders/service.py",
+      "line": 10,
+      "rule": "module-level imports"
+    }
+  ],
+  "addedLines": [
+    {
+      "file": "shop/orders/service.py",
+      "line": 9,
+      "text": "        if get_user(data.user_id) is None:"
+    },
+    {
+      "file": "shop/orders/service.py",
+      "line": 10,
+      "text": "            from shop.errors import ValidationError as InvalidOrder"
+    },
+    {
+      "file": "shop/orders/service.py",
+      "line": 11,
+      "text": "            raise InvalidOrder('unknown user')"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "passed": 18,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "byModule": {
+    "orders": {
+      "passed": 18,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "uplift_proofs": {
+      "passed": 19,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "cases": {
+    "tests.orders.test_invoice::test_payment_line_uses_the_payment_amount": "passed",
+    "tests.orders.test_invoice::test_invoice_addresses_the_user": "passed",
+    "tests.orders.test_invoice::test_invoice_total_equals_order_total": "passed",
+    "tests.orders.test_repo::test_save_returns_order": "passed",
+    "tests.orders.test_repo::test_find_saved_order": "passed",
+    "tests.orders.test_repo::test_reset_clears_orders": "passed",
+    "tests.orders.test_routes::test_post_order_ok": "passed",
+    "tests.orders.test_routes::test_get_order_route_ok": "passed",
+    "tests.orders.test_routes::test_get_missing_order_route_is_404": "passed",
+    "tests.orders.test_schemas::test_tag_stripping": "passed",
+    "tests.orders.test_schemas::test_tag_empty_stays_empty_string": "passed",
+    "tests.orders.test_schemas::test_note_defaults_to_none": "passed",
+    "tests.orders.test_schemas::test_non_numeric_item_rejected": "passed",
+    "tests.orders.test_service::test_create_order_totals_items": "passed",
+    "tests.orders.test_service::test_get_order_roundtrip": "passed",
+    "tests.orders.test_service::test_create_order_empty_items_totals_zero": "passed",
+    "tests.orders.test_service::test_get_order_missing_raises_not_found": "passed",
+    "tests.uplift_proofs.test_orders_create_order_unknown_user::test_create_order_rejects_unknown_user": "passed"
+  },
+  "command": [
+    "C:\\Users\\dbahe\\Downloads\\Uplift-Code-Containers-Conventions\\sample-app\\.venv311\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "--continue-on-collection-errors",
+    "--junitxml=C:\\Users\\dbahe\\Downloads\\Uplift-Code-Containers-Conventions\\docs\\convention-demo\\generic.xml",
+    "tests/orders",
+    "tests/uplift_proofs/test_orders_create_order_unknown_user.py"
+  ],
+  "pythonVersion": "Python 3.11.9"
+}

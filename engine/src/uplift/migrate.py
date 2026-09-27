@@ -202,6 +202,9 @@ def _parse_junit_by_module(xml_path: Path) -> dict:
                 module = "core"
 
             key = f"{classname}::{name}"
+            if tc.find("skipped") is not None:
+                cases[key] = "skipped"
+                continue
             failure = tc.find("failure")
             error = tc.find("error")
             if failure is not None or error is not None:
@@ -304,9 +307,12 @@ def upgrade_test(
             "-q", "--tb=no",
             "tests",
         ]
-        subprocess.run(cmd, cwd=test_cwd, capture_output=True, text=True)
-
+        completed = subprocess.run(cmd, cwd=test_cwd, capture_output=True, text=True)
+        if completed.returncode not in (0, 1) or not xml_path.exists():
+            raise RuntimeError("Upgrade test did not complete: " + completed.stdout + completed.stderr)
         result = _parse_junit_by_module(xml_path)
+        if not result["cases"]:
+            raise RuntimeError("Upgrade test produced no test cases")
 
     finally:
         shutil.rmtree(tmp_root, ignore_errors=True)

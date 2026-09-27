@@ -1,0 +1,105 @@
+...................................FFFFFF...........                     [100%]
+================================== FAILURES ===================================
+___________________ test_revenue_total_returns_dollar_scale ___________________
+
+    def test_revenue_total_returns_dollar_scale():
+        """OLD contract: revenue_total sums payment amounts as dollars (charge(1, 100.0) -> ~103.2, not ~10320)."""
+        payment = charge(1, 100.0)
+        result = revenue_total([payment])
+>       assert result == pytest.approx(103.2)
+E       assert 10320 == 103.2 � 1.0e-04
+E         
+E         comparison failed
+E         Obtained: 10320
+E         Expected: 103.2 � 1.0e-04
+
+tests\uplift_proofs\test_admin_revenue_total.py:12: AssertionError
+______________ test_send_receipt_email_formats_amount_as_dollars ______________
+
+    def test_send_receipt_email_formats_amount_as_dollars():
+        """OLD contract: send_receipt_email formats the amount produced by charge() as dollars (e.g. $103.20)."""
+        payment = charge(1, 100.0)
+        result = send_receipt_email(payment)
+>       assert result == "Thanks! We charged $103.20"
+E       AssertionError: assert 'Thanks! We charged $10320.00' == 'Thanks! We charged $103.20'
+E         
+E         - Thanks! We charged $103.20
+E         ?                        -
+E         + Thanks! We charged $10320.00
+E         ?                          +++
+
+tests\uplift_proofs\test_notifications_send_receipt_email.py:10: AssertionError
+___________________ test_invoice_preserves_dollar_contract ____________________
+
+    def test_invoice_preserves_dollar_contract():
+>       assert payment_line(charge(1, 100.0))["amount"] == pytest.approx(103.2)
+E       assert 10320 == 103.2 � 1.0e-04
+E         
+E         comparison failed
+E         Obtained: 10320
+E         Expected: 103.2 � 1.0e-04
+
+tests\uplift_proofs\test_orders_payment_line.py:8: AssertionError
+________________ test_render_receipt_formats_amount_as_dollars ________________
+
+    def test_render_receipt_formats_amount_as_dollars():
+        """OLD contract: render_receipt formats the amount produced by charge() as dollars (e.g. $103.20)."""
+        payment = charge(1, 100.0)
+        result = render_receipt(payment)
+>       assert result == "Receipt for Asha Rao: $103.20"
+E       AssertionError: assert 'Receipt for ...ao: $10320.00' == 'Receipt for ... Rao: $103.20'
+E         
+E         - Receipt for Asha Rao: $103.20
+E         ?                           -
+E         + Receipt for Asha Rao: $10320.00
+E         ?                             +++
+
+tests\uplift_proofs\test_payments_render_receipt.py:10: AssertionError
+_____________________ test_api_preserves_dollar_contract ______________________
+
+    def test_api_preserves_dollar_contract():
+        response = make_client(router).post('/payments', json={"user_id": 1, "amount": 100, "card": "4242424242424242"})
+        assert response.status_code == 200
+>       assert response.json()["amount"] == pytest.approx(103.2)
+E       assert 10320 == 103.2 � 1.0e-04
+E         
+E         comparison failed
+E         Obtained: 10320
+E         Expected: 103.2 � 1.0e-04
+
+tests\uplift_proofs\test_payments_route_dollars.py:10: AssertionError
+__________________ test_repository_preserves_dollar_contract __________________
+
+    def test_repository_preserves_dollar_contract():
+        payment = charge(1, 100.0)
+        saved = repo.save_payment(payment)
+>       assert saved.amount == pytest.approx(103.2)
+E       assert 10320 == 103.2 � 1.0e-04
+E         
+E         comparison failed
+E         Obtained: 10320
+E         Expected: 103.2 � 1.0e-04
+
+tests\uplift_proofs\test_payments_store_dollars.py:10: AssertionError
+============================== warnings summary ===============================
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:29
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:29: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    [], typing.ContextManager[anyio.abc.BlockingPortal]
+
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+tests/uplift_proofs/test_payments_route_dollars.py::test_api_preserves_dollar_contract
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690: DeprecationWarning: The 'app' shortcut is now deprecated. Use the explicit style 'transport=WSGITransport(app=...)' instead.
+    warnings.warn(message, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s2-cents-evidence\before.xml -
+=========================== short test summary info ===========================
+FAILED tests/uplift_proofs/test_admin_revenue_total.py::test_revenue_total_returns_dollar_scale
+FAILED tests/uplift_proofs/test_notifications_send_receipt_email.py::test_send_receipt_email_formats_amount_as_dollars
+FAILED tests/uplift_proofs/test_orders_payment_line.py::test_invoice_preserves_dollar_contract
+FAILED tests/uplift_proofs/test_payments_render_receipt.py::test_render_receipt_formats_amount_as_dollars
+FAILED tests/uplift_proofs/test_payments_route_dollars.py::test_api_preserves_dollar_contract
+FAILED tests/uplift_proofs/test_payments_store_dollars.py::test_repository_preserves_dollar_contract
+6 failed, 46 passed, 5 warnings in 1.60s

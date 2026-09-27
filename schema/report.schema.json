@@ -11,7 +11,7 @@
       "type": "object",
       "required": ["generatedBy"],
       "properties": {
-        "generatedBy": { "enum": ["bob", "engine", "mock"], "description": "mock = hand-written placeholder. Never allowed in dashboard/public/reports at submission." },
+        "generatedBy": { "enum": ["bob", "engine", "codex", "mock"], "description": "mock = hand-written placeholder. Never allowed in dashboard/public/reports at submission." },
         "bobModes": { "type": "array", "items": { "type": "string" } },
         "generatedAt": { "type": "string" }
       }

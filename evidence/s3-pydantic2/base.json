@@ -1,0 +1,91 @@
+{
+  "passed": 46,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "byModule": {
+    "core": {
+      "passed": 8,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "orders": {
+      "passed": 22,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "payments": {
+      "passed": 33,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "users": {
+      "passed": 47,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "cases": {
+    "tests.config.test_config::test_get_settings_defaults": "passed",
+    "tests.notifications.test_email::test_send_welcome": "passed",
+    "tests.notifications.test_email::test_receipt_email_mentions_the_amount": "passed",
+    "tests.notifications.test_email::test_send_welcome_user_two": "passed",
+    "tests.orders.test_invoice::test_payment_line_uses_the_payment_amount": "passed",
+    "tests.orders.test_invoice::test_invoice_addresses_the_user": "passed",
+    "tests.orders.test_invoice::test_invoice_total_equals_order_total": "passed",
+    "tests.orders.test_repo::test_save_returns_order": "passed",
+    "tests.orders.test_repo::test_find_saved_order": "passed",
+    "tests.orders.test_repo::test_reset_clears_orders": "passed",
+    "tests.orders.test_routes::test_post_order_ok": "passed",
+    "tests.orders.test_routes::test_get_order_route_ok": "passed",
+    "tests.orders.test_routes::test_get_missing_order_route_is_404": "passed",
+    "tests.orders.test_schemas::test_tag_stripping": "passed",
+    "tests.orders.test_schemas::test_tag_empty_stays_empty_string": "passed",
+    "tests.orders.test_schemas::test_note_defaults_to_none": "passed",
+    "tests.orders.test_schemas::test_non_numeric_item_rejected": "passed",
+    "tests.orders.test_service::test_create_order_totals_items": "passed",
+    "tests.orders.test_service::test_get_order_roundtrip": "passed",
+    "tests.orders.test_service::test_create_order_empty_items_totals_zero": "passed",
+    "tests.orders.test_service::test_get_order_missing_raises_not_found": "passed",
+    "tests.payments.test_charge::test_charge_adds_fee_in_dollars": "passed",
+    "tests.payments.test_receipt::test_receipt_shows_dollars": "passed",
+    "tests.payments.test_receipt_more::test_receipt_for_user_two": "passed",
+    "tests.payments.test_receipt_more::test_receipt_formats_zero_cents": "passed",
+    "tests.payments.test_receipt_more::test_receipt_formats_large_amount": "passed",
+    "tests.payments.test_repo::test_save_and_list_payments": "passed",
+    "tests.payments.test_repo::test_all_payments_returns_all": "passed",
+    "tests.payments.test_repo::test_reset_clears_payments": "passed",
+    "tests.payments.test_routes::test_post_payment_ok": "passed",
+    "tests.payments.test_schemas::test_payment_in_accepts_16_digit_card": "passed",
+    "tests.payments.test_schemas::test_payment_in_rejects_short_card": "passed",
+    "tests.test_errors::test_not_found_error_message": "passed",
+    "tests.test_errors::test_not_found_error_attributes": "passed",
+    "tests.test_errors::test_validation_error_is_shop_error": "passed",
+    "tests.users.test_repo::test_find_user_returns_user": "passed",
+    "tests.users.test_repo::test_find_user_unknown_returns_none": "passed",
+    "tests.users.test_repo::test_all_users_returns_two": "passed",
+    "tests.users.test_routes::test_get_user_route_ok": "passed",
+    "tests.users.test_routes::test_list_users_route": "passed",
+    "tests.users.test_routes::test_list_users_route_returns_both": "passed",
+    "tests.users.test_routes::test_get_known_user_returns_id_and_name": "passed",
+    "tests.users.test_schemas::test_user_out_from_orm": "passed",
+    "tests.users.test_service::test_get_user_returns_user": "passed",
+    "tests.users.test_service::test_get_user_missing_raises": "passed",
+    "tests.users.test_service::test_list_users": "passed"
+  },
+  "command": [
+    "C:\\Users\\dbahe\\Downloads\\Uplift-Code-Containers-Conventions\\sample-app\\.venv311\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "--continue-on-collection-errors",
+    "--junitxml=C:\\Users\\dbahe\\AppData\\Local\\Temp\\uplift_reproduce_ep0txhrx\\s3-pydantic2-evidence\\base.xml",
+    "tests"
+  ],
+  "pythonVersion": "Python 3.11.9"
+}
