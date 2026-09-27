@@ -1,4 +1,4 @@
-﻿"""Append repaired scenario snapshots to existing branches without rewriting history.
+"""Append repaired scenario snapshots to existing branches without rewriting history.
 
 Run after committing the baseline/completion branch. Each branch uses a fresh
 worktree, receives the committed baseline plus exactly its scenario/repair, and
@@ -10,7 +10,7 @@ import json
 import shutil
 import subprocess
 import tempfile
-from reproduce import ROOT, IDS, tree_hash
+from reproduce import ROOT, IDS, tree_hash, python_in
 from scenario_repairs import apply
 
 
@@ -33,7 +33,8 @@ def main():
         worktree=area/sid
         if worktree.exists():
             raise SystemExit('Existing worktree requires inspection: '+str(worktree))
-        git('worktree','add','--no-checkout',str(worktree),branch)
+        git('worktree','add',str(worktree),branch)
+        git('merge','--no-ff','--no-commit','-s','ours',base,cwd=worktree)
         # This restore is confined to a newly created worktree. No caller's dirty
         # files are touched and the old branch commit remains the new parent.
         git('restore','--source='+base,'--staged','--worktree','--','.',cwd=worktree)
@@ -55,6 +56,9 @@ def main():
         expected=json.loads((ROOT/'evidence'/sid/'manifest.json').read_text(encoding='utf8'))['repairedSha256']
         if actual!=expected:
             raise SystemExit(f'Branch tree does not match measured evidence: {sid}; retained {worktree} for inspection')
+        interpreter=python_in('sample-app/.venv-v2-311' if sid=='s3-pydantic2' else 'sample-app/.venv311')
+        subprocess.run([interpreter,'-m','pytest','-q'],cwd=app,check=True)
+        (worktree/'.uplift/scenario-branch.json').write_text(json.dumps({'scenario':sid,'baselineCommit':base,'verifiedSourceSha256':actual},indent=2)+'\n',encoding='utf8')
         git('add','--all',cwd=worktree)
         git('commit','-m',f'[codex] restore isolated {sid} and verified repairs',cwd=worktree)
         after=git('rev-parse','HEAD',cwd=worktree)

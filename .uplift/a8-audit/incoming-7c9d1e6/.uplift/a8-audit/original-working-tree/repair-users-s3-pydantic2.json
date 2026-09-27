@@ -1,4 +1,4 @@
-﻿{
+{
   "scenario": "s3-pydantic2",
   "module": "users",
   "worker": "uplift-users",
@@ -44,12 +44,20 @@
     },
     {
       "file": "sample-app/shop/orders/schemas.py",
-      "catalog_ids": ["validator-deprecated", "validator-decorator", "optional-field-semantics", "orm-mode-renamed", "config-class-deprecated"],
+      "catalog_ids": [
+        "validator-deprecated",
+        "validator-decorator",
+        "optional-field-semantics",
+        "orm-mode-renamed",
+        "config-class-deprecated"
+      ],
       "reason": "shop/orders/ is not in sample-app/shop/users/. Fix must be applied by the orders module worker."
     },
     {
       "file": "sample-app/shop/payments/schemas.py",
-      "catalog_ids": ["field-regex-renamed"],
+      "catalog_ids": [
+        "field-regex-renamed"
+      ],
       "reason": "shop/payments/ is not in sample-app/shop/users/. Fix must be applied by the payments module worker."
     }
   ],

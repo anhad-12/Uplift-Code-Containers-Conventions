@@ -7,9 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
       - run: python scripts/setup.py
+      - run: engine/.venv/bin/python scripts/verify_branch.py --prepare-baseline
       - run: engine/.venv/bin/python scripts/check_modes.py
       - run: engine/.venv/bin/python -m unittest discover -s scripts -p test_accuracy.py
       - run: engine/.venv/bin/python scripts/reproduce.py

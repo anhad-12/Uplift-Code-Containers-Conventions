@@ -9,7 +9,7 @@ if sys.version_info[:2] not in ((3,11),(3,12)):
     raise SystemExit('Run this script with Python 3.11 or 3.12.')
 setups = [
     ('engine/.venv', ['-e', 'engine[dev,mcp]']),
-    ('sample-app/.venv311', ['-r','sample-app/requirements.txt']),
+    ('sample-app/.venv311', ['-r','scenarios/baseline-requirements.txt']),
     ('sample-app/.venv-v2-311', ['-r','scenarios/s3-pydantic2/requirements.txt']),
     ('dashboard/.venv311', ['-r','dashboard/requirements.txt']),
 ]
