@@ -1,0 +1,324 @@
+{
+  "checkedLines": 62,
+  "violations": 0,
+  "retried": false,
+  "checks": [
+    "absolute imports",
+    "module-level imports",
+    "snake_case functions",
+    "typed domain exceptions"
+  ],
+  "details": [],
+  "addedLines": [
+    {
+      "file": "shop/admin/reports.py",
+      "line": 1,
+      "text": "from shop.payments.amounts import DollarPayment, dollar_amount"
+    },
+    {
+      "file": "shop/admin/reports.py",
+      "line": 16,
+      "text": "def revenue_total(payments: List[Payment | DollarPayment]) -> float:"
+    },
+    {
+      "file": "shop/admin/reports.py",
+      "line": 17,
+      "text": "    return round(sum(dollar_amount(p) for p in payments), 2)"
+    },
+    {
+      "file": "shop/notifications/email.py",
+      "line": 1,
+      "text": "from shop.payments.amounts import DollarPayment, dollar_amount"
+    },
+    {
+      "file": "shop/notifications/email.py",
+      "line": 15,
+      "text": "def send_receipt_email(payment: Payment | DollarPayment) -> str:"
+    },
+    {
+      "file": "shop/notifications/email.py",
+      "line": 16,
+      "text": "    return f\"Thanks! We charged ${dollar_amount(payment):.2f}\""
+    },
+    {
+      "file": "shop/orders/invoice.py",
+      "line": 1,
+      "text": "from shop.payments.amounts import DollarPayment, dollar_amount"
+    },
+    {
+      "file": "shop/orders/invoice.py",
+      "line": 16,
+      "text": "def payment_line(payment: Payment | DollarPayment) -> dict:"
+    },
+    {
+      "file": "shop/orders/invoice.py",
+      "line": 17,
+      "text": "    return {\"label\": \"payment\", \"amount\": dollar_amount(payment)}"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 1,
+      "text": "from dataclasses import dataclass"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 2,
+      "text": ""
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 3,
+      "text": "from shop.payments.charge import Payment"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 4,
+      "text": ""
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 5,
+      "text": ""
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 6,
+      "text": "@dataclass(frozen=True)"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 7,
+      "text": "class DollarPayment:"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 8,
+      "text": "    user_id: int"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 9,
+      "text": "    amount: float"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 10,
+      "text": ""
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 11,
+      "text": ""
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 12,
+      "text": "def dollar_amount(payment: Payment | DollarPayment) -> float:"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 13,
+      "text": "    \"\"\"Convert charged cents once; persisted dollar values are already converted.\"\"\""
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 14,
+      "text": "    if isinstance(payment, DollarPayment):"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 15,
+      "text": "        return payment.amount"
+    },
+    {
+      "file": "shop/payments/amounts.py",
+      "line": 16,
+      "text": "    return payment.amount / 100"
+    },
+    {
+      "file": "shop/payments/receipt.py",
+      "line": 1,
+      "text": "from shop.payments.amounts import DollarPayment, dollar_amount"
+    },
+    {
+      "file": "shop/payments/receipt.py",
+      "line": 6,
+      "text": "def render_receipt(payment: Payment | DollarPayment) -> str:"
+    },
+    {
+      "file": "shop/payments/receipt.py",
+      "line": 8,
+      "text": "    return f\"Receipt for {user.name}: ${dollar_amount(payment):.2f}\""
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 4,
+      "text": "from shop.payments.amounts import DollarPayment, dollar_amount"
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 6,
+      "text": "_PAYMENTS: List[DollarPayment] = []"
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 9,
+      "text": "def save_payment(payment: Payment | DollarPayment) -> DollarPayment:"
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 10,
+      "text": "    stored = DollarPayment(payment.user_id, dollar_amount(payment))"
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 11,
+      "text": "    _PAYMENTS.append(stored)"
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 12,
+      "text": "    return stored"
+    },
+    {
+      "file": "shop/payments/repo.py",
+      "line": 15,
+      "text": "def all_payments() -> List[DollarPayment]:"
+    },
+    {
+      "file": "tests/notifications/test_email.py",
+      "line": 10,
+      "text": "    assert send_receipt_email(Payment(1, 10320)) == \"Thanks! We charged $103.20\""
+    },
+    {
+      "file": "tests/orders/test_invoice.py",
+      "line": 7,
+      "text": "    assert payment_line(Payment(1, 10320)) == {\"label\": \"payment\", \"amount\": 103.2}"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 1,
+      "text": "\"\"\"Regression for consumers of dollar-denominated persisted payments.\"\"\""
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 2,
+      "text": "from shop.payments import repo"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 3,
+      "text": "from shop.payments.charge import charge"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 4,
+      "text": "from shop.payments.receipt import render_receipt"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 5,
+      "text": "from shop.orders.invoice import payment_line"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 6,
+      "text": "from shop.notifications.email import send_receipt_email"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 7,
+      "text": "from shop.admin.reports import revenue_total"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 8,
+      "text": ""
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 9,
+      "text": ""
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 10,
+      "text": "def test_persisted_dollars_are_not_converted_twice():"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 11,
+      "text": "    charged = charge(1, 100.0)"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 12,
+      "text": "    assert charged.amount == 10320"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 13,
+      "text": "    stored = repo.save_payment(charged)"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 14,
+      "text": "    stored_again = repo.save_payment(stored)"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 15,
+      "text": "    assert stored.amount == stored_again.amount == 103.2"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 16,
+      "text": "    for payment in (charged, stored, stored_again):"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 17,
+      "text": "        assert render_receipt(payment) == 'Receipt for Asha Rao: $103.20'"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 18,
+      "text": "        assert payment_line(payment)['amount'] == 103.2"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 19,
+      "text": "        assert send_receipt_email(payment) == 'Thanks! We charged $103.20'"
+    },
+    {
+      "file": "tests/payments/test_persisted_dollars.py",
+      "line": 20,
+      "text": "        assert revenue_total([payment]) == 103.2"
+    },
+    {
+      "file": "tests/payments/test_receipt.py",
+      "line": 6,
+      "text": "    assert render_receipt(Payment(1, 10320)) == \"Receipt for Asha Rao: $103.20\""
+    },
+    {
+      "file": "tests/payments/test_receipt_more.py",
+      "line": 6,
+      "text": "    assert render_receipt(Payment(2, 5000)) == \"Receipt for Ben Ito: $50.00\""
+    },
+    {
+      "file": "tests/payments/test_receipt_more.py",
+      "line": 10,
+      "text": "    assert render_receipt(Payment(1, 1000)) == \"Receipt for Asha Rao: $10.00\""
+    },
+    {
+      "file": "tests/payments/test_receipt_more.py",
+      "line": 14,
+      "text": "    assert render_receipt(Payment(1, 100000)) == \"Receipt for Asha Rao: $1000.00\""
+    },
+    {
+      "file": "tests/payments/test_routes.py",
+      "line": 9,
+      "text": "    assert client.post(\"/payments\", json=body).json()[\"amount\"] == 103.2"
+    }
+  ]
+}

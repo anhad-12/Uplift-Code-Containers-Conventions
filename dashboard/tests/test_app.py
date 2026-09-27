@@ -118,9 +118,8 @@ def test_how_it_works_step_cards_use_system_owned_tokens():
 
 def test_home_contains_scenario_cards():
     rendered = _render(_app_module.home())
-    # Both loaded mock reports should appear
-    assert "get_user returns None" in rendered
-    assert "Upgrade Pydantic" in rendered
+    for report in _app_module.REPORTS.values():
+        assert report["scenario"]["title"] in rendered
 
 
 # ── 6. scenario_cards() headline figures and Open button ─────────────────────

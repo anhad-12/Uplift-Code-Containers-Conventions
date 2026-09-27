@@ -143,17 +143,11 @@ def test_removed_and_added(tmp_path: Path) -> None:
         """)
     # We'll use a simpler approach: write a patch that removes list_items entirely
     # and adds a new function new_function
-    patch_text2 = textwrap.dedent("""\
-        --- a/shop/service.py
-        +++ b/shop/service.py
-        @@ -5,4 +5,4 @@
-         
-         
-        -def list_items() -> list:
-        -    return []
-        +def new_function() -> dict:
-        +    return {}
-        """)
+    # Generate valid unified context lines (blank context lines require a space).
+    import difflib
+    original = (repo / "shop/service.py").read_text(encoding="utf-8")
+    replacement = original.replace("def list_items() -> list:\n    return []", "def new_function() -> dict:\n    return {}")
+    patch_text2 = "".join(difflib.unified_diff(original.splitlines(True), replacement.splitlines(True), fromfile="a/shop/service.py", tofile="b/shop/service.py"))
     patch = tmp_path / "case3.patch"
     patch.write_text(patch_text2, encoding="utf-8")
 

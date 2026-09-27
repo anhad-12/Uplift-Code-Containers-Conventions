@@ -1,35 +1,13 @@
-diff --git a/sample-app/shop/orders/service.py b/sample-app/shop/orders/service.py
-index a1b2c3d..d4e5f6a 100644
---- a/sample-app/shop/orders/service.py
-+++ b/sample-app/shop/orders/service.py
-@@ -1,14 +1,18 @@
--from shop.errors import NotFoundError, ValidationError
--from shop.orders import repo
--from shop.orders.schemas import OrderIn, OrderOut
--from shop.users.service import get_user
-+from shop.errors import NotFoundError, ValidationError
-+from shop.orders import repo
-+from shop.orders.schemas import OrderIn, OrderOut
-+from shop.users import service as user_service
-
-
+--- a/shop/orders/service.py
++++ b/shop/orders/service.py
+@@ -6,7 +6,9 @@
+ 
  def create_order(data: OrderIn) -> repo.Order:
--    try:
+     try:
 -        get_user(data.user_id)
--    except NotFoundError:
--        raise ValidationError("user", data.user_id)
-+    user = user_service.get_user(data.user_id)
-+    if user is None:
-+        return None
-     return repo.create(data)
-
-
- def get_order(order_id: int) -> repo.Order:
--    order = repo.find(order_id)
--    if order is None:
--        raise NotFoundError("order", order_id)
--    return order
-+    result = repo.find(order_id)
-+    if not result:
-+        raise NotFoundError("order", order_id)
-+    return result
++        if get_user(data.user_id) is None:
++            from shop.errors import ValidationError as InvalidOrder
++            raise InvalidOrder('unknown user')
+     except NotFoundError:
+         raise ValidationError("unknown user")
+     total = sum(data.items)

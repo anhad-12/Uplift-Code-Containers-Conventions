@@ -1,130 +1,72 @@
-# Uplift — Accuracy Evaluation
+# Measured scenario evaluation
 
-Ground truth: `sample-app/scenarios/*.expected.json`  
-Reports: `reports/s1-null-user.json`, `reports/s2-cents.json`, `reports/s3-pydantic2.json`  
-Script: `python scripts/accuracy.py --report <report> --truth <expected>`
+Original S1/S2 Bob predictions are frozen in scenarios/<id>/verdicts.json. Codex repaired and reverified isolated copies without changing those predictions or ground truth. S2 misses remain visible. Final reports identify generatedBy=codex; legacy Bob artifacts are retained in .uplift/a8-audit/.
 
----
+## Results
 
-## S1 — Null user return (`s1-null-user`)
+| Scenario | Predicted candidates | Confirmed predicted candidates | Fixed items | Before passed / failed / errors | After passed / failed / errors |
+| --- | --- | --- | --- | --- | --- |
+| s1-null-user | 6 | 6 | 6 | 46 / 6 / 0 | 52 / 0 / 0 |
+| s2-cents | 3 | 3 | 6 | 46 / 6 / 0 | 53 / 0 / 0 |
+| s3-pydantic2 | 4 | 0 | 4 | 26 / 8 / 6 | 46 / 0 / 0 |
 
-**Changed symbol:** `shop/users/service.py#get_user` — raise removed, returns `None`
+Counts distinguish test failures from collection errors. A collection error can block several tests, so before/after totals need not match. S1 metrics.predicted also includes one affected route contract (7); the table and accuracy use only candidate ids (6). S3 uses full-suite upgrade evidence, not individually confirmed code proofs.
 
-| id | predicted | truth | correct |
-|---|---|---|---|
-| shop/admin/reports.py#user_spend_report | safe/unknown | will_break | ✗ |
-| shop/notifications/email.py#send_welcome | safe/unknown | safe | ✓ |
-| shop/orders/invoice.py#build_invoice | safe/unknown | will_break | ✗ |
-| shop/orders/service.py#create_order | safe/unknown | will_break | ✗ |
-| shop/payments/charge.py#charge | safe/unknown | will_break | ✗ |
-| shop/payments/receipt.py#render_receipt | safe/unknown | will_break | ✗ |
-| shop/users/routes.py#get_user_route | safe/unknown | will_break | ✗ |
+## s1-null-user
 
-**Metrics:** precision=0.00  recall=0.00  TP=0  FP=0  FN=6
+precision: 1.0, recall: 1.0, truePositives: 6, falsePositives: 0, falseNegatives: 0
 
-**Pipeline state:** predict=done (graph only), prove=pending, repair=pending, verify=pending
+| id | predicted | truth | correct? |
+| --- | --- | --- | --- |
+| shop/orders/invoice.py#build_invoice | will_break | will_break | yes |
+| shop/orders/service.py#create_order | will_break | will_break | yes |
+| shop/users/routes.py#get_user_route | will_break | will_break | yes |
+| shop/payments/charge.py#charge | will_break | will_break | yes |
+| shop/payments/receipt.py#render_receipt | will_break | will_break | yes |
+| shop/admin/reports.py#user_spend_report | will_break | will_break | yes |
+| shop/notifications/email.py#send_welcome | safe | safe | yes |
 
-| Stage | Count |
-|---|---|
-| Predicted will_break | 0 |
-| Confirmed (proofs) | 0 |
-| Fixed | 0 |
+No false positives or false negatives. All six original predictions are reproduced by passing-on-base/failing-on-head proofs, and all pass after repair.
+## s2-cents
 
-### Misses — S1 (all false negatives, no false positives)
+precision: 1.0, recall: 0.5, truePositives: 3, falsePositives: 0, falseNegatives: 3
 
-The graph was built (9 candidates found) but Bob did not run verdicts for S1. All 6 `will_break` ground-truth items count as false negatives.
+| id | predicted | truth | correct? |
+| --- | --- | --- | --- |
+| shop/payments/receipt.py#render_receipt | will_break | will_break | yes |
+| shop/notifications/email.py#send_receipt_email | will_break | will_break | yes |
+| shop/orders/invoice.py#payment_line | safe | will_break | NO |
+| shop/admin/reports.py#revenue_total | will_break | will_break | yes |
+| shop/payments/routes.py#post_payment | safe | will_break | NO |
+| shop/payments/repo.py#save_payment | safe | will_break | NO |
+| shop/orders/invoice.py#build_invoice | missing | safe | yes |
 
-| miss | cause |
-|---|---|
-| `shop/admin/reports.py#user_spend_report` | Verdicts not run for S1. `user_spend_report` calls `get_user(order.user_id).name` — `None.name` raises `AttributeError`. |
-| `shop/orders/invoice.py#build_invoice` | Verdicts not run for S1. Calls `get_user(order.user_id).email` — `None.email` raises `AttributeError`. |
-| `shop/orders/service.py#create_order` | Verdicts not run for S1. The `except NotFoundError` guard never fires when `get_user` returns `None`; unknown users now create orders. |
-| `shop/payments/charge.py#charge` | Verdicts not run for S1. Proceeds to create `Payment(user_id=999, ...)` for a non-existent user without error. |
-| `shop/payments/receipt.py#render_receipt` | Verdicts not run for S1. Calls `get_user(payment.user_id).name` — `None.name` raises `AttributeError`. |
-| `shop/users/routes.py#get_user_route` | Verdicts not run for S1. FastAPI tries to serialise `None` as `UserOut`; Pydantic raises `ValidationError` → HTTP 500 instead of 404. |
+Three false negatives; no false positives:
 
----
+- save_payment: the analyst treated passive storage as safe, overlooking the persisted dollar-unit contract.
+- post_payment: the analyst treated echoing an amount as safe, overlooking the public API dollar-unit contract.
+- payment_line: the analyst treated dictionary passthrough as unit-agnostic, overlooking the invoice dollar-unit contract.
 
-## S2 — Charge returns cents (`s2-cents`)
+Codex added three post-evaluation diagnostic proofs for these misses. They do not turn the original safe predictions into correct predictions. Fixed items can therefore exceed predicted or confirmed-prediction counts. The original admin proof was strengthened from a loose upper bound to the exact expected dollar amount.
 
-**Changed symbol:** `shop/payments/charge.py#charge` — `amount` field changed from dollars to cents (×100)
+S2 changes direct Payment test inputs to cents while keeping dollar-output expectations. Its patch had changed the route assertion to cents; repair restores the documented original dollar contract. Stored DollarPayment and charged Payment are distinct types, so converting a stored value twice does not shrink it again. One additional post-repair regression tests this round trip and all dollar consumers; this accounts for the increased final test count.
 
-| id | predicted | truth | correct |
-|---|---|---|---|
-| shop/admin/reports.py#revenue_total | will_break | will_break | ✓ |
-| shop/notifications/email.py#send_receipt_email | will_break | will_break | ✓ |
-| shop/orders/invoice.py#build_invoice | safe/unknown | safe | ✓ |
-| shop/orders/invoice.py#payment_line | safe/unknown | will_break | ✗ |
-| shop/payments/receipt.py#render_receipt | will_break | will_break | ✓ |
-| shop/payments/repo.py#save_payment | safe/unknown | will_break | ✗ |
-| shop/payments/routes.py#post_payment | safe/unknown | will_break | ✗ |
+## S3 migration
 
-**Metrics:** precision=1.00  recall=0.50  TP=3  FP=0  FN=3
+No expected.json exists and no precision/recall is assigned. A clean Pydantic v1 baseline is run first; the same source/tests then run on Pydantic 2.9.2 before and after repair. No S1 null-user or S2 cents patch is applied. The clean baseline passes 46 tests. Repairs cover users, orders, payments, and core.
 
-**Pipeline state:** predict=done, prove=done (3/3 confirmed), repair=pending, verify=done
+| Module | Before passed / failed / errors | After passed / failed / errors |
+| --- | --- | --- |
+| users | 6 / 0 / 7 | 47 / 0 / 0 |
+| orders | 10 / 8 / 6 | 22 / 0 / 0 |
+| payments | 8 / 0 / 5 | 33 / 0 / 0 |
+| core | 3 / 0 / 3 | 8 / 0 / 0 |
 
-| Stage | Count |
-|---|---|
-| Predicted will_break | 3 |
-| Confirmed (proofs) | 3 |
-| Fixed | 0 |
+## Provenance and reproduction
 
-### Misses — S2 (false negatives only; zero false positives)
-
-| miss | cause |
-|---|---|
-| `shop/orders/invoice.py#payment_line` | Bob judged the function "unit-agnostic" (passes `payment.amount` through as a dict value). Ground truth: the returned dict's `amount` is 100× the correct dollar value — any downstream code interpreting it as dollars is broken. The rubric's "no dollar assumption" rule was applied too broadly. |
-| `shop/payments/repo.py#save_payment` | Bob judged it "only appends to a list; no numeric interpretation." Ground truth: stored payments now hold cent-valued integers, so every future read (e.g. `revenue_total`) is affected. The rubric should treat storage of a semantically-changed value as a propagation break. |
-| `shop/payments/routes.py#post_payment` | Bob judged it "echoes payment.amount without a dollar assumption; callers must adapt." Ground truth: the API contract changed from a dollar float to a cent int — existing clients break. The rubric needs a rule: changing the numeric scale of a public API response is `will_break`. |
-
----
-
-## S3 — Pydantic v1 → v2 upgrade (`s3-pydantic2`)
-
-**Library:** pydantic 1.10.13 → 2.9.2 + fastapi 0.99.1 → 0.115.0  
-No ground-truth `.expected.json` for S3. Reporting real test results per module.
-
-### Before repairs (baseline on `scenario/s3-pydantic2` branch)
-
-| module | passed | failed | collection errors | tests blocked |
-|---|---|---|---|---|
-| core | 0 | 0 | 1 | 1 |
-| notifications | 0 | 0 | 1 | 3 |
-| users | 11 | 0 | 0 | 0 |
-| orders | 17 | 0 | 0 | 0 |
-| payments | 8 | 0 | 2 | 2 |
-| **total** | **36** | **0** | **4** | **6** |
-
-Breaking changes found:
-- `shop/config.py`: `from pydantic import BaseSettings` → blocked core (1 test) + notifications (3 tests) transitively
-- `shop/payments/schemas.py`: `Field(..., regex=...)` → blocked payments `test_routes` + `test_schemas` (2 test files)
-- users/orders: already migrated by Bob before this baseline was recorded
-
-### After repairs
-
-| module | break | fix applied | tests restored |
-|---|---|---|---|
-| users | `constr(regex=...)` → v2 incompatible | `Annotated[str, StringConstraints(pattern=...)]` | 11/11 (already passing) |
-| core | `from pydantic import BaseSettings` | `from pydantic_settings import BaseSettings` + add `pydantic-settings` to requirements.txt | +1 test restored |
-| notifications | transitive import of `shop.config` | fixed by core repair | +3 tests restored |
-| payments | `Field(..., regex=...)` | `Field(..., pattern=...)` | +2 test files restored |
-
-Repairs applied to `dev-dhruv` branch as part of pydantic v2 CI fix (commit `6360db0`).
-
-**After all repairs: 49 passed, 0 failed, 0 collection errors** (confirmed by local `pytest` run).
-
----
-
-## Overall summary
-
-| scenario | precision | recall | TP | FP | FN |
-|---|---|---|---|---|---|
-| S1 (null user) | 0.00 | 0.00 | 0 | 0 | 6 |
-| S2 (cents) | 1.00 | 0.50 | 3 | 0 | 3 |
-| S3 (pydantic v2) | n/a — no will_break ground truth | — | — | — | — |
-
-**Combined (S1+S2):** TP=3, FP=0, FN=9 — precision=1.00, recall=0.25
-
-S1 recall is 0 because the impact-analyst ran verdicts only on S2 (Bob ran out of time for S1 before CP2). All S1 graph candidates were correctly identified (recall for detection = 6/7 = 0.86) but no verdicts were assigned.
-
-S2 precision is perfect (zero false positives) but recall is 0.50 — three `will_break` callers were misclassified as `safe` because the verdict rubric did not penalise: storing a semantically-changed value in a repo, passing it through a public API response, or forwarding it in a dict without transformation.
+- Run `engine/.venv/Scripts/python scripts/reproduce.py` then `engine/.venv/Scripts/python scripts/evaluate_evidence.py` (use bin/python on POSIX).
+- Each evidence/<scenario>/ directory contains base/before/after logs, JUnit XML, parsed counts, input graph/verdicts/proofs, repairs, added-line convention checks, and source/patch hashes.
+- New work is Codex-authored, not a Bob session. Existing Bob screenshots and commit history are historical evidence only; missing screenshots are not fabricated.
+- The old contaminated branches are preserved for audit; the reproducible isolated runner is the supported scenario execution path.
+- Docker effects are conservative instruction invalidation estimates; no build duration or actual image-layer count is claimed.
+- The app is a deliberately small synthetic fixture. These precision/recall values measure two fixed scenarios, not general performance on arbitrary repositories.

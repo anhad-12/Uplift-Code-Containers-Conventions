@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="6" failures="8" skipped="0" tests="40" time="0.641" timestamp="2026-09-27T16:14:57.130671+05:30" hostname="DESKTOP-GA9BA5K"><testcase classname="" name="tests.config.test_config" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-head\tests\config\test_config.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\.uplift\tmp\python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\config\test_config.py:1: in &lt;module&gt;
+    from shop.config import get_settings
+shop\config.py:1: in &lt;module&gt;
+    from pydantic import BaseSettings
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\__init__.py:402: in __getattr__
+    return _getattr_migration(attr_name)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_migration.py:296: in wrapper
+    raise PydanticImportError(
+E   pydantic.errors.PydanticImportError: `BaseSettings` has been moved to the `pydantic-settings` package. See https://docs.pydantic.dev/2.9/migration/#basesettings-has-moved-to-pydantic-settings for more details.
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/import-error</error></testcase><testcase classname="" name="tests.notifications.test_email" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-head\tests\notifications\test_email.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\.uplift\tmp\python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\notifications\test_email.py:1: in &lt;module&gt;
+    from shop.notifications.email import send_receipt_email, send_welcome
+shop\notifications\email.py:1: in &lt;module&gt;
+    from shop.config import get_settings
+shop\config.py:1: in &lt;module&gt;
+    from pydantic import BaseSettings
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\__init__.py:402: in __getattr__
+    return _getattr_migration(attr_name)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_migration.py:296: in wrapper
+    raise PydanticImportError(
+E   pydantic.errors.PydanticImportError: `BaseSettings` has been moved to the `pydantic-settings` package. See https://docs.pydantic.dev/2.9/migration/#basesettings-has-moved-to-pydantic-settings for more details.
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/import-error</error></testcase><testcase classname="" name="tests.payments.test_routes" time="0.000"><error message="collection failure">tests\payments\test_routes.py:2: in &lt;module&gt;
+    from shop.payments.routes import router
+shop\payments\routes.py:4: in &lt;module&gt;
+    from shop.payments.schemas import PaymentIn
+shop\payments\schemas.py:4: in &lt;module&gt;
+    class PaymentIn(BaseModel):
+shop\payments\schemas.py:7: in PaymentIn
+    card: str = Field(..., regex=r"^\d{16}$")
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\fields.py:823: in Field
+    raise PydanticUserError('`regex` is removed. use `pattern` instead', code='removed-kwargs')
+E   pydantic.errors.PydanticUserError: `regex` is removed. use `pattern` instead
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/removed-kwargs</error></testcase><testcase classname="" name="tests.payments.test_schemas" time="0.000"><error message="collection failure">tests\payments\test_schemas.py:5: in &lt;module&gt;
+    from shop.payments.schemas import PaymentIn
+shop\payments\schemas.py:4: in &lt;module&gt;
+    class PaymentIn(BaseModel):
+shop\payments\schemas.py:7: in PaymentIn
+    card: str = Field(..., regex=r"^\d{16}$")
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\fields.py:823: in Field
+    raise PydanticUserError('`regex` is removed. use `pattern` instead', code='removed-kwargs')
+E   pydantic.errors.PydanticUserError: `regex` is removed. use `pattern` instead
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/removed-kwargs</error></testcase><testcase classname="" name="tests.users.test_routes" time="0.000"><error message="collection failure">tests\users\test_routes.py:2: in &lt;module&gt;
+    from shop.users.routes import router
+shop\users\routes.py:6: in &lt;module&gt;
+    from shop.users.schemas import UserOut
+shop\users\schemas.py:4: in &lt;module&gt;
+    class UserOut(BaseModel):
+shop\users\schemas.py:7: in UserOut
+    email: constr(regex=r"^[^@]+@[^@]+$")
+E   TypeError: constr() got an unexpected keyword argument 'regex'</error></testcase><testcase classname="" name="tests.users.test_schemas" time="0.000"><error message="collection failure">tests\users\test_schemas.py:2: in &lt;module&gt;
+    from shop.users.schemas import UserOut
+shop\users\schemas.py:4: in &lt;module&gt;
+    class UserOut(BaseModel):
+shop\users\schemas.py:7: in UserOut
+    email: constr(regex=r"^[^@]+@[^@]+$")
+E   TypeError: constr() got an unexpected keyword argument 'regex'</error></testcase><testcase classname="tests.orders.test_invoice" name="test_payment_line_uses_the_payment_amount" time="0.002" /><testcase classname="tests.orders.test_invoice" name="test_invoice_addresses_the_user" time="0.001" /><testcase classname="tests.orders.test_invoice" name="test_invoice_total_equals_order_total" time="0.001" /><testcase classname="tests.orders.test_repo" name="test_save_returns_order" time="0.001" /><testcase classname="tests.orders.test_repo" name="test_find_saved_order" time="0.001" /><testcase classname="tests.orders.test_repo" name="test_reset_clears_orders" time="0.001" /><testcase classname="tests.orders.test_routes" name="test_post_order_ok" time="0.011"><failure message="assert 422 == 200&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">def test_post_order_ok():
+        response = client.post("/orders", json={"user_id": 1, "items": [5, 5]})
+&gt;       assert response.status_code == 200
+E       assert 422 == 200
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+tests\orders\test_routes.py:9: AssertionError</failure></testcase><testcase classname="tests.orders.test_routes" name="test_get_order_route_ok" time="0.006"><failure message="KeyError: 'id'">def test_get_order_route_ok():
+        post = client.post("/orders", json={"user_id": 1, "items": [3.0, 7.0]})
+&gt;       order_id = post.json()["id"]
+E       KeyError: 'id'
+
+tests\orders\test_routes.py:15: KeyError</failure></testcase><testcase classname="tests.orders.test_routes" name="test_get_missing_order_route_is_404" time="0.006" /><testcase classname="tests.orders.test_schemas" name="test_tag_stripping" time="0.001"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn&#10;note&#10;  Field required [type=missing, input_value={'user_id': 1, 'items': [...: ['  food ', ' drink']}, input_type=dict]&#10;    For further information visit https://errors.pydantic.dev/2.9/v/missing">def test_tag_stripping():
+&gt;       order = OrderIn(user_id=1, items=[1.0], tags=["  food ", " drink"])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [...: ['  food ', ' drink']}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_schemas.py:9: ValidationError</failure></testcase><testcase classname="tests.orders.test_schemas" name="test_tag_empty_stays_empty_string" time="0.001"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn&#10;note&#10;  Field required [type=missing, input_value={'user_id': 1, 'items': [1.0], 'tags': ['  ']}, input_type=dict]&#10;    For further information visit https://errors.pydantic.dev/2.9/v/missing">def test_tag_empty_stays_empty_string():
+&gt;       order = OrderIn(user_id=1, items=[1.0], tags=["  "])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [1.0], 'tags': ['  ']}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_schemas.py:14: ValidationError</failure></testcase><testcase classname="tests.orders.test_schemas" name="test_note_defaults_to_none" time="0.001"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn&#10;note&#10;  Field required [type=missing, input_value={'user_id': 1, 'items': [1.0]}, input_type=dict]&#10;    For further information visit https://errors.pydantic.dev/2.9/v/missing">def test_note_defaults_to_none():
+&gt;       order = OrderIn(user_id=1, items=[1.0])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [1.0]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_schemas.py:19: ValidationError</failure></testcase><testcase classname="tests.orders.test_schemas" name="test_non_numeric_item_rejected" time="0.001" /><testcase classname="tests.orders.test_service" name="test_create_order_totals_items" time="0.001"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn&#10;note&#10;  Field required [type=missing, input_value={'user_id': 1, 'items': [10.0, 5.5]}, input_type=dict]&#10;    For further information visit https://errors.pydantic.dev/2.9/v/missing">def test_create_order_totals_items():
+&gt;       assert create_order(make_input()).total == 15.5
+
+tests\orders\test_service.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+user_id = 1
+
+    def make_input(user_id=1):
+&gt;       return OrderIn(user_id=user_id, items=[10.0, 5.5])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [10.0, 5.5]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_service.py:6: ValidationError</failure></testcase><testcase classname="tests.orders.test_service" name="test_get_order_roundtrip" time="0.001"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn&#10;note&#10;  Field required [type=missing, input_value={'user_id': 1, 'items': [10.0, 5.5]}, input_type=dict]&#10;    For further information visit https://errors.pydantic.dev/2.9/v/missing">def test_get_order_roundtrip():
+&gt;       order = create_order(make_input())
+
+tests\orders\test_service.py:14: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+user_id = 1
+
+    def make_input(user_id=1):
+&gt;       return OrderIn(user_id=user_id, items=[10.0, 5.5])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [10.0, 5.5]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_service.py:6: ValidationError</failure></testcase><testcase classname="tests.orders.test_service" name="test_create_order_empty_items_totals_zero" time="0.001"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn&#10;note&#10;  Field required [type=missing, input_value={'user_id': 1, 'items': []}, input_type=dict]&#10;    For further information visit https://errors.pydantic.dev/2.9/v/missing">def test_create_order_empty_items_totals_zero():
+&gt;       order = create_order(OrderIn(user_id=1, items=[]))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_service.py:24: ValidationError</failure></testcase><testcase classname="tests.orders.test_service" name="test_get_order_missing_raises_not_found" time="0.001" /><testcase classname="tests.payments.test_charge" name="test_charge_adds_fee_in_dollars" time="0.001" /><testcase classname="tests.payments.test_receipt" name="test_receipt_shows_dollars" time="0.001" /><testcase classname="tests.payments.test_receipt_more" name="test_receipt_for_user_two" time="0.001" /><testcase classname="tests.payments.test_receipt_more" name="test_receipt_formats_zero_cents" time="0.001" /><testcase classname="tests.payments.test_receipt_more" name="test_receipt_formats_large_amount" time="0.001" /><testcase classname="tests.payments.test_repo" name="test_save_and_list_payments" time="0.001" /><testcase classname="tests.payments.test_repo" name="test_all_payments_returns_all" time="0.001" /><testcase classname="tests.payments.test_repo" name="test_reset_clears_payments" time="0.001" /><testcase classname="tests.test_errors" name="test_not_found_error_message" time="0.001" /><testcase classname="tests.test_errors" name="test_not_found_error_attributes" time="0.001" /><testcase classname="tests.test_errors" name="test_validation_error_is_shop_error" time="0.001" /><testcase classname="tests.users.test_repo" name="test_find_user_returns_user" time="0.002" /><testcase classname="tests.users.test_repo" name="test_find_user_unknown_returns_none" time="0.001" /><testcase classname="tests.users.test_repo" name="test_all_users_returns_two" time="0.001" /><testcase classname="tests.users.test_service" name="test_get_user_returns_user" time="0.001" /><testcase classname="tests.users.test_service" name="test_get_user_missing_raises" time="0.001" /><testcase classname="tests.users.test_service" name="test_list_users" time="0.001" /></testsuite></testsuites>

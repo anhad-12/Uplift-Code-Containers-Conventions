@@ -11,24 +11,9 @@ import glob as _glob
 import json
 import time
 from datetime import datetime, timezone
+from copy import deepcopy
 from pathlib import Path
 from typing import Optional
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _module_of(file_path: str) -> str:
-    """Derive module name from a repo-relative file path (e.g. shop/users/schemas.py → users)."""
-    parts = file_path.replace("\\", "/").split("/")
-    try:
-        shop_idx = parts.index("shop")
-        if shop_idx + 1 < len(parts):
-            return parts[shop_idx + 1]
-    except ValueError:
-        pass
-    return "core"
 
 
 # ---------------------------------------------------------------------------
@@ -83,6 +68,9 @@ def build_report(
     library: Optional[str] = None,
     lib_from: Optional[str] = None,
     lib_to: Optional[str] = None,
+    generated_by: Optional[str] = None,
+    verification: Optional[dict] = None,
+    conventions: Optional[dict] = None,
 ) -> dict:
     """Assemble a full report dict that validates against schema/report.schema.json.
 
@@ -99,6 +87,35 @@ def build_report(
     verified:     If True, pipeline.verify = "done".
     """
     t0 = time.monotonic()
+    graph = deepcopy(graph)
+    if isinstance(proofs, dict):
+        proofs = proofs.get("proofs", [])
+    if isinstance(catalog, list):
+        catalog = {"catalog": catalog}
+    for repair in repair_files:
+        if repair.get("scenario", scenario_id) != scenario_id:
+            raise ValueError("Repair belongs to another scenario")
+    if verified and (not verification or verification.get("failed", 0) or
+                     verification.get("errors", 0) or verification.get("passed", 0) <= 0 or
+                     verification.get("exitCode", 0) != 0):
+        raise ValueError("Verification requires a successful, nonempty full-suite result")
+
+
+    if occurrences is not None and library and graph.get("change", {}).get("kind") != "dependency-upgrade":
+        dependency = f"requirements.txt#{library}"
+        graph["changedSymbols"] = [{"id": dependency, "kind": "dependency", "changeType": "dependency"}]
+        unique = {}
+        for occ in occurrences:
+            item_id = f"{occ['file']}#{occ.get('enclosing') or occ['module']}"
+            unique.setdefault(item_id, {"id": item_id, "file": occ["file"], "line": occ["line"],
+                                        "hop": 1, "layer": "direct", "via": dependency, "module": occ["module"]})
+        graph["candidates"] = list(unique.values())
+        graph["change"] = {"summary": f"Dependency upgrade: {library} {lib_from or ''} -> {lib_to or ''}",
+                           "kind": "dependency-upgrade", "library": library}
+        if lib_from:
+            graph["change"]["from"] = lib_from
+        if lib_to:
+            graph["change"]["to"] = lib_to
 
     # ---- verdicts lookup: {candidate_id -> {verdict, reason, fix}} -----------
     verdict_map: dict[str, dict] = {}
@@ -114,7 +131,9 @@ def build_report(
         for p in proofs:
             pid = p.get("id", p.get("item", ""))
             if pid:
-                proof_map[pid] = p
+                proof_map[pid] = dict(p)
+                if p.get("status") == "confirmed" and not (p.get("passesOnBase") is True and p.get("failsOnHead") is True):
+                    proof_map[pid]["status"] = "unconfirmed"
 
     # ---- repair lookup: {candidate_id -> repair dict} ------------------------
     # Each repair file may contain a list of repairs under "repairs" key,
@@ -172,6 +191,15 @@ def build_report(
         # Repair
         if cid in repair_map:
             item["repair"] = repair_map[cid]
+        else:
+            for repair in repair_files:
+                # Module repair files must explicitly name repaired ids; a changed file
+                # alone cannot establish that every function in it was repaired.
+                if cid in repair.get("fixedIds", []) and not repair.get("blocked"):
+                    after = repair.get("testsAfter", {})
+                    if after.get("passed", 0) > 0 and not after.get("failed", 0) and not after.get("errors", 0):
+                        item["repair"] = {"status": "fixed", "worker": repair.get("worker", ""),
+                                          "filesChanged": repair.get("filesChanged", [])}
 
         affected.append(item)
 
@@ -192,7 +220,7 @@ def build_report(
     # ---- metrics -------------------------------------------------------------
     predicted = sum(1 for a in affected if a["verdict"] == "will_break") + \
                 sum(1 for c in contracts if c["verdict"] == "will_break")
-    confirmed = sum(1 for a in affected if a.get("proof", {}).get("status") == "confirmed")
+    confirmed = sum(1 for a in affected if a["verdict"] == "will_break" and a.get("proof", {}).get("status") == "confirmed")
     unconfirmed = sum(1 for a in affected if a.get("proof", {}).get("status") == "unconfirmed")
     fixed = sum(1 for a in affected if a.get("repair", {}).get("status") == "fixed")
 
@@ -216,12 +244,14 @@ def build_report(
     pipeline = {
         "predict": "done",
         "prove": "done" if proofs else "pending",
-        "repair": "done" if repair_files else "pending",
+        "repair": "done" if repair_files and all(not r.get("blocked") and r.get("testsAfter", {}).get("failed", 0) == 0 and r.get("testsAfter", {}).get("errors", 0) == 0 for r in repair_files) else "pending",
         "verify": "done" if verified else "pending",
     }
 
     # ---- provenance ----------------------------------------------------------
-    generated_by = "bob" if verdicts is not None else "engine"
+    generated_by = generated_by or ("bob" if verdicts is not None else "engine")
+    if generated_by not in {"bob", "engine", "codex", "mock"}:
+        raise ValueError("Invalid report generator")
     provenance: dict = {
         "generatedBy": generated_by,
         "bobModes": bob_modes,
@@ -243,75 +273,18 @@ def build_report(
     mode = "impact"
     if catalog or occurrences is not None:
         mode = "migrate"
-        if isinstance(catalog, list):
-            catalog_entries = catalog
-            catalog_modules = []
-            catalog_release_notes = None
-        else:
-            catalog_entries = catalog.get("catalog", []) if catalog else []
-            catalog_modules = catalog.get("modules", []) if catalog else []
-            catalog_release_notes = catalog.get("releaseNotes") if catalog else None
+        catalog_entries = catalog.get("catalog", []) if catalog else []
+        catalog_modules = repair_files or (catalog.get("modules", []) if catalog else [])
         migration = {
             "catalog": catalog_entries,
             "modules": catalog_modules,
         }
-        if catalog_release_notes:
-            migration["releaseNotes"] = catalog_release_notes
+        if catalog and "releaseNotes" in catalog:
+            migration["releaseNotes"] = catalog["releaseNotes"]
 
-    # If we have occurrences, build affected[] from them and override changedSymbols
-    if occurrences is not None and library:
-        via_id = f"requirements.txt#{library}"
-        changed_sym = [{"id": via_id, "kind": "dependency", "changeType": "dependency"}]
-        occ_affected: list[dict] = []
-        verdict_map_local = verdict_map.copy()
-        for occ in occurrences:
-            file_path = occ.get("file", "")
-            module = occ.get("module") or _module_of(file_path)
-            enc = occ.get("enclosing") or module
-            item_id = f"{file_path}#{enc}"
-            v_entry = verdict_map_local.get(item_id, {})
-            verdict = v_entry.get("verdict", "unknown")
-            occ_affected.append({
-                "id": item_id,
-                "file": file_path,
-                "line": occ.get("line", 0),
-                "hop": 1,
-                "layer": "direct",
-                "via": via_id,
-                "verdict": verdict,
-                "reason": v_entry.get("reason", ""),
-                "fix": v_entry.get("fix", ""),
-                "proof": {"status": "not_attempted"},
-                "module": module,
-            })
-        # Deduplicate by id
-        seen_ids: set[str] = set()
-        deduped: list[dict] = []
-        for item in occ_affected:
-            if item["id"] not in seen_ids:
-                seen_ids.add(item["id"])
-                deduped.append(item)
-        affected = deduped
-        # Recompute risk for migrate mode
-        rk = risk(affected, contracts, untested)
-        predicted = sum(1 for a in affected if a["verdict"] == "will_break")
-        confirmed = sum(1 for a in affected if a.get("proof", {}).get("status") == "confirmed")
-        metrics["predicted"] = predicted
-        metrics["confirmed"] = confirmed
-        # Override change for dependency upgrade
-        change = {
-            "summary": f"Dependency upgrade: {library} {lib_from} -> {lib_to}" if lib_from and lib_to else f"Dependency upgrade: {library}",
-            "kind": "dependency-upgrade",
-        }
-        if library:
-            change["library"] = library
-        if lib_from:
-            change["from"] = lib_from
-        if lib_to:
-            change["to"] = lib_to
-        graph["changedSymbols"] = changed_sym
-
-    return {
+    if verification is not None:
+        metrics.setdefault("tests", {})["after"] = verification
+    result = {
         "schemaVersion": 1,
         "mode": mode,
         "provenance": provenance,
@@ -327,3 +300,9 @@ def build_report(
         "migration": migration,
         "metrics": metrics,
     }
+
+    if graph.get("infraImpact"):
+        result["infraImpact"] = graph["infraImpact"]
+    if conventions:
+        result["conventions"] = conventions
+    return result

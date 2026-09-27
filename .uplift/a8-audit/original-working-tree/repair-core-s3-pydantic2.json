@@ -1,0 +1,28 @@
+﻿{
+  "scenario": "s3-pydantic2",
+  "module": "core",
+  "worker": "uplift-migration-planner",
+  "status": "planned",
+  "breaks": [
+    {
+      "file": "sample-app/shop/config.py",
+      "line": 1,
+      "catalogId": "basesettings-moved",
+      "guideSection": "BaseSettings has moved to pydantic-settings",
+      "verdict": "will_break",
+      "reason": "from pydantic import BaseSettings raises PydanticImportError at import time on Pydantic v2; shop.config is imported transitively by shop.notifications.email, blocking 4 tests total (core: 1, notifications: 3)",
+      "fix": "Replace 'from pydantic import BaseSettings' with 'from pydantic_settings import BaseSettings' and add pydantic-settings to requirements.txt"
+    }
+  ],
+  "blocked_tests": [
+    "tests/config/test_config.py::test_get_settings_defaults",
+    "tests/notifications/test_email.py::test_send_welcome",
+    "tests/notifications/test_email.py::test_receipt_email_mentions_the_amount",
+    "tests/notifications/test_email.py::test_send_welcome_user_two"
+  ],
+  "files_to_edit": [
+    "sample-app/shop/config.py",
+    "sample-app/requirements.txt"
+  ],
+  "notes": "This is the A (brain/planner) role output. Actual code edits are performed by the core worker."
+}

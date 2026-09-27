@@ -1,0 +1,25 @@
+{
+  "scenario": "s3-pydantic2",
+  "module": "payments",
+  "worker": "codex-payments",
+  "filesChanged": [
+    "shop/payments/schemas.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/payments/schemas.py#migration"
+  ],
+  "testsBefore": {
+    "passed": 8,
+    "failed": 0,
+    "errors": 5,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 33,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

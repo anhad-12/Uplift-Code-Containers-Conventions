@@ -1,0 +1,14 @@
+﻿[
+    {
+        "catalogId": "basesettings-moved",
+        "file": "sample-app/shop/config.py",
+        "line": 1,
+        "text": "from pydantic import BaseSettings"
+    },
+    {
+        "catalogId": "field-regex-removed",
+        "file": "sample-app/shop/payments/schemas.py",
+        "line": 7,
+        "text": "    card: str = Field(..., regex=r\"^\\d{16}$\")"
+    }
+]

@@ -1,0 +1,87 @@
+﻿{
+  "scenario": "s3-pydantic2",
+  "interpreter": "sample-app/.venv-v2/Scripts/python.exe",
+  "pydantic_version": "2.9.2",
+  "fastapi_version": "0.115.0",
+  "command": "pytest sample-app/tests/<module>/ --tb=no -q",
+  "modules": {
+    "core": {
+      "test_files": ["tests/config/test_config.py"],
+      "collected": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 1,
+      "collection_errors": [
+        "tests/config/test_config.py: PydanticImportError: BaseSettings has been moved to pydantic-settings"
+      ],
+      "notes": "shop/config.py line 1 still uses 'from pydantic import BaseSettings'; entire module fails to import; 1 test blocked"
+    },
+    "notifications": {
+      "test_files": ["tests/notifications/test_email.py"],
+      "collected": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 1,
+      "collection_errors": [
+        "tests/notifications/test_email.py: PydanticImportError: BaseSettings moved (transitive via shop.config)"
+      ],
+      "notes": "Fails to import because shop.notifications.email imports shop.config which imports BaseSettings from pydantic; 3 tests blocked"
+    },
+    "users": {
+      "test_files": [
+        "tests/users/test_repo.py",
+        "tests/users/test_routes.py",
+        "tests/users/test_schemas.py",
+        "tests/users/test_service.py"
+      ],
+      "collected": 11,
+      "passed": 11,
+      "failed": 0,
+      "errors": 0,
+      "notes": "shop/users/schemas.py already migrated: constr replaced with Annotated[str,StringConstraints(pattern=...)], class Config replaced with model_config=ConfigDict(from_attributes=True). from_orm still used in test_schemas but works in v2.9 (deprecated, not removed)"
+    },
+    "orders": {
+      "test_files": [
+        "tests/orders/test_invoice.py",
+        "tests/orders/test_repo.py",
+        "tests/orders/test_routes.py",
+        "tests/orders/test_schemas.py",
+        "tests/orders/test_service.py"
+      ],
+      "collected": 17,
+      "passed": 17,
+      "failed": 0,
+      "errors": 0,
+      "notes": "shop/orders/schemas.py already migrated: @validator replaced with @field_validator(mode='before'), Optional[str] default added (=None), class Config replaced with model_config=ConfigDict(from_attributes=True)"
+    },
+    "payments": {
+      "test_files": [
+        "tests/payments/test_charge.py",
+        "tests/payments/test_receipt.py",
+        "tests/payments/test_receipt_more.py",
+        "tests/payments/test_repo.py",
+        "tests/payments/test_routes.py",
+        "tests/payments/test_schemas.py"
+      ],
+      "collected": 8,
+      "passed": 8,
+      "failed": 0,
+      "errors": 2,
+      "collection_errors": [
+        "tests/payments/test_routes.py: PydanticUserError: Field(regex=...) is removed, use pattern= instead",
+        "tests/payments/test_schemas.py: PydanticUserError: Field(regex=...) is removed, use pattern= instead"
+      ],
+      "notes": "shop/payments/schemas.py PaymentIn model raises at class definition time due to Field(regex=...); test_routes and test_schemas blocked. Other 4 test files (test_charge, test_receipt, test_receipt_more, test_repo) pass (8/8) because they do not import PaymentIn"
+    }
+  },
+  "summary": {
+    "total_passed": 19,
+    "total_failed": 0,
+    "total_collection_errors": 4,
+    "total_tests_blocked": 5,
+    "remaining_breaks": [
+      "shop/config.py: from pydantic import BaseSettings (blocks core 1 test + notifications 3 tests)",
+      "shop/payments/schemas.py: Field(..., regex=...) (blocks payments test_routes + test_schemas, 2 test files)"
+    ]
+  }
+}

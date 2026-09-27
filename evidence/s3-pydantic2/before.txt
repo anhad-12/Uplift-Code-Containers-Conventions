@@ -1,0 +1,212 @@
+......FF.FFF.FFF..................                                       [100%]
+=================================== ERRORS ====================================
+________________ ERROR collecting tests/config/test_config.py _________________
+ImportError while importing test module 'C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-head\tests\config\test_config.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\.uplift\tmp\python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\config\test_config.py:1: in <module>
+    from shop.config import get_settings
+shop\config.py:1: in <module>
+    from pydantic import BaseSettings
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\__init__.py:402: in __getattr__
+    return _getattr_migration(attr_name)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_migration.py:296: in wrapper
+    raise PydanticImportError(
+E   pydantic.errors.PydanticImportError: `BaseSettings` has been moved to the `pydantic-settings` package. See https://docs.pydantic.dev/2.9/migration/#basesettings-has-moved-to-pydantic-settings for more details.
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/import-error
+_____________ ERROR collecting tests/notifications/test_email.py ______________
+ImportError while importing test module 'C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-head\tests\notifications\test_email.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\.uplift\tmp\python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\notifications\test_email.py:1: in <module>
+    from shop.notifications.email import send_receipt_email, send_welcome
+shop\notifications\email.py:1: in <module>
+    from shop.config import get_settings
+shop\config.py:1: in <module>
+    from pydantic import BaseSettings
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\__init__.py:402: in __getattr__
+    return _getattr_migration(attr_name)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_migration.py:296: in wrapper
+    raise PydanticImportError(
+E   pydantic.errors.PydanticImportError: `BaseSettings` has been moved to the `pydantic-settings` package. See https://docs.pydantic.dev/2.9/migration/#basesettings-has-moved-to-pydantic-settings for more details.
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/import-error
+_______________ ERROR collecting tests/payments/test_routes.py ________________
+tests\payments\test_routes.py:2: in <module>
+    from shop.payments.routes import router
+shop\payments\routes.py:4: in <module>
+    from shop.payments.schemas import PaymentIn
+shop\payments\schemas.py:4: in <module>
+    class PaymentIn(BaseModel):
+shop\payments\schemas.py:7: in PaymentIn
+    card: str = Field(..., regex=r"^\d{16}$")
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\fields.py:823: in Field
+    raise PydanticUserError('`regex` is removed. use `pattern` instead', code='removed-kwargs')
+E   pydantic.errors.PydanticUserError: `regex` is removed. use `pattern` instead
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/removed-kwargs
+_______________ ERROR collecting tests/payments/test_schemas.py _______________
+tests\payments\test_schemas.py:5: in <module>
+    from shop.payments.schemas import PaymentIn
+shop\payments\schemas.py:4: in <module>
+    class PaymentIn(BaseModel):
+shop\payments\schemas.py:7: in PaymentIn
+    card: str = Field(..., regex=r"^\d{16}$")
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\fields.py:823: in Field
+    raise PydanticUserError('`regex` is removed. use `pattern` instead', code='removed-kwargs')
+E   pydantic.errors.PydanticUserError: `regex` is removed. use `pattern` instead
+E   
+E   For further information visit https://errors.pydantic.dev/2.9/u/removed-kwargs
+_________________ ERROR collecting tests/users/test_routes.py _________________
+tests\users\test_routes.py:2: in <module>
+    from shop.users.routes import router
+shop\users\routes.py:6: in <module>
+    from shop.users.schemas import UserOut
+shop\users\schemas.py:4: in <module>
+    class UserOut(BaseModel):
+shop\users\schemas.py:7: in UserOut
+    email: constr(regex=r"^[^@]+@[^@]+$")
+E   TypeError: constr() got an unexpected keyword argument 'regex'
+________________ ERROR collecting tests/users/test_schemas.py _________________
+tests\users\test_schemas.py:2: in <module>
+    from shop.users.schemas import UserOut
+shop\users\schemas.py:4: in <module>
+    class UserOut(BaseModel):
+shop\users\schemas.py:7: in UserOut
+    email: constr(regex=r"^[^@]+@[^@]+$")
+E   TypeError: constr() got an unexpected keyword argument 'regex'
+================================== FAILURES ===================================
+_____________________________ test_post_order_ok ______________________________
+
+    def test_post_order_ok():
+        response = client.post("/orders", json={"user_id": 1, "items": [5, 5]})
+>       assert response.status_code == 200
+E       assert 422 == 200
+E        +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+
+tests\orders\test_routes.py:9: AssertionError
+___________________________ test_get_order_route_ok ___________________________
+
+    def test_get_order_route_ok():
+        post = client.post("/orders", json={"user_id": 1, "items": [3.0, 7.0]})
+>       order_id = post.json()["id"]
+E       KeyError: 'id'
+
+tests\orders\test_routes.py:15: KeyError
+_____________________________ test_tag_stripping ______________________________
+
+    def test_tag_stripping():
+>       order = OrderIn(user_id=1, items=[1.0], tags=["  food ", " drink"])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [...: ['  food ', ' drink']}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_schemas.py:9: ValidationError
+______________________ test_tag_empty_stays_empty_string ______________________
+
+    def test_tag_empty_stays_empty_string():
+>       order = OrderIn(user_id=1, items=[1.0], tags=["  "])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [1.0], 'tags': ['  ']}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_schemas.py:14: ValidationError
+_________________________ test_note_defaults_to_none __________________________
+
+    def test_note_defaults_to_none():
+>       order = OrderIn(user_id=1, items=[1.0])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [1.0]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_schemas.py:19: ValidationError
+_______________________ test_create_order_totals_items ________________________
+
+    def test_create_order_totals_items():
+>       assert create_order(make_input()).total == 15.5
+
+tests\orders\test_service.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+user_id = 1
+
+    def make_input(user_id=1):
+>       return OrderIn(user_id=user_id, items=[10.0, 5.5])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [10.0, 5.5]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_service.py:6: ValidationError
+__________________________ test_get_order_roundtrip ___________________________
+
+    def test_get_order_roundtrip():
+>       order = create_order(make_input())
+
+tests\orders\test_service.py:14: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+user_id = 1
+
+    def make_input(user_id=1):
+>       return OrderIn(user_id=user_id, items=[10.0, 5.5])
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': [10.0, 5.5]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_service.py:6: ValidationError
+__________________ test_create_order_empty_items_totals_zero __________________
+
+    def test_create_order_empty_items_totals_zero():
+>       order = create_order(OrderIn(user_id=1, items=[]))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for OrderIn
+E       note
+E         Field required [type=missing, input_value={'user_id': 1, 'items': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.9/v/missing
+
+tests\orders\test_service.py:24: ValidationError
+============================== warnings summary ===============================
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\starlette\testclient.py:40
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\starlette\testclient.py:40: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+shop\orders\schemas.py:12
+  C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-head\shop\orders\schemas.py:12: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator("tags", each_item=True)
+
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_internal\_config.py:341
+  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv-v2-311\Lib\site-packages\pydantic\_internal\_config.py:341: UserWarning: Valid config keys have changed in V2:
+  * 'orm_mode' has been renamed to 'from_attributes'
+    warnings.warn(message, UserWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s3-pydantic2-evidence\before.xml -
+=========================== short test summary info ===========================
+FAILED tests/orders/test_routes.py::test_post_order_ok - assert 422 == 200
+FAILED tests/orders/test_routes.py::test_get_order_route_ok - KeyError: 'id'
+FAILED tests/orders/test_schemas.py::test_tag_stripping - pydantic_core._pyda...
+FAILED tests/orders/test_schemas.py::test_tag_empty_stays_empty_string - pyda...
+FAILED tests/orders/test_schemas.py::test_note_defaults_to_none - pydantic_co...
+FAILED tests/orders/test_service.py::test_create_order_totals_items - pydanti...
+FAILED tests/orders/test_service.py::test_get_order_roundtrip - pydantic_core...
+FAILED tests/orders/test_service.py::test_create_order_empty_items_totals_zero
+ERROR tests/config/test_config.py
+ERROR tests/notifications/test_email.py
+ERROR tests/payments/test_routes.py - pydantic.errors.PydanticUserError: `reg...
+ERROR tests/payments/test_schemas.py - pydantic.errors.PydanticUserError: `re...
+ERROR tests/users/test_routes.py - TypeError: constr() got an unexpected keyw...
+ERROR tests/users/test_schemas.py - TypeError: constr() got an unexpected key...
+8 failed, 26 passed, 4 warnings, 6 errors in 0.68s

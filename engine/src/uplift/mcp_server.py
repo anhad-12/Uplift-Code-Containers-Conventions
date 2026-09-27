@@ -66,13 +66,16 @@ def build_mcp():
         files_scanned = sum(
             1 for p in head.rglob("*.py")
             if not any(
-                part in ("tests", "test") or part.startswith("test_")
+                part in ("tests", "test", "node_modules", "__pycache__") or part.startswith(("test_", "."))
                 for part in p.relative_to(head).parts
             )
         )
 
+        from uplift.docker import impact
+        from unidiff import PatchSet
         payload = {
             "changedSymbols": changed,
+            "infraImpact": impact(head, [f.path for f in PatchSet(patch_path.read_text(encoding="utf-8"))]),
             "candidates": candidates,
             "contracts": contracts,
             "testsToRun": tests_to_run,
@@ -97,7 +100,7 @@ def build_mcp():
     # Tool 2: uplift_proof_run                                             #
     # ------------------------------------------------------------------ #
     @mcp.tool()
-    def uplift_proof_run(repo: str, patch: str, proofs: str, applied: bool = False) -> str:
+    def uplift_proof_run(repo: str, patch: str, proofs: str, applied: bool = False, app_python: Optional[str] = None) -> str:
         """Run proof tests and write .uplift/proofs.json.
 
         Args:
@@ -112,7 +115,7 @@ def build_mcp():
         from uplift.proof import _default_app_python, proof_run
 
         repo_path = Path(repo)
-        python = _default_app_python(repo_path)
+        python = app_python or _default_app_python(repo_path)
 
         result = proof_run(
             repo=repo_path,
@@ -176,10 +179,13 @@ def build_mcp():
     # Tool 4: uplift_report                                                #
     # ------------------------------------------------------------------ #
     @mcp.tool()
-    def uplift_report(scenario: str, title: str) -> str:
+    def uplift_report(scenario: str, title: str, work_dir: str = ".uplift",
+                      generated_by: str = "bob", verification_file: Optional[str] = None,
+                      library: Optional[str] = None, lib_from: Optional[str] = None,
+                      lib_to: Optional[str] = None) -> str:
         """Assemble a full Uplift report from whatever .uplift/*.json files exist.
 
-        Reads .uplift/graph.json (required), plus verdicts.json, proofs.json,
+        Reads work_dir/graph.json (required; prefers .uplift/<scenario>), plus verdicts.json, proofs.json,
         catalog.json, occurrences.json, and repair-*-<scenario>.json if present.
         Writes reports/<scenario>.json and validates it.
 
@@ -192,38 +198,44 @@ def build_mcp():
         """
         from uplift.report import build_report
 
-        graph_path = Path(".uplift/graph.json")
+        import re
+        if not re.fullmatch(r"[a-zA-Z0-9_-]+", scenario):
+            return json.dumps({"ok": False, "error": "Invalid scenario id"})
+        work = Path(work_dir)
+        if work_dir == ".uplift" and (work / scenario).is_dir():
+            work = work / scenario
+        graph_path = work / "graph.json"
         if not graph_path.exists():
             return json.dumps({"ok": False, "error": ".uplift/graph.json not found — run uplift_graph first"})
 
         graph = json.loads(graph_path.read_text(encoding="utf-8"))
 
         verdicts = None
-        vp = Path(".uplift/verdicts.json")
+        vp = work / "verdicts.json"
         if vp.exists():
             verdicts = json.loads(vp.read_text(encoding="utf-8"))
 
         proofs = None
-        pp = Path(".uplift/proofs.json")
+        pp = work / "proofs.json"
         if pp.exists():
             raw = json.loads(pp.read_text(encoding="utf-8"))
             proofs = raw.get("proofs", raw) if isinstance(raw, dict) else raw
 
         repair_dicts: list[dict] = []
-        for rpath in sorted(_glob.glob(f".uplift/repair-*-{scenario}.json")):
+        for rpath in sorted(_glob.glob(str(work / "repair-*.json"))):
             try:
                 repair_dicts.append(json.loads(Path(rpath).read_text(encoding="utf-8")))
-            except Exception:
-                pass
+            except Exception as exc:
+                return json.dumps({"ok": False, "error": f"Invalid repair artifact: {rpath}: {exc}"})
 
         catalog = None
-        cp = Path(".uplift/catalog.json")
-        if cp.exists():
+        cp = work / "catalog.json"
+        if library and cp.exists():
             catalog = json.loads(cp.read_text(encoding="utf-8"))
 
         occurrences_data = None
-        op = Path(".uplift/occurrences.json")
-        if op.exists():
+        op = work / "occurrences.json"
+        if library and op.exists():
             raw_occ = json.loads(op.read_text(encoding="utf-8"))
             occurrences_data = raw_occ.get("occurrences", raw_occ) if isinstance(raw_occ, dict) else raw_occ
 
@@ -237,6 +249,11 @@ def build_mcp():
             title=title,
             bob_modes=[],
             occurrences=occurrences_data,
+            library=library, lib_from=lib_from, lib_to=lib_to,
+            generated_by=generated_by,
+            verified=verification_file is not None,
+            verification=json.loads(Path(verification_file).read_text(encoding="utf-8-sig")) if verification_file else None,
+            conventions=json.loads((work / "conventions.json").read_text(encoding="utf-8-sig")) if (work / "conventions.json").exists() else None,
         )
 
         out = Path(f"reports/{scenario}.json")
@@ -260,7 +277,7 @@ def build_mcp():
             valid = False
 
         return json.dumps({
-            "ok": True,
+            "ok": valid,
             "reportFile": str(out),
             "valid": valid,
             "risk": rpt["risk"]["score"],

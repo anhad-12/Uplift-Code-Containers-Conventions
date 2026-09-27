@@ -2,19 +2,21 @@
   "schemaVersion": 1,
   "mode": "impact",
   "provenance": {
-    "generatedBy": "engine",
+    "generatedBy": "codex",
     "bobModes": [
-      "uplift-impact-analyst",
-      "uplift-prover",
-      "uplift-worker-orders",
-      "uplift-worker-users",
-      "uplift-verifier"
+      "uplift-impact-analyst"
     ],
-    "generatedAt": "2026-09-27T10:01:02.166634+00:00"
+    "generatedAt": "2026-09-27T10:44:25.313246+00:00",
+    "predictionSource": "archived Bob verdicts",
+    "repairAgent": "codex",
+    "baselineSha256": "12009e566e69ef57a73a8229a708c8aa127697c1212fa412fa86c59b96545110",
+    "patchSha256": "d2d97940d69bfabdf57feeff3d2da9c19a5adebbcccc3e8a6b9d53dca8eabab1",
+    "verificationPython": "Python 3.11.9",
+    "evidencePath": "evidence/s1-null-user"
   },
   "scenario": {
     "id": "s1-null-user",
-    "title": "S1 \u2014 Null user return (get_user returns None)"
+    "title": "Handle missing users safely"
   },
   "change": {
     "summary": "Scenario s1-null-user",
@@ -39,15 +41,25 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
-      "reason": "Calls get_user(order.user_id).name \u2014 None.name raises AttributeError",
-      "fix": "",
+      "reason": "Line 11 calls get_user(order.user_id).name; when get_user now returns None for an unknown user_id, this raises AttributeError instead of propagating NotFoundError.",
+      "fix": "Assign user = get_user(order.user_id) and skip the row (or use a fallback name) when user is None before accessing .name.",
       "proof": {
-        "status": "not_attempted"
+        "status": "confirmed",
+        "testFile": "tests/uplift_proofs/test_admin_user_spend_report.py",
+        "passesOnBase": true,
+        "failsOnHead": true
       },
       "module": "admin",
       "via": "shop/users/service.py#get_user",
       "snippet": "def user_spend_report() -> list:\n    rows = []\n    for order in order_repo.all_orders():\n        rows.append({\"user\": get_user(order.user_id).name, \"total\": order.total})\n    return rows\n\n\ndef revenue_total(payments: List[Payment]) -> float:",
-      "tests": []
+      "tests": [],
+      "repair": {
+        "status": "fixed",
+        "worker": "codex-core",
+        "filesChanged": [
+          "shop/admin/reports.py"
+        ]
+      }
     },
     {
       "id": "shop/notifications/email.py#send_welcome",
@@ -55,8 +67,8 @@
       "line": 7,
       "hop": 1,
       "layer": "direct",
-      "verdict": "unknown",
-      "reason": "",
+      "verdict": "safe",
+      "reason": "Line 8 already guards `if user is None: return False`, which correctly handles the new return-None behaviour with no dereference risk.",
       "fix": "",
       "proof": {
         "status": "not_attempted"
@@ -75,17 +87,28 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
-      "reason": "Calls get_user(order.user_id).email \u2014 None.email raises AttributeError",
-      "fix": "",
+      "reason": "Line 9: `user.email` raises AttributeError when get_user returns None for an unknown user_id.",
+      "fix": "Add a None-check after get_user: `if user is None: raise NotFoundError('user', order.user_id)`.",
       "proof": {
-        "status": "not_attempted"
+        "status": "confirmed",
+        "testFile": "tests/uplift_proofs/test_orders_build_invoice.py",
+        "passesOnBase": true,
+        "failsOnHead": true
       },
       "module": "orders",
       "via": "shop/users/service.py#get_user",
       "snippet": "\n\ndef build_invoice(order: Order) -> dict:\n    user = get_user(order.user_id)\n    return {\n        \"to\": user.email,\n        \"lines\": [{\"label\": \"order\", \"amount\": order.total}],\n        \"total\": order.total,",
       "tests": [
         "tests/orders/test_invoice.py"
-      ]
+      ],
+      "repair": {
+        "status": "fixed",
+        "worker": "codex-orders",
+        "filesChanged": [
+          "shop/orders/invoice.py",
+          "shop/orders/service.py"
+        ]
+      }
     },
     {
       "id": "shop/orders/service.py#create_order",
@@ -94,11 +117,11 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
-      "reason": "get_user returns None; except NotFoundError guard never fires; unknown users silently create orders",
-      "fix": "",
+      "reason": "Lines 8-11: the except NotFoundError branch is never reached now that get_user returns None, so an unknown user_id bypasses the validation guard and reaches repo.save_order.",
+      "fix": "Replace the try/except with `if get_user(data.user_id) is None: raise ValidationError('unknown user')`.",
       "proof": {
         "status": "confirmed",
-        "testFile": "tests/uplift_proofs/test_orders_create_order.py",
+        "testFile": "tests/uplift_proofs/test_orders_create_order_unknown_user.py",
         "passesOnBase": true,
         "failsOnHead": true
       },
@@ -111,12 +134,11 @@
       ],
       "repair": {
         "status": "fixed",
-        "file": "shop/orders/service.py",
-        "summary": "Check for None after get_user call and raise ValidationError; remove reliance on NotFoundError propagation",
-        "testsAfter": {
-          "passed": 1,
-          "failed": 0
-        }
+        "worker": "codex-orders",
+        "filesChanged": [
+          "shop/orders/invoice.py",
+          "shop/orders/service.py"
+        ]
       }
     },
     {
@@ -126,11 +148,11 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
-      "reason": "get_user returns None; charge proceeds and returns Payment for non-existent user without raising",
-      "fix": "",
+      "reason": "Line 13: get_user is called solely as an existence check relying on it raising NotFoundError; it now returns None silently, so charge proceeds for non-existent users without any error.",
+      "fix": "Capture the return value and raise explicitly: `if get_user(user_id) is None: raise NotFoundError('user', user_id)`.",
       "proof": {
         "status": "confirmed",
-        "testFile": "tests/uplift_proofs/test_payments_charge_user.py",
+        "testFile": "tests/uplift_proofs/test_payments_charge.py",
         "passesOnBase": true,
         "failsOnHead": true
       },
@@ -148,12 +170,11 @@
       ],
       "repair": {
         "status": "fixed",
-        "file": "shop/payments/charge.py",
-        "summary": "Validate get_user result is not None before proceeding; raise NotFoundError if user is missing",
-        "testsAfter": {
-          "passed": 1,
-          "failed": 0
-        }
+        "worker": "codex-payments",
+        "filesChanged": [
+          "shop/payments/charge.py",
+          "shop/payments/receipt.py"
+        ]
       }
     },
     {
@@ -163,10 +184,13 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
-      "reason": "Calls get_user(payment.user_id).name \u2014 None.name raises AttributeError",
-      "fix": "",
+      "reason": "Line 7: when user_id is unknown, get_user now returns None, so user.name raises AttributeError instead of propagating NotFoundError.",
+      "fix": "Check the return value before use: `if user is None: raise NotFoundError('user', payment.user_id)` after line 6.",
       "proof": {
-        "status": "not_attempted"
+        "status": "confirmed",
+        "testFile": "tests/uplift_proofs/test_payments_render_receipt.py",
+        "passesOnBase": true,
+        "failsOnHead": true
       },
       "module": "payments",
       "via": "shop/users/service.py#get_user",
@@ -174,7 +198,15 @@
       "tests": [
         "tests/payments/test_receipt.py",
         "tests/payments/test_receipt_more.py"
-      ]
+      ],
+      "repair": {
+        "status": "fixed",
+        "worker": "codex-payments",
+        "filesChanged": [
+          "shop/payments/charge.py",
+          "shop/payments/receipt.py"
+        ]
+      }
     },
     {
       "id": "shop/users/routes.py#get_user_route",
@@ -183,8 +215,8 @@
       "hop": 1,
       "layer": "direct",
       "verdict": "will_break",
-      "reason": "FastAPI serialises None as UserOut; Pydantic raises ValidationError \u2192 HTTP 500 instead of 404",
-      "fix": "",
+      "reason": "Line 13 returns None directly to FastAPI, which will fail response_model=UserOut validation (500) or return null with 200, breaking the HTTP contract for unknown user_ids.",
+      "fix": "After calling service.get_user, check for None and raise HTTPException(status_code=404) before returning.",
       "proof": {
         "status": "confirmed",
         "testFile": "tests/uplift_proofs/test_users_get_user_route.py",
@@ -199,12 +231,10 @@
       ],
       "repair": {
         "status": "fixed",
-        "file": "shop/users/routes.py",
-        "summary": "Add None guard: if user is None: raise HTTPException(status_code=404, detail='User not found')",
-        "testsAfter": {
-          "passed": 1,
-          "failed": 0
-        }
+        "worker": "codex-users",
+        "filesChanged": [
+          "shop/users/routes.py"
+        ]
       }
     },
     {
@@ -251,7 +281,7 @@
       "type": "route",
       "id": "GET /users/{user_id}",
       "handler": "shop/users/routes.py#get_user_route",
-      "verdict": "unknown"
+      "verdict": "will_break"
     },
     {
       "type": "route",
@@ -282,13 +312,13 @@
     "shop/admin/reports.py#user_spend_report"
   ],
   "risk": {
-    "score": 72,
+    "score": 87,
     "level": "critical",
     "factors": [
       "6 will_break (+60)",
       "0 might_break (+0)",
       "1 untested affected item (+12)",
-      "0 contract hit (+0)"
+      "1 contract hit (+15)"
     ]
   },
   "pipeline": {
@@ -300,18 +330,70 @@
   "migration": null,
   "metrics": {
     "filesScanned": 25,
-    "secondsTaken": 0.5,
-    "predicted": 6,
-    "confirmed": 3,
+    "secondsTaken": 12.585,
+    "predicted": 7,
+    "confirmed": 6,
     "unconfirmed": 0,
-    "fixed": 0,
+    "fixed": 6,
     "regressions": 0,
+    "tests": {
+      "before": {
+        "passed": 46,
+        "failed": 6,
+        "errors": 0,
+        "skipped": 0,
+        "exitCode": 1
+      },
+      "after": {
+        "passed": 52,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "exitCode": 0
+      }
+    },
     "accuracy": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "truePositives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "truePositives": 6,
       "falsePositives": 0,
-      "falseNegatives": 6
+      "falseNegatives": 0
+    }
+  },
+  "infraImpact": [
+    {
+      "file": "Dockerfile",
+      "layer": 5,
+      "totalLayers": 6,
+      "trigger": "shop/users/service.py may invalidate COPY/ADD inputs or a dependent stage",
+      "layersRebuilt": "5-6",
+      "suggestion": "Copy dependency manifests before application code. Indices are Dockerfile instructions; cache effects are conservative and build time is unmeasured."
+    }
+  ],
+  "conventions": {
+    "naming": "snake_case functions and variables; PascalCase domain models/exceptions. Evidence: shop/users/service.py, shop/errors.py.",
+    "imports": "Absolute imports at module scope, usually from-imports. Ordering is mixed. Evidence: shop/orders/service.py, shop/users/routes.py, shop/payments/repo.py.",
+    "errorHandling": "Services raise typed NotFoundError/ValidationError; routes use HTTP errors. Safe decoys may return False explicitly. Evidence: shop/orders/service.py, shop/errors.py, shop/notifications/email.py.",
+    "fileLayout": "Separate service, route, schema and repo modules; tests mirror modules. Evidence: shop/users/service.py, shop/users/routes.py, tests/users/test_service.py, tests/payments/test_routes.py.",
+    "evidenceFiles": [
+      "shop/users/service.py",
+      "shop/users/routes.py",
+      "shop/users/schemas.py",
+      "shop/orders/service.py",
+      "shop/orders/invoice.py",
+      "shop/payments/repo.py",
+      "shop/errors.py",
+      "shop/notifications/email.py",
+      "tests/users/test_service.py",
+      "tests/payments/test_routes.py",
+      "requirements.txt"
+    ],
+    "generatedBy": "codex",
+    "scope": "Observed on restored baseline; compliance checks added-line naming, absolute/module-level imports, and typed raises. Semantic contract correctness is verified by tests.",
+    "compliance": {
+      "checkedLines": 21,
+      "violations": 0,
+      "retried": false
     }
   }
 }

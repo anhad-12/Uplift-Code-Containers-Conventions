@@ -11,11 +11,13 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: pip install -e engine -r sample-app/requirements.txt
+      - run: pip install -e engine
       - name: Build PR patch
         id: patch
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          git diff origin/${{ github.base_ref }}...HEAD --relative=sample-app -- sample-app > /tmp/pr.patch
+          git diff "origin/$BASE_REF"...HEAD --relative=sample-app -- sample-app > /tmp/pr.patch
           if [ ! -s /tmp/pr.patch ]; then
             echo "No changes in sample-app — skipping Uplift analysis."
             echo "has_changes=false" >> $GITHUB_OUTPUT

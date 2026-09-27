@@ -1,0 +1,20 @@
+{
+  "naming": "snake_case for all functions, variables, and file names (get_user, find_user, all_users, create_order, save_payment). PascalCase for classes (User, Order, Payment, NotFoundError, ShopError, PaymentIn, OrderIn). Module folders are lowercase singular nouns (users, orders, payments, admin). Route handler functions are named <verb>_<resource>_route (get_user_route, post_order, get_order_route). Evidence: shop/users/service.py (get_user, list_users), shop/orders/service.py (create_order, get_order), shop/errors.py (NotFoundError, ShopError, ValidationError), shop/users/repo.py (find_user, all_users, User dataclass).",
+  "imports": "Absolute imports only — always `from shop.<module>.<file> import <name>`, never relative imports. stdlib imports first (dataclasses, typing), then third-party (fastapi, pydantic), then internal shop imports. Each import on its own line; no star imports. Evidence: shop/orders/service.py (from shop.errors import ..., from shop.orders import repo, from shop.users.service import get_user), shop/users/routes.py (from fastapi import APIRouter, from shop.users import service, from shop.users.schemas import UserOut).",
+  "errorHandling": "All domain errors raise typed exceptions from shop/errors.py — never return None to signal failure, never return a result object. Service layer raises NotFoundError (resource not found) or ValidationError (business rule violation). Repos return None on miss; services immediately convert that None to a NotFoundError raise. Route handlers do not catch exceptions — FastAPI exception handlers deal with them. Evidence: shop/users/service.py (raises NotFoundError when repo.find_user returns None), shop/orders/service.py (catches NotFoundError from get_user and re-raises as ValidationError), shop/errors.py (ShopError base, NotFoundError with resource+key, ValidationError), tests/users/test_service.py (pytest.raises(NotFoundError)).",
+  "fileLayout": "One concern per file: routes.py (HTTP handlers only), service.py (business logic), repo.py (in-memory store + dataclass model), schemas.py (Pydantic input/output models). Tests mirror the source tree under tests/<module>/test_<source_file>.py (tests/users/test_service.py, tests/orders/test_routes.py). Each module folder has __init__.py. Top-level app.py wires all routers. Evidence: shop/users/ (repo.py, routes.py, schemas.py, service.py), shop/orders/ (same four files), tests/users/test_service.py (mirrors shop/users/service.py).",
+  "evidenceFiles": [
+    "shop/errors.py",
+    "shop/users/service.py",
+    "shop/users/repo.py",
+    "shop/users/routes.py",
+    "shop/users/schemas.py",
+    "shop/orders/service.py",
+    "shop/orders/routes.py",
+    "shop/payments/charge.py",
+    "shop/payments/routes.py",
+    "tests/users/test_service.py",
+    "tests/orders/test_routes.py",
+    "shop/app.py"
+  ]
+}

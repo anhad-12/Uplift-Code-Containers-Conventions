@@ -1,33 +1,18 @@
-# Convention-aware repair demo
+# Convention-aware repair comparison
 
-This folder shows how the `repo-conventions` skill changes worker output on the `s1-null-user` scenario (`shop/orders/service.py#create_order`).
+Both variants are actual Codex-authored repairs of create_order on the same
+isolated S1 patch. Both run the orders suite and unchanged unknown-user proof.
+See generic.json and convention-aware.json for measured counts and commands.
+These are not IBM Bob task runs, and neither patch is claimed to have been
+produced by a separate agent or a parallel worker.
 
-## The change
+The generic repair imports an aliased domain exception inside the function.
+It preserves behavior, but violates the observed module-level import convention.
+The convention-aware repair reuses the existing NotFoundError import and the
+existing translation to ValidationError. It adds no import or exception alias.
+Both preserve the 422 unknown-user contract. Added lines are checked for naming,
+absolute/module-level imports, and typed raises. Generic has one violation;
+convention-aware has none. No retry was required for the accepted variant.
 
-Scenario s1-null-user patches `get_user()` to return `None` instead of raising `NotFoundError`. The `create_order` function relies on `NotFoundError` propagating up — after the patch, the guard never fires and ghost orders are created silently.
-
-## Without conventions (`generic.diff`)
-
-A worker ignoring `.uplift/conventions.json` produces a technically-correct fix but breaks three repo conventions:
-
-| Violation | Convention broken |
-|---|---|
-| `return None` to signal failure | **errorHandling**: all domain errors raise typed exceptions; never return None |
-| `import user_service as` alias | **imports**: `from shop.users.service import get_user` — absolute, no aliases |
-| `if not result:` truthiness check | **errorHandling**: explicit `is None` check matches the repo pattern |
-
-The fix passes tests but introduces inconsistency that future callers will copy.
-
-## With conventions (`convention-aware.diff`)
-
-The convention-aware worker reads `.uplift/conventions.json` first and produces a fix that:
-
-- Raises `ValidationError` (typed exception from `shop/errors.py`) — matches `errorHandling` rule
-- Uses `from shop.users.service import get_user` — matches `imports` rule  
-- Checks `if user is None:` explicitly — matches the repo's established pattern in `service.py`
-
-The diff is structurally identical to every other service function in the codebase. A reviewer sees nothing unusual.
-
-## Key insight
-
-Convention compliance is not about style preference — it is about future callers copying the pattern. A `return None` repair in `create_order` would teach the next developer that returning `None` is acceptable in service layer, undermining the type-safe error hierarchy the repo already has.
+Reproduce: engine/.venv/Scripts/python scripts/convention_demo.py (Windows).
+Use engine/.venv/bin/python on POSIX.

@@ -12,8 +12,8 @@ Python 3.11 or 3.12 required.
 
 ```
 cd dashboard
-py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
+py -3.11 -m venv .venv311
+.venv311\Scripts\python -m pip install -r requirements.txt
 ```
 
 ## Run (local)
@@ -21,7 +21,7 @@ py -3.12 -m venv .venv
 **Windows:**
 ```
 cd dashboard
-.venv\Scripts\python app.py
+.venv311\Scripts\python app.py
 ```
 
 Open http://127.0.0.1:8050. The home page lists scenario cards; clicking one shows the
@@ -38,7 +38,7 @@ gunicorn app:server
 
 ```
 cd dashboard
-.venv\Scripts\python -m pytest -q
+.venv311\Scripts\python -m pytest -q
 ```
 
 All tests should pass (158 as of C8).

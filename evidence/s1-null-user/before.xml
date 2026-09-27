@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="52" time="1.193" timestamp="2026-09-27T16:14:19.541721+05:30" hostname="DESKTOP-GA9BA5K"><testcase classname="tests.config.test_config" name="test_get_settings_defaults" time="0.003" /><testcase classname="tests.notifications.test_email" name="test_send_welcome" time="0.002" /><testcase classname="tests.notifications.test_email" name="test_receipt_email_mentions_the_amount" time="0.001" /><testcase classname="tests.notifications.test_email" name="test_send_welcome_user_two" time="0.001" /><testcase classname="tests.orders.test_invoice" name="test_payment_line_uses_the_payment_amount" time="0.002" /><testcase classname="tests.orders.test_invoice" name="test_invoice_addresses_the_user" time="0.001" /><testcase classname="tests.orders.test_invoice" name="test_invoice_total_equals_order_total" time="0.001" /><testcase classname="tests.orders.test_repo" name="test_save_returns_order" time="0.001" /><testcase classname="tests.orders.test_repo" name="test_find_saved_order" time="0.001" /><testcase classname="tests.orders.test_repo" name="test_reset_clears_orders" time="0.001" /><testcase classname="tests.orders.test_routes" name="test_post_order_ok" time="0.009" /><testcase classname="tests.orders.test_routes" name="test_get_order_route_ok" time="0.012" /><testcase classname="tests.orders.test_routes" name="test_get_missing_order_route_is_404" time="0.007" /><testcase classname="tests.orders.test_schemas" name="test_tag_stripping" time="0.001" /><testcase classname="tests.orders.test_schemas" name="test_tag_empty_stays_empty_string" time="0.001" /><testcase classname="tests.orders.test_schemas" name="test_note_defaults_to_none" time="0.001" /><testcase classname="tests.orders.test_schemas" name="test_non_numeric_item_rejected" time="0.001" /><testcase classname="tests.orders.test_service" name="test_create_order_totals_items" time="0.001" /><testcase classname="tests.orders.test_service" name="test_get_order_roundtrip" time="0.001" /><testcase classname="tests.orders.test_service" name="test_create_order_empty_items_totals_zero" time="0.001" /><testcase classname="tests.orders.test_service" name="test_get_order_missing_raises_not_found" time="0.001" /><testcase classname="tests.payments.test_charge" name="test_charge_adds_fee_in_dollars" time="0.002" /><testcase classname="tests.payments.test_receipt" name="test_receipt_shows_dollars" time="0.001" /><testcase classname="tests.payments.test_receipt_more" name="test_receipt_for_user_two" time="0.001" /><testcase classname="tests.payments.test_receipt_more" name="test_receipt_formats_zero_cents" time="0.001" /><testcase classname="tests.payments.test_receipt_more" name="test_receipt_formats_large_amount" time="0.001" /><testcase classname="tests.payments.test_repo" name="test_save_and_list_payments" time="0.001" /><testcase classname="tests.payments.test_repo" name="test_all_payments_returns_all" time="0.001" /><testcase classname="tests.payments.test_repo" name="test_reset_clears_payments" time="0.001" /><testcase classname="tests.payments.test_routes" name="test_post_payment_ok" time="0.008" /><testcase classname="tests.payments.test_schemas" name="test_payment_in_accepts_16_digit_card" time="0.001" /><testcase classname="tests.payments.test_schemas" name="test_payment_in_rejects_short_card" time="0.001" /><testcase classname="tests.test_errors" name="test_not_found_error_message" time="0.001" /><testcase classname="tests.test_errors" name="test_not_found_error_attributes" time="0.001" /><testcase classname="tests.test_errors" name="test_validation_error_is_shop_error" time="0.001" /><testcase classname="tests.uplift_proofs.test_admin_user_spend_report" name="test_user_spend_report_unknown_user_raises" time="0.002"><failure message="AttributeError: 'NoneType' object has no attribute 'name'">def test_user_spend_report_unknown_user_raises():
+        """OLD contract: user_spend_report raises NotFoundError when an order references an unknown user_id."""
+        order_repo.save_order(user_id=999, total=42.0)
+        with pytest.raises(NotFoundError):
+&gt;           user_spend_report()
+
+tests\uplift_proofs\test_admin_user_spend_report.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def user_spend_report() -&gt; list:
+        rows = []
+        for order in order_repo.all_orders():
+&gt;           rows.append({"user": get_user(order.user_id).name, "total": order.total})
+E           AttributeError: 'NoneType' object has no attribute 'name'
+
+shop\admin\reports.py:11: AttributeError</failure></testcase><testcase classname="tests.uplift_proofs.test_orders_build_invoice" name="test_build_invoice_unknown_user_raises" time="0.001"><failure message="AttributeError: 'NoneType' object has no attribute 'email'">def test_build_invoice_unknown_user_raises():
+        """OLD contract: build_invoice for an order with an unknown user_id raises NotFoundError."""
+        order = Order(id=1, user_id=999, total=50.0)
+        with pytest.raises(NotFoundError):
+&gt;           build_invoice(order)
+
+tests\uplift_proofs\test_orders_build_invoice.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+order = Order(id=1, user_id=999, total=50.0)
+
+    def build_invoice(order: Order) -&gt; dict:
+        user = get_user(order.user_id)
+        return {
+&gt;           "to": user.email,
+            "lines": [{"label": "order", "amount": order.total}],
+            "total": order.total,
+        }
+E       AttributeError: 'NoneType' object has no attribute 'email'
+
+shop\orders\invoice.py:9: AttributeError</failure></testcase><testcase classname="tests.uplift_proofs.test_orders_create_order_unknown_user" name="test_create_order_rejects_unknown_user" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'shop.errors.ValidationError'&gt;">def test_create_order_rejects_unknown_user():
+        """OLD contract: an order for a user that does not exist is rejected with ValidationError."""
+&gt;       with pytest.raises(ValidationError):
+E       Failed: DID NOT RAISE &lt;class 'shop.errors.ValidationError'&gt;
+
+tests\uplift_proofs\test_orders_create_order_unknown_user.py:11: Failed</failure></testcase><testcase classname="tests.uplift_proofs.test_payments_charge" name="test_charge_unknown_user_raises" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'shop.errors.NotFoundError'&gt;">def test_charge_unknown_user_raises():
+        """OLD contract: charge for a non-existent user_id raises NotFoundError."""
+&gt;       with pytest.raises(NotFoundError):
+E       Failed: DID NOT RAISE &lt;class 'shop.errors.NotFoundError'&gt;
+
+tests\uplift_proofs\test_payments_charge.py:10: Failed</failure></testcase><testcase classname="tests.uplift_proofs.test_payments_render_receipt" name="test_render_receipt_unknown_user_raises" time="0.001"><failure message="AttributeError: 'NoneType' object has no attribute 'name'">def test_render_receipt_unknown_user_raises():
+        """OLD contract: render_receipt for an unknown user_id raises NotFoundError."""
+        payment = Payment(user_id=999, amount=10.0)
+        with pytest.raises(NotFoundError):
+&gt;           render_receipt(payment)
+
+tests\uplift_proofs\test_payments_render_receipt.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+payment = Payment(user_id=999, amount=10.0)
+
+    def render_receipt(payment: Payment) -&gt; str:
+        user = get_user(payment.user_id)
+&gt;       return f"Receipt for {user.name}: ${payment.amount:.2f}"
+E       AttributeError: 'NoneType' object has no attribute 'name'
+
+shop\payments\receipt.py:7: AttributeError</failure></testcase><testcase classname="tests.uplift_proofs.test_users_get_user_route" name="test_get_user_route_unknown_returns_404" time="0.011"><failure message="pydantic.error_wrappers.ValidationError: 1 validation error for UserOut&#10;response&#10;  none is not an allowed value (type=type_error.none.not_allowed)">def test_get_user_route_unknown_returns_404():
+        """OLD contract: GET /users/999 for an unknown user returns 404."""
+        client = make_client(router)
+&gt;       response = client.get("/users/999")
+
+tests\uplift_proofs\test_users_get_user_route.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:499: in get
+    return super().get(
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:1066: in get
+    return self.request(
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:465: in request
+    return super().request(
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:837: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:926: in send
+    response = self._send_handling_auth(
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:954: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:991: in _send_handling_redirects
+    response = self._send_single_request(request)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:1027: in _send_single_request
+    response = transport.handle_request(request)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:342: in handle_request
+    raise exc
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\anyio\from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\.uplift\tmp\python311\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\.uplift\tmp\python311\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\anyio\from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\fastapi\applications.py:290: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\middleware\errors.py:184: in __call__
+    raise exc
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\middleware\errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\middleware\exceptions.py:79: in __call__
+    raise exc
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\middleware\exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\fastapi\middleware\asyncexitstack.py:20: in __call__
+    raise e
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\fastapi\middleware\asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\routing.py:66: in app
+    response = await func(request)
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\fastapi\routing.py:259: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[Union[SetIntStr, DictIntStrAny]] = None,
+        exclude: Optional[Union[SetIntStr, DictIntStrAny]] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+    ) -&gt; Any:
+        if field:
+            errors = []
+            response_content = _prepare_response_content(
+                response_content,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+            )
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, ErrorWrapper):
+                errors.append(errors_)
+            elif isinstance(errors_, list):
+                errors.extend(errors_)
+            if errors:
+&gt;               raise ValidationError(errors, field.type_)
+E               pydantic.error_wrappers.ValidationError: 1 validation error for UserOut
+E               response
+E                 none is not an allowed value (type=type_error.none.not_allowed)
+
+C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\fastapi\routing.py:145: ValidationError</failure></testcase><testcase classname="tests.users.test_repo" name="test_find_user_returns_user" time="0.002" /><testcase classname="tests.users.test_repo" name="test_find_user_unknown_returns_none" time="0.001" /><testcase classname="tests.users.test_repo" name="test_all_users_returns_two" time="0.001" /><testcase classname="tests.users.test_routes" name="test_get_user_route_ok" time="0.007" /><testcase classname="tests.users.test_routes" name="test_list_users_route" time="0.006" /><testcase classname="tests.users.test_routes" name="test_list_users_route_returns_both" time="0.006" /><testcase classname="tests.users.test_routes" name="test_get_known_user_returns_id_and_name" time="0.007" /><testcase classname="tests.users.test_schemas" name="test_user_out_from_orm" time="0.001" /><testcase classname="tests.users.test_service" name="test_get_user_returns_user" time="0.001" /><testcase classname="tests.users.test_service" name="test_get_user_missing_returns_none" time="0.001" /><testcase classname="tests.users.test_service" name="test_list_users" time="0.001" /></testsuite></testsuites>

@@ -1,0 +1,66 @@
+{
+  "changedSymbols": [
+    {
+      "id": "requirements.txt#pydantic",
+      "kind": "dependency",
+      "changeType": "dependency"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "shop/config.py#migration",
+      "file": "shop/config.py",
+      "line": 1,
+      "hop": 1,
+      "layer": "direct",
+      "module": "core"
+    },
+    {
+      "id": "shop/orders/schemas.py#migration",
+      "file": "shop/orders/schemas.py",
+      "line": 9,
+      "hop": 1,
+      "layer": "direct",
+      "module": "orders"
+    },
+    {
+      "id": "shop/payments/schemas.py#migration",
+      "file": "shop/payments/schemas.py",
+      "line": 7,
+      "hop": 1,
+      "layer": "direct",
+      "module": "payments"
+    },
+    {
+      "id": "shop/users/schemas.py#migration",
+      "file": "shop/users/schemas.py",
+      "line": 7,
+      "hop": 1,
+      "layer": "direct",
+      "module": "users"
+    }
+  ],
+  "filesScanned": 25,
+  "contracts": [],
+  "untested": [],
+  "testsToRun": [
+    "tests"
+  ],
+  "infraImpact": [
+    {
+      "file": "Dockerfile",
+      "layer": 3,
+      "totalLayers": 6,
+      "trigger": "requirements.txt may invalidate COPY/ADD inputs or a dependent stage",
+      "layersRebuilt": "3-6",
+      "suggestion": "Copy dependency manifests before application code. Indices are Dockerfile instructions; cache effects are conservative and build time is unmeasured."
+    }
+  ],
+  "change": {
+    "kind": "dependency-upgrade",
+    "summary": "Migrate Pydantic v1 to v2",
+    "library": "pydantic",
+    "from": "1.10.13",
+    "to": "2.9.2"
+  }
+}

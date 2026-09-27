@@ -1,0 +1,76 @@
+﻿{
+  "scenario": "s3-pydantic2",
+  "module": "users",
+  "worker": "uplift-users",
+  "interpreter": "sample-app/.venv-v2/Scripts/python.exe",
+  "pydantic_version": "2.9.2",
+  "files_changed": [
+    "sample-app/shop/users/schemas.py"
+  ],
+  "fixes": [
+    {
+      "catalog_id": "constr-removed",
+      "guideSection": "Constrained types",
+      "file": "sample-app/shop/users/schemas.py",
+      "line": 7,
+      "before": "    email: constr(regex=r\"^[^@]+@[^@]+$\")",
+      "after": "    email: Annotated[str, StringConstraints(pattern=r\"^[^@]+@[^@]+$\")]",
+      "notes": "constr() is removed in Pydantic v2. Replaced with Annotated[str, StringConstraints(pattern=...)] per 'Constrained types' guide section. Import updated."
+    },
+    {
+      "catalog_id": "config-class-deprecated",
+      "guideSection": "Changes to config",
+      "file": "sample-app/shop/users/schemas.py",
+      "line": 9,
+      "before": "    class Config:\n        orm_mode = True",
+      "after": "    model_config = ConfigDict(from_attributes=True)",
+      "notes": "Inner class Config deprecated in Pydantic v2. Replaced with model_config = ConfigDict(...) per 'Changes to config' guide section. Added ConfigDict import."
+    },
+    {
+      "catalog_id": "orm-mode-renamed",
+      "guideSection": "Changes to config",
+      "file": "sample-app/shop/users/schemas.py",
+      "line": 10,
+      "before": "        orm_mode = True",
+      "after": "from_attributes=True (inside ConfigDict)",
+      "notes": "orm_mode renamed to from_attributes in Pydantic v2. Covered by config-class-deprecated fix above."
+    }
+  ],
+  "blocked": [
+    {
+      "file": "sample-app/shop/config.py",
+      "catalog_id": "basesettings-moved",
+      "reason": "shop/config.py is not in sample-app/shop/users/. Fix must be applied by the core module worker."
+    },
+    {
+      "file": "sample-app/shop/orders/schemas.py",
+      "catalog_ids": ["validator-deprecated", "validator-decorator", "optional-field-semantics", "orm-mode-renamed", "config-class-deprecated"],
+      "reason": "shop/orders/ is not in sample-app/shop/users/. Fix must be applied by the orders module worker."
+    },
+    {
+      "file": "sample-app/shop/payments/schemas.py",
+      "catalog_ids": ["field-regex-renamed"],
+      "reason": "shop/payments/ is not in sample-app/shop/users/. Fix must be applied by the payments module worker."
+    }
+  ],
+  "test_results_after_repair": {
+    "command": "sample-app/.venv-v2/Scripts/python -m pytest sample-app/tests/users/ --tb=short -q",
+    "collected": 11,
+    "passed": 11,
+    "failed": 0,
+    "errors": 0,
+    "warnings": [
+      "PydanticDeprecatedSince20: from_orm() deprecated; use model_validate() (in test_schemas.py, not shop source)"
+    ]
+  },
+  "baseline_before_repair": {
+    "collected": 0,
+    "passed": 0,
+    "failed": 0,
+    "errors": 2,
+    "collection_errors": [
+      "tests/users/test_routes.py: TypeError: constr() got an unexpected keyword argument 'regex'",
+      "tests/users/test_schemas.py: TypeError: constr() got an unexpected keyword argument 'regex'"
+    ]
+  }
+}

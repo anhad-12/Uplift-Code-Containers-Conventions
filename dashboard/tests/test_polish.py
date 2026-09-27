@@ -193,7 +193,7 @@ def test_chart_layout_on_light_still_transparent_bg():
 def test_lane_chart_uses_dark_font_on_white_card():
     """Lane charts (on white cards) must use dark font colour #1d2330."""
     import json, pathlib  # noqa: E401
-    r = json.loads((pathlib.Path(_DASH_ROOT) / "reports" / "migrate-pydantic2.mock.json").read_text(encoding="utf-8"))
+    r = json.loads((pathlib.Path(_DASH_ROOT) / "tests" / "fixtures" / "migrate-pydantic2.mock.json").read_text(encoding="utf-8"))
     first_mod = r["migration"]["modules"][0]
     lane_col = panels._module_lane(first_mod)
 
