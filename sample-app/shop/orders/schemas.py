@@ -1,17 +1,21 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
+from pydantic.config import ConfigDict
 
 
 class OrderIn(BaseModel):
     user_id: int
     items: List[float]
-    note: Optional[str]
+    note: Optional[str] = None
     tags: List[str] = []
 
-    @validator("tags", each_item=True)
+    @field_validator("tags", mode="before")
+    @classmethod
     def strip_tag(cls, value):
-        return value.strip()
+        if isinstance(value, list):
+            return [v.strip() if isinstance(v, str) else v for v in value]
+        return value
 
 
 class OrderOut(BaseModel):
@@ -19,5 +23,4 @@ class OrderOut(BaseModel):
     user_id: int
     total: float
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
