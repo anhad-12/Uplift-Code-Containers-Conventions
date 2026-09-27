@@ -1,16 +1,16 @@
 ....................................................                     [100%]
-============================== warnings summary ===============================
-..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:29
-  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\starlette\testclient.py:29: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+=============================== warnings summary ===============================
+../../../../../../../../Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/lib/python3.11/site-packages/starlette/testclient.py:29
+  /Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/lib/python3.11/site-packages/starlette/testclient.py:29: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
     [], typing.ContextManager[anyio.abc.BlockingPortal]
 
-..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
-..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
-..\..\..\..\..\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690
+../../../../../../../../Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/lib/python3.11/site-packages/httpx/_client.py:690
+../../../../../../../../Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/lib/python3.11/site-packages/httpx/_client.py:690
+../../../../../../../../Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/lib/python3.11/site-packages/httpx/_client.py:690
 tests/uplift_proofs/test_users_get_user_route.py::test_get_user_route_unknown_returns_404
-  C:\Users\dbahe\Downloads\Uplift-Code-Containers-Conventions\sample-app\.venv311\Lib\site-packages\httpx\_client.py:690: DeprecationWarning: The 'app' shortcut is now deprecated. Use the explicit style 'transport=WSGITransport(app=...)' instead.
+  /Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/lib/python3.11/site-packages/httpx/_client.py:690: DeprecationWarning: The 'app' shortcut is now deprecated. Use the explicit style 'transport=WSGITransport(app=...)' instead.
     warnings.warn(message, DeprecationWarning)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-- generated xml file: C:\Users\dbahe\AppData\Local\Temp\uplift_reproduce_ep0txhrx\s1-null-user-evidence\after.xml -
-52 passed, 5 warnings in 0.49s
+- generated xml file: /var/folders/68/dycq1sbs7ls3rzg93nfxh9l40000gn/T/uplift_reproduce_lhhll9m5/s1-null-user-evidence/after.xml -
+52 passed, 5 warnings in 0.06s

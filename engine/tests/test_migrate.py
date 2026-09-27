@@ -215,8 +215,11 @@ def test_scan_real_app_counts() -> None:
     for r in results:
         counts[r["entry"]] = counts.get(r["entry"], 0) + 1
 
-    assert counts.get("p2-orm-mode", 0) == 1, f"orm-mode count: {counts}"
+    assert counts.get("p2-basesettings", 0) == 1, f"basesettings count: {counts}"
+    assert counts.get("p2-orm-mode", 0) == 2, f"orm-mode count: {counts}"
     assert counts.get("p2-validator", 0) == 1, f"validator count: {counts}"
+    assert counts.get("p2-optional", 0) == 1, f"optional count: {counts}"
+    assert counts.get("p2-field-regex", 0) == 2, f"field-regex count: {counts}"
 
 
 @pytest.mark.skipif(not SAMPLE_APP.exists(), reason="sample-app not present")
@@ -227,5 +230,5 @@ def test_scan_real_app_modules() -> None:
     for r in results:
         by_entry.setdefault(r["entry"], set()).add(r["module"])
 
-    assert by_entry.get("p2-orm-mode") == {"orders"}, by_entry
-    assert by_entry.get("p2-validator") == {"orders"}, by_entry
+    assert by_entry.get("p2-basesettings") == {"core"}, by_entry
+    assert by_entry.get("p2-orm-mode") == {"users", "orders"}, by_entry

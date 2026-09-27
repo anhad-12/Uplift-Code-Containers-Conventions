@@ -6,12 +6,12 @@
     "bobModes": [
       "uplift-impact-analyst"
     ],
-    "generatedAt": "2026-09-27T10:44:25.313246+00:00",
+    "generatedAt": "2026-09-27T12:14:35.047805+00:00",
     "predictionSource": "archived Bob verdicts",
     "repairAgent": "bob",
-    "baselineSha256": "12009e566e69ef57a73a8229a708c8aa127697c1212fa412fa86c59b96545110",
+    "baselineSha256": "114a1497bf863707f3880ffbbb770600c8b746d581d5981a520b4a6b738beff1",
     "patchSha256": "d2d97940d69bfabdf57feeff3d2da9c19a5adebbcccc3e8a6b9d53dca8eabab1",
-    "verificationPython": "Python 3.11.9",
+    "verificationPython": "Python 3.11.4",
     "evidencePath": "evidence/s1-null-user"
   },
   "scenario": {
@@ -330,7 +330,7 @@
   "migration": null,
   "metrics": {
     "filesScanned": 25,
-    "secondsTaken": 12.585,
+    "secondsTaken": 1.735,
     "predicted": 7,
     "confirmed": 6,
     "unconfirmed": 0,

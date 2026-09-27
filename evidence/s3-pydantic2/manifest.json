@@ -1,8 +1,8 @@
 {
   "scenario": "s3-pydantic2",
-  "baseSha256": "b2ffcb7934f05d4f040c193b0d84cfe0a1e2e74920e30b24ce4d56644c27b1bd",
-  "headSha256": "67b0d6b56af0cc2afef94d129a1289786cc1e289d92badeb38bee373079ef291",
-  "repairedSha256": "634bac22f5ee25817cd79d6f195e078329883094ee3046f28b58a91134124f26",
-  "python": "Python 3.11.9",
+  "baseSha256": "950d586cc9fde07e5335f7d3da1609bf29e5e547159b4c950bab0aada34e5026",
+  "headSha256": "c64dc5ece633020b23976ea359c956372db968f82ab79da74fcde5d0417996c6",
+  "repairedSha256": "1b455132f236a991c1c79576d766a412f9898e66bc5f5b0ddbdd60b05ba8178a",
+  "python": "Python 3.11.4",
   "generatedBy": "bob"
 }

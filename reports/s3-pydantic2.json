@@ -2,24 +2,26 @@
   "schemaVersion": 1,
   "mode": "migrate",
   "provenance": {
-    "generatedBy": "engine",
+    "generatedBy": "bob",
     "bobModes": [
-      "uplift-migration-planner",
-      "uplift-convention-scanner",
-      "uplift-worker-users",
-      "uplift-worker-core",
-      "uplift-verifier",
-      "uplift-worker-payments"
+      "uplift-migration-planner"
     ],
-    "generatedAt": "2026-09-27T10:02:49.188131+00:00"
+    "generatedAt": "2026-09-27T12:14:38.460442+00:00",
+    "predictionSource": "Bob migration assessment using archived guide catalog",
+    "repairAgent": "bob",
+    "baselineSha256": "950d586cc9fde07e5335f7d3da1609bf29e5e547159b4c950bab0aada34e5026",
+    "patchSha256": "2d4a80a32cef88fae3e74abf6b617db94ea37114b01e66f56988a0f452cdf898",
+    "verificationPython": "Python 3.11.4",
+    "evidencePath": "evidence/s3-pydantic2",
+    "proofMethod": "Same full suite on Pydantic v1 base, v2 before repairs, and v2 after repairs; no individual code proof claims."
   },
   "scenario": {
     "id": "s3-pydantic2",
-    "title": "S3 \u2014 Pydantic v1 to v2 upgrade"
+    "title": "Migrate Pydantic v1 to v2"
   },
   "change": {
-    "summary": "Dependency upgrade: pydantic 1.10.13 -> 2.9.2",
     "kind": "dependency-upgrade",
+    "summary": "Migrate Pydantic v1 to v2",
     "library": "pydantic",
     "from": "1.10.13",
     "to": "2.9.2"
@@ -33,44 +35,101 @@
   ],
   "affected": [
     {
-      "id": "sample-app/shop/config.py#config.py",
-      "file": "sample-app/shop/config.py",
+      "id": "shop/config.py#migration",
+      "file": "shop/config.py",
       "line": 1,
       "hop": 1,
       "layer": "direct",
-      "via": "requirements.txt#pydantic",
-      "verdict": "unknown",
-      "reason": "",
-      "fix": "",
+      "verdict": "will_break",
+      "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+      "fix": "Apply the recorded guide replacements.",
       "proof": {
         "status": "not_attempted"
       },
-      "module": "config.py"
+      "module": "core",
+      "repair": {
+        "status": "fixed",
+        "worker": "uplift-worker-core",
+        "filesChanged": [
+          "requirements.txt",
+          "shop/config.py"
+        ]
+      }
     },
     {
-      "id": "sample-app/shop/payments/schemas.py#payments",
-      "file": "sample-app/shop/payments/schemas.py",
+      "id": "shop/orders/schemas.py#migration",
+      "file": "shop/orders/schemas.py",
+      "line": 9,
+      "hop": 1,
+      "layer": "direct",
+      "verdict": "will_break",
+      "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+      "fix": "Apply the recorded guide replacements.",
+      "proof": {
+        "status": "not_attempted"
+      },
+      "module": "orders",
+      "repair": {
+        "status": "fixed",
+        "worker": "uplift-worker-orders",
+        "filesChanged": [
+          "shop/orders/schemas.py"
+        ]
+      }
+    },
+    {
+      "id": "shop/payments/schemas.py#migration",
+      "file": "shop/payments/schemas.py",
       "line": 7,
       "hop": 1,
       "layer": "direct",
-      "via": "requirements.txt#pydantic",
-      "verdict": "unknown",
-      "reason": "",
-      "fix": "",
+      "verdict": "will_break",
+      "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+      "fix": "Apply the recorded guide replacements.",
       "proof": {
         "status": "not_attempted"
       },
-      "module": "payments"
+      "module": "payments",
+      "repair": {
+        "status": "fixed",
+        "worker": "uplift-worker-payments",
+        "filesChanged": [
+          "shop/payments/schemas.py"
+        ]
+      }
+    },
+    {
+      "id": "shop/users/schemas.py#migration",
+      "file": "shop/users/schemas.py",
+      "line": 7,
+      "hop": 1,
+      "layer": "direct",
+      "verdict": "will_break",
+      "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+      "fix": "Apply the recorded guide replacements.",
+      "proof": {
+        "status": "not_attempted"
+      },
+      "module": "users",
+      "repair": {
+        "status": "fixed",
+        "worker": "uplift-worker-users",
+        "filesChanged": [
+          "shop/users/schemas.py"
+        ]
+      }
     }
   ],
   "contracts": [],
-  "testsToRun": [],
+  "testsToRun": [
+    "tests"
+  ],
   "untested": [],
   "risk": {
-    "score": 0,
-    "level": "low",
+    "score": 40,
+    "level": "medium",
     "factors": [
-      "0 will_break (+0)",
+      "4 will_break (+40)",
       "0 might_break (+0)",
       "0 untested affected item (+0)",
       "0 contract hit (+0)"
@@ -78,7 +137,7 @@
   },
   "pipeline": {
     "predict": "done",
-    "prove": "pending",
+    "prove": "done",
     "repair": "done",
     "verify": "done"
   },
@@ -93,7 +152,9 @@
           "type": "import",
           "pattern": "from pydantic import BaseSettings"
         },
-        "replacement": "from pydantic_settings import BaseSettings  (pip install pydantic-settings)"
+        "replacement": "from pydantic_settings import BaseSettings  (pip install pydantic-settings)",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 1
       },
       {
         "id": "config-class-deprecated",
@@ -104,7 +165,9 @@
           "type": "regex",
           "pattern": "^\\s+class Config:"
         },
-        "replacement": "model_config = ConfigDict(...)"
+        "replacement": "model_config = ConfigDict(...)",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 2
       },
       {
         "id": "orm-mode-renamed",
@@ -115,7 +178,9 @@
           "type": "identifier",
           "pattern": "orm_mode"
         },
-        "replacement": "model_config = ConfigDict(from_attributes=True)"
+        "replacement": "model_config = ConfigDict(from_attributes=True)",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 2
       },
       {
         "id": "validator-deprecated",
@@ -126,7 +191,9 @@
           "type": "regex",
           "pattern": "@validator\\("
         },
-        "replacement": "@field_validator(...)"
+        "replacement": "@field_validator(...)",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 1
       },
       {
         "id": "validator-each-item",
@@ -137,7 +204,9 @@
           "type": "regex",
           "pattern": "each_item\\s*=\\s*True"
         },
-        "replacement": "Use mode='before' and iterate: return [v.strip() for v in value]"
+        "replacement": "Use mode='before' and iterate: return [v.strip() for v in value]",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 1
       },
       {
         "id": "root-validator-deprecated",
@@ -148,7 +217,9 @@
           "type": "regex",
           "pattern": "@root_validator"
         },
-        "replacement": "@model_validator(mode='before') or mode='after'"
+        "replacement": "@model_validator(mode='before') or mode='after'",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 0
       },
       {
         "id": "field-regex-removed",
@@ -159,18 +230,22 @@
           "type": "regex",
           "pattern": "Field\\(.*regex\\s*="
         },
-        "replacement": "Field(..., pattern=r'...')"
+        "replacement": "Field(..., pattern=r'...')",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 1
       },
       {
         "id": "constr-regex-removed",
-        "title": "constr(regex=...) removed; use Annotated[str, StringConstraints(pattern=...)] instead",
+        "title": "constr regex parameter renamed to pattern; Annotated with StringConstraints is the migration form",
         "kind": "api_removed",
         "guideSection": "Constrained types",
         "detect": {
           "type": "regex",
           "pattern": "constr\\(.*regex\\s*="
         },
-        "replacement": "Annotated[str, StringConstraints(pattern=r'...')]"
+        "replacement": "Annotated[str, StringConstraints(pattern=r'...')]",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 1
       },
       {
         "id": "constrained-types-removed",
@@ -181,7 +256,9 @@
           "type": "regex",
           "pattern": "Constrained(Int|Str|Float|Decimal|Bytes|List|Set|FrozenSet|Date)"
         },
-        "replacement": "Annotated[int, Field(ge=0)] or Annotated[str, StringConstraints(...)]"
+        "replacement": "Annotated[int, Field(ge=0)] or Annotated[str, StringConstraints(...)]",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 0
       },
       {
         "id": "optional-required-semantics",
@@ -192,7 +269,9 @@
           "type": "regex",
           "pattern": ":\\s*Optional\\[\\w+\\]\\s*$"
         },
-        "replacement": "Add = None if field should be optional: field: Optional[str] = None"
+        "replacement": "Add = None if field should be optional: field: Optional[str] = None",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 1
       },
       {
         "id": "dict-method-renamed",
@@ -203,7 +282,9 @@
           "type": "regex",
           "pattern": "\\.dict\\(\\)"
         },
-        "replacement": ".model_dump()"
+        "replacement": ".model_dump()",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 0
       },
       {
         "id": "parse-obj-renamed",
@@ -214,7 +295,9 @@
           "type": "call",
           "pattern": "parse_obj"
         },
-        "replacement": "Model.model_validate(data)"
+        "replacement": "Model.model_validate(data)",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 0
       },
       {
         "id": "from-orm-deprecated",
@@ -223,74 +306,125 @@
         "guideSection": "Changes to pydantic.BaseModel",
         "detect": {
           "type": "call",
-          "pattern": "\\.from_orm\\("
+          "pattern": "from_orm"
         },
-        "replacement": "Model.model_validate(obj) after model_config = ConfigDict(from_attributes=True)"
+        "replacement": "Model.model_validate(obj) after model_config = ConfigDict(from_attributes=True)",
+        "sourceUrl": "https://docs.pydantic.dev/2.9/migration/",
+        "occurrences": 0
       }
     ],
     "modules": [
       {
+        "scenario": "s3-pydantic2",
+        "module": "users",
+        "worker": "uplift-worker-users",
         "filesChanged": [
-          "shop/config.py",
-          "requirements.txt"
+          "shop/users/schemas.py"
+        ],
+        "fixesApplied": 1,
+        "fixedIds": [
+          "shop/users/schemas.py#migration"
         ],
         "testsBefore": {
-          "passed": 0,
+          "passed": 6,
           "failed": 0,
-          "errors": 1
+          "errors": 7,
+          "skipped": 0
         },
         "testsAfter": {
-          "passed": 1,
+          "passed": 47,
           "failed": 0,
-          "errors": 0
+          "errors": 0,
+          "skipped": 0
         },
-        "module": "core",
-        "worker": "uplift-worker-core"
+        "blocked": []
       },
       {
+        "scenario": "s3-pydantic2",
+        "module": "orders",
+        "worker": "uplift-worker-orders",
+        "filesChanged": [
+          "shop/orders/schemas.py"
+        ],
+        "fixesApplied": 1,
+        "fixedIds": [
+          "shop/orders/schemas.py#migration"
+        ],
+        "testsBefore": {
+          "passed": 10,
+          "failed": 8,
+          "errors": 6,
+          "skipped": 0
+        },
+        "testsAfter": {
+          "passed": 22,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "blocked": []
+      },
+      {
+        "scenario": "s3-pydantic2",
+        "module": "payments",
+        "worker": "uplift-worker-payments",
         "filesChanged": [
           "shop/payments/schemas.py"
         ],
+        "fixesApplied": 1,
+        "fixedIds": [
+          "shop/payments/schemas.py#migration"
+        ],
         "testsBefore": {
-          "passed": 0,
+          "passed": 8,
           "failed": 0,
-          "errors": 2
+          "errors": 5,
+          "skipped": 0
+        },
+        "testsAfter": {
+          "passed": 33,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "blocked": []
+      },
+      {
+        "scenario": "s3-pydantic2",
+        "module": "core",
+        "worker": "uplift-worker-core",
+        "filesChanged": [
+          "requirements.txt",
+          "shop/config.py"
+        ],
+        "fixesApplied": 1,
+        "fixedIds": [
+          "shop/config.py#migration"
+        ],
+        "testsBefore": {
+          "passed": 3,
+          "failed": 0,
+          "errors": 3,
+          "skipped": 0
         },
         "testsAfter": {
           "passed": 8,
           "failed": 0,
-          "errors": 0
+          "errors": 0,
+          "skipped": 0
         },
-        "module": "payments",
-        "worker": "uplift-worker-payments"
-      },
-      {
-        "filesChanged": [
-          "shop/users/schemas.py"
-        ],
-        "testsBefore": {
-          "passed": 11,
-          "failed": 0,
-          "errors": 0
-        },
-        "testsAfter": {
-          "passed": 11,
-          "failed": 0,
-          "errors": 0
-        },
-        "module": "users",
-        "worker": "uplift-worker-users"
+        "blocked": []
       }
     ],
-    "releaseNotes": "# Migrate Pydantic v1 to v2\n\nGenerated from isolated scenario copies using Bob modes. Original Bob predictions are preserved.\n\nBase: {'passed': 46, 'failed': 0, 'errors': 0, 'skipped': 0, 'exitCode': 0}\n\nBefore repairs: {'passed': 26, 'failed': 8, 'errors': 6, 'skipped': 0, 'exitCode': 1}\n\nAfter repairs: {'passed': 46, 'failed': 0, 'errors': 0, 'skipped': 0, 'exitCode': 0}\n\nRepairs:\n- requirements.txt\n- shop/config.py\n- shop/orders/schemas.py\n- shop/payments/schemas.py\n- shop/users/schemas.py\n\nVerified: all collected tests pass; no collection errors. See the raw base/before/after JSON, XML and console logs for counts and commands."
+    "releaseNotes": "# Migrate Pydantic v1 to v2\n\nGenerated from isolated scenario copies using Bob modes. Original Bob predictions are preserved.\n\nBase: {'passed': 46, 'failed': 0, 'errors': 0, 'skipped': 0, 'exitCode': 0}\n\nBefore repairs: {'passed': 26, 'failed': 8, 'errors': 6, 'skipped': 0, 'exitCode': 1}\n\nAfter repairs: {'passed': 46, 'failed': 0, 'errors': 0, 'skipped': 0, 'exitCode': 0}\n\nRepairs:\n- requirements.txt\n- shop/config.py\n- shop/orders/schemas.py\n- shop/payments/schemas.py\n- shop/users/schemas.py\n\nVerified: all collected tests pass; no collection errors. See the raw base/before/after JSON, XML and console logs for counts and commands.\n"
   },
   "metrics": {
     "filesScanned": 25,
-    "secondsTaken": 0.0,
-    "predicted": 0,
+    "secondsTaken": 1.792,
+    "predicted": 4,
     "confirmed": 0,
     "unconfirmed": 0,
-    "fixed": 0,
+    "fixed": 4,
     "regressions": 0,
     "tests": {
       "before": {
@@ -307,6 +441,42 @@
         "skipped": 0,
         "exitCode": 0
       }
+    }
+  },
+  "infraImpact": [
+    {
+      "file": "Dockerfile",
+      "layer": 3,
+      "totalLayers": 6,
+      "trigger": "requirements.txt may invalidate COPY/ADD inputs or a dependent stage",
+      "layersRebuilt": "3-6",
+      "suggestion": "Copy dependency manifests before application code. Indices are Dockerfile instructions; cache effects are conservative and build time is unmeasured."
+    }
+  ],
+  "conventions": {
+    "naming": "snake_case functions and variables; PascalCase domain models/exceptions. Evidence: shop/users/service.py, shop/errors.py.",
+    "imports": "Absolute imports at module scope, usually from-imports. Ordering is mixed. Evidence: shop/orders/service.py, shop/users/routes.py, shop/payments/repo.py.",
+    "errorHandling": "Services raise typed NotFoundError/ValidationError; routes use HTTP errors. Safe decoys may return False explicitly. Evidence: shop/orders/service.py, shop/errors.py, shop/notifications/email.py.",
+    "fileLayout": "Separate service, route, schema and repo modules; tests mirror modules. Evidence: shop/users/service.py, shop/users/routes.py, tests/users/test_service.py, tests/payments/test_routes.py.",
+    "evidenceFiles": [
+      "shop/users/service.py",
+      "shop/users/routes.py",
+      "shop/users/schemas.py",
+      "shop/orders/service.py",
+      "shop/orders/invoice.py",
+      "shop/payments/repo.py",
+      "shop/errors.py",
+      "shop/notifications/email.py",
+      "tests/users/test_service.py",
+      "tests/payments/test_routes.py",
+      "requirements.txt"
+    ],
+    "generatedBy": "bob",
+    "scope": "Observed on restored baseline; compliance checks added-line naming, absolute/module-level imports, and typed raises. Semantic contract correctness is verified by tests.",
+    "compliance": {
+      "checkedLines": 14,
+      "violations": 0,
+      "retried": false
     }
   }
 }

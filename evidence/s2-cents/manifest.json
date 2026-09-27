@@ -1,8 +1,8 @@
 {
   "scenario": "s2-cents",
-  "baseSha256": "0409a0b27149840bfb39994c54e99eb6ed5666fefadad12b9985b3523b2f28ef",
-  "headSha256": "d1a4db67f1c79a08cc7202c4c3cd89995d7719a5b51c6b343f8a818422f0f81b",
-  "repairedSha256": "440188d932f69d2dffb2b54c495c8d2c97e22759ba4cd43459dffff39adc693c",
-  "python": "Python 3.11.9",
+  "baseSha256": "14a8cb8ba35a9ee7a6ad06d74b2c2ad21b1f853c97d6fa03ced8792e6e699a54",
+  "headSha256": "36c11a47feb7097e6caf30c5564ef1978cf8472dd63a6c59081192b9d023446e",
+  "repairedSha256": "56a2f43fc5dcd2eee74adaae3a1b5ecd71b317aa8bb6c06d7d9a2e2b4116c978",
+  "python": "Python 3.11.4",
   "generatedBy": "bob"
 }

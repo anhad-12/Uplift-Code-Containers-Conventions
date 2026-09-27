@@ -85,13 +85,13 @@
     "tests.users.test_service::test_list_users": "passed"
   },
   "command": [
-    "C:\\Users\\dbahe\\Downloads\\Uplift-Code-Containers-Conventions\\sample-app\\.venv311\\Scripts\\python.exe",
+    "/Users/anhadrana/Developer/Uplift-Code-Containers-Conventions/sample-app/.venv311/bin/python",
     "-m",
     "pytest",
     "-q",
     "--continue-on-collection-errors",
-    "--junitxml=C:\\Users\\dbahe\\AppData\\Local\\Temp\\uplift_reproduce_ep0txhrx\\s1-null-user-evidence\\after.xml",
+    "--junitxml=/var/folders/68/dycq1sbs7ls3rzg93nfxh9l40000gn/T/uplift_reproduce_lhhll9m5/s1-null-user-evidence/after.xml",
     "tests"
   ],
-  "pythonVersion": "Python 3.11.9"
+  "pythonVersion": "Python 3.11.4"
 }
