@@ -19,6 +19,6 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 | C | C8a | Bob ran a visual polish pass: CSS design tokens, readable paste box and drop area, dark-theme alerts, padded PR-comment table with verdict pills, larger tables, chart label contrast, styled tabs and hero call-to-action buttons; 41 new tests | dashboard/app.py, dashboard/panels.py, dashboard/assets/style.css, dashboard/tests/test_polish.py | 4.46 | uplift_C_task08a_polish_summary.png |
 
 
-![Dhruv | Bob made the file](uplift_A_task_0_summary.png)
+(![Dhruv | Bob made the file](uplift_A_task_0_summary.png))
 
-
+![Dhruv | Bob added the skills we require](uplift_A_task_1_summary.png)
