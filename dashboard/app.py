@@ -420,8 +420,8 @@ def home() -> html.Div:
                 ),
                 html.P(
                     "Uplift predicts what a change breaks, proves it with a failing test, "
-                    "and repairs it with sandboxed IBM Bob workers — "
-                    "via a native MCP server and CLI built for Bob.",
+                    "and repairs it with sandboxed IBM Bob workers. "
+                    "Native MCP server and CLI, built for Bob.",
                     className="hero-sub",
                 ),
                 html.Div([
