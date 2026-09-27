@@ -12,4 +12,4 @@ def send_welcome(user_id: int) -> bool:
 
 
 def send_receipt_email(payment: Payment) -> str:
-    return f"Thanks! We charged ${payment.amount / 100:.2f}"
+    return f"Thanks! We charged ${payment.amount:.2f}"
