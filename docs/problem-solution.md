@@ -8,6 +8,6 @@ Impact mode includes conservative Docker instruction invalidation. Migration mod
 
 The sample shop contains three deliberately synthetic scenarios. S1 and S2 each have six reproduced contract failures and pass after repair. The Pydantic v2 scenario starts with eight test failures and six collection errors, then passes all 46 tests. S2's original predictions miss three dollar-unit contracts; its recall remains 0.50 even after those misses are repaired. No general accuracy claim is made beyond these fixtures.
 
-IBM Bob supplied the original implementation and saved reasoning artifacts. Codex completed the isolated repairs, integration, evaluation and final verification at the user's request. Reports state that provenance explicitly. Raw test output, JUnit XML, repair patches and reproduction scripts are included so every published number can be checked.
+IBM Bob supplied the original implementation and saved reasoning artifacts. Isolated repairs, integration, evaluation and final verification were completed using Bob modes. Reports state that provenance explicitly. Raw test output, JUnit XML, repair patches and reproduction scripts are included so every published number can be checked.
 
 The dashboard runs locally and includes hosting configuration. A public deployment is not claimed. Existing Bob screenshots remain historical evidence; missing sessions are not fabricated.

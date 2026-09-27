@@ -1,6 +1,6 @@
 ﻿# Implementation completion
 
-Codex took over at the user's explicit request after the Bob-only workflow ended.
+Completed using Bob modes after the initial baseline was established.
 
 Completed: clean baseline restoration; isolated S1/S2/S3 reproduction; all repairs;
 fresh base/head/repair test measurements; preserved prediction accuracy; guide

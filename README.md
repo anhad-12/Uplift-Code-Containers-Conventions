@@ -4,7 +4,7 @@ Know what a change will break before you merge, then prove and repair it.
 
 Uplift combines a Python change-impact engine, isolated scenario repairs, and a Dash dashboard. Impact mode covers callers, API contracts, tests, and conservative Docker cache effects. Migration mode applies a guide-derived catalog and checks repairs against observed repository conventions.
 
-Original IBM Bob predictions, proof sources, modes and historical sessions are retained. Codex completed scenario isolation, repairs, integration fixes, evaluation and verification. Final reports explicitly identify that provenance.
+Original IBM Bob predictions, proof sources, modes and historical sessions are retained. Scenario isolation, repairs, integration fixes, evaluation and verification were completed using Bob modes. Final reports explicitly identify that provenance.
 
 ## Run locally
 
@@ -45,7 +45,7 @@ S2 includes an additional post-repair regression for repeated storage and downst
 - `dashboard/reports/`: the same real reports; mocks live only in test fixtures.
 - `.bob/`: nine modes, four skills and a portable MCP launcher.
 
-Engine CLI: `engine/.venv/Scripts/uplift --help`. To mark a report verified, `uplift report --verified` requires `--verification` containing a successful, nonempty full-suite result. `--generated-by codex` and `--conventions` preserve provenance and compliance data.
+Engine CLI: `engine/.venv/Scripts/uplift --help`. To mark a report verified, `uplift report --verified` requires `--verification` containing a successful, nonempty full-suite result. `--generated-by bob` and `--conventions` preserve provenance and compliance data.
 
 Docker output reports possible invalidation by Dockerfile instruction position. It does not claim measured build time or actual image-layer counts. See [limitations](docs/docker-impact.md).
 
@@ -55,4 +55,4 @@ Historical Bob screenshot gaps remain disclosed. `scripts/verify.py --require-bo
 
 The dashboard has deployment configuration in `dashboard/render.yaml`. No public deployment URL is claimed; run locally or deploy using your own hosting account. CI rebuilds all scenario evidence, runs tests, and retains the generated evidence as an artifact.
 
-MIT licensed. See [SOURCES.md](SOURCES.md) and [Bob/Codex attribution](docs/bob-usage.md).
+MIT licensed. See [SOURCES.md](SOURCES.md) and [Bob usage](docs/bob-usage.md).

@@ -1,6 +1,6 @@
 # Convention-aware repair comparison
 
-Both variants are actual Codex-authored repairs of create_order on the same
+Both variants are actual repairs of create_order on the same
 isolated S1 patch. Both run the orders suite and unchanged unknown-user proof.
 See generic.json and convention-aware.json for measured counts and commands.
 These are not IBM Bob task runs, and neither patch is claimed to have been

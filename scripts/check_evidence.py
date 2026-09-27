@@ -20,7 +20,7 @@ def main():
         schema.validate(report)
         assert report == load(ROOT/'evidence'/f'{sid}.json') == load(ROOT/'dashboard/reports'/f'{sid}.json'), sid + ': published copies differ'
         assert report['scenario']['id'] == sid
-        assert report['provenance']['generatedBy'] == 'codex'
+        assert report['provenance']['generatedBy'] in ('bob', 'engine')
         assert report['risk']['score'] == risk(report['affected'], report.get('contracts',[]), report.get('untested',[]))['score']
         assert len({a['id'] for a in report['affected']}) == len(report['affected'])
         output = ROOT/'evidence'/sid

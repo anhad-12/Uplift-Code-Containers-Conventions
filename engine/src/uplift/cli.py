@@ -151,7 +151,7 @@ def report(
     catalog_file: Optional[Path] = typer.Option(None, "--catalog", help="Path to .uplift/catalog.json."),
     bob_modes: Optional[str] = typer.Option(None, "--bob-modes", help="Comma-separated Bob mode names for provenance."),
     verified: bool = typer.Option(False, "--verified", help="Mark pipeline.verify as done."),
-    generated_by: Optional[str] = typer.Option(None, "--generated-by", help="bob, codex, or engine."),
+    generated_by: Optional[str] = typer.Option(None, "--generated-by", help="bob or engine."),
     verification_file: Optional[Path] = typer.Option(None, "--verification", help="Measured full-suite result JSON."),
     conventions_file: Optional[Path] = typer.Option(None, "--conventions", help="Conventions with compliance results."),
     occurrences_file: Optional[Path] = typer.Option(None, "--occurrences", help="Path to .uplift/occurrences.json (migrate mode)."),

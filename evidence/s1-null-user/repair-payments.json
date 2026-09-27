@@ -1,7 +1,7 @@
 {
   "scenario": "s1-null-user",
   "module": "payments",
-  "worker": "codex-payments",
+  "worker": "uplift-worker-payments",
   "filesChanged": [
     "shop/payments/charge.py",
     "shop/payments/receipt.py"

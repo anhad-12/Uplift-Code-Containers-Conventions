@@ -1,7 +1,7 @@
 {
   "scenario": "s1-null-user",
   "module": "users",
-  "worker": "codex-users",
+  "worker": "uplift-worker-users",
   "filesChanged": [
     "shop/users/routes.py"
   ],

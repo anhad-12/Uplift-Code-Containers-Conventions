@@ -250,7 +250,7 @@ def build_report(
 
     # ---- provenance ----------------------------------------------------------
     generated_by = generated_by or ("bob" if verdicts is not None else "engine")
-    if generated_by not in {"bob", "engine", "codex", "mock"}:
+    if generated_by not in {"bob", "engine", "mock"}:
         raise ValueError("Invalid report generator")
     provenance: dict = {
         "generatedBy": generated_by,

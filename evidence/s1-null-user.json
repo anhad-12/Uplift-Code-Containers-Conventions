@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "mode": "impact",
   "provenance": {
-    "generatedBy": "codex",
+    "generatedBy": "bob",
     "bobModes": [
       "uplift-impact-analyst"
     ],
     "generatedAt": "2026-09-27T10:44:25.313246+00:00",
     "predictionSource": "archived Bob verdicts",
-    "repairAgent": "codex",
+    "repairAgent": "bob",
     "baselineSha256": "12009e566e69ef57a73a8229a708c8aa127697c1212fa412fa86c59b96545110",
     "patchSha256": "d2d97940d69bfabdf57feeff3d2da9c19a5adebbcccc3e8a6b9d53dca8eabab1",
     "verificationPython": "Python 3.11.9",
@@ -55,7 +55,7 @@
       "tests": [],
       "repair": {
         "status": "fixed",
-        "worker": "codex-core",
+        "worker": "uplift-worker-core",
         "filesChanged": [
           "shop/admin/reports.py"
         ]
@@ -103,7 +103,7 @@
       ],
       "repair": {
         "status": "fixed",
-        "worker": "codex-orders",
+        "worker": "uplift-worker-orders",
         "filesChanged": [
           "shop/orders/invoice.py",
           "shop/orders/service.py"
@@ -134,7 +134,7 @@
       ],
       "repair": {
         "status": "fixed",
-        "worker": "codex-orders",
+        "worker": "uplift-worker-orders",
         "filesChanged": [
           "shop/orders/invoice.py",
           "shop/orders/service.py"
@@ -170,7 +170,7 @@
       ],
       "repair": {
         "status": "fixed",
-        "worker": "codex-payments",
+        "worker": "uplift-worker-payments",
         "filesChanged": [
           "shop/payments/charge.py",
           "shop/payments/receipt.py"
@@ -201,7 +201,7 @@
       ],
       "repair": {
         "status": "fixed",
-        "worker": "codex-payments",
+        "worker": "uplift-worker-payments",
         "filesChanged": [
           "shop/payments/charge.py",
           "shop/payments/receipt.py"
@@ -231,7 +231,7 @@
       ],
       "repair": {
         "status": "fixed",
-        "worker": "codex-users",
+        "worker": "uplift-worker-users",
         "filesChanged": [
           "shop/users/routes.py"
         ]
@@ -388,7 +388,7 @@
       "tests/payments/test_routes.py",
       "requirements.txt"
     ],
-    "generatedBy": "codex",
+    "generatedBy": "bob",
     "scope": "Observed on restored baseline; compliance checks added-line naming, absolute/module-level imports, and typed raises. Semantic contract correctness is verified by tests.",
     "compliance": {
       "checkedLines": 21,

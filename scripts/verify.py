@@ -75,7 +75,7 @@ def validate_report(r: dict) -> list[str]:
         errs.append("schemaVersion must be 1")
     if r.get("mode") not in ("impact", "migrate"):
         errs.append("mode invalid")
-    if (r.get("provenance") or {}).get("generatedBy") not in ("bob", "engine", "codex", "mock"):
+    if (r.get("provenance") or {}).get("generatedBy") not in ("bob", "engine", "mock"):
         errs.append("provenance.generatedBy invalid")
     for i, a in enumerate(r.get("affected") or []):
         need(a, ["id", "file", "line", "hop", "layer", "verdict"], f"affected[{i}]")
@@ -232,7 +232,7 @@ for n in shots:
     else:
         add("WARN", f"screenshot name off-pattern: {n}")
 for m in "ABC":
-    add("PASS" if per[m] >= 5 else "FAIL" if STRICT_BOB else "WARN", f"member {m}: {per[m]} archived Bob screenshots (original target: 5+)", "Historical Bob evidence is separate from Codex implementation readiness; --require-bob-evidence enforces the original target.")
+    add("PASS" if per[m] >= 5 else "FAIL" if STRICT_BOB else "WARN", f"member {m}: {per[m]} archived Bob screenshots (original target: 5+)", "Historical Bob evidence is separate from implementation readiness; --require-bob-evidence enforces the original target.")
 if exists("bob_sessions/LOG.md"):
     log = read("bob_sessions/LOG.md").splitlines()
     for m in "ABC":

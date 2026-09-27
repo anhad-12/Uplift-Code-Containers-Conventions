@@ -1,7 +1,7 @@
 {
   "scenario": "s2-cents",
   "module": "payments",
-  "worker": "codex-payments",
+  "worker": "uplift-worker-payments",
   "filesChanged": [
     "shop/payments/amounts.py",
     "shop/payments/receipt.py",

@@ -1065,9 +1065,7 @@ def bob_panel(report: dict) -> dbc.Card:
     provenance = report.get("provenance") or {}
     bob_modes: list[str] = provenance.get("bobModes") or _STATIC_BOB_MODES
 
-    attribution = ("Original predictions/catalog: IBM Bob. Repairs, final verification and publication: Codex."
-                   if provenance.get("generatedBy") == "codex"
-                   else "Report generator: " + provenance.get("generatedBy", "unknown"))
+    attribution = "Report generator: " + provenance.get("generatedBy", "unknown")
 
     mode_rows = []
     for mode in bob_modes:

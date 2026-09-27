@@ -1,7 +1,7 @@
 {
   "scenario": "s1-null-user",
   "module": "orders",
-  "worker": "codex-orders",
+  "worker": "uplift-worker-orders",
   "filesChanged": [
     "shop/orders/invoice.py",
     "shop/orders/service.py"

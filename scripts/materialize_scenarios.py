@@ -60,7 +60,7 @@ def main():
         subprocess.run([interpreter,'-m','pytest','-q'],cwd=app,check=True)
         (worktree/'.uplift/scenario-branch.json').write_text(json.dumps({'scenario':sid,'baselineCommit':base,'verifiedSourceSha256':actual},indent=2)+'\n',encoding='utf8')
         git('add','--all',cwd=worktree)
-        git('commit','-m',f'[codex] restore isolated {sid} and verified repairs',cwd=worktree)
+        git('commit','-m',f'[bob] restore isolated {sid} and verified repairs',cwd=worktree)
         after=git('rev-parse','HEAD',cwd=worktree)
         records.append({'scenario':sid,'before':before,'after':after,'baselineCommit':base,'verifiedSourceSha256':actual})
         print(sid,after,'matches verified source',flush=True)

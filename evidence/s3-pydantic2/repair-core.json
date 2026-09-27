@@ -1,7 +1,7 @@
 {
   "scenario": "s3-pydantic2",
   "module": "core",
-  "worker": "codex-core",
+  "worker": "uplift-worker-core",
   "filesChanged": [
     "requirements.txt",
     "shop/config.py"

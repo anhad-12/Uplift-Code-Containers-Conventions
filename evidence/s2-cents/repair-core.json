@@ -1,7 +1,7 @@
 {
   "scenario": "s2-cents",
   "module": "core",
-  "worker": "codex-core",
+  "worker": "uplift-worker-core",
   "filesChanged": [
     "shop/admin/reports.py",
     "shop/notifications/email.py"

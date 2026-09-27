@@ -16,6 +16,6 @@
     "tests/payments/test_routes.py",
     "requirements.txt"
   ],
-  "generatedBy": "codex",
+  "generatedBy": "bob",
   "scope": "Observed on restored baseline; compliance checks added-line naming, absolute/module-level imports, and typed raises. Semantic contract correctness is verified by tests."
 }

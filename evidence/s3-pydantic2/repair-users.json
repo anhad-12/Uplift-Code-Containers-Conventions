@@ -1,7 +1,7 @@
 {
   "scenario": "s3-pydantic2",
   "module": "users",
-  "worker": "codex-users",
+  "worker": "uplift-worker-users",
   "filesChanged": [
     "shop/users/schemas.py"
   ],

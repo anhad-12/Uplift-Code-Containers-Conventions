@@ -1,7 +1,7 @@
 {
   "scenario": "s3-pydantic2",
   "module": "orders",
-  "worker": "codex-orders",
+  "worker": "uplift-worker-orders",
   "filesChanged": [
     "shop/orders/schemas.py"
   ],

@@ -6,7 +6,7 @@ from pydantic import BaseModel, validator
 class OrderIn(BaseModel):
     user_id: int
     items: List[float]
-    note: Optional[str]
+    note: Optional[str] = None
     tags: List[str] = []
 
     @validator("tags", each_item=True)

@@ -91,9 +91,9 @@
   [PASS] branch scenario/s3-pydantic2
 
 == 6. Bob evidence (required by the rules)
-  [WARN] member A: 4 archived Bob screenshots (original target: 5+)  -> Historical Bob evidence is separate from Codex implementation readiness; --require-bob-evidence enforces the original target.
-  [PASS] member B: 6 archived Bob screenshots (original target: 5+)  -> Historical Bob evidence is separate from Codex implementation readiness; --require-bob-evidence enforces the original target.
-  [PASS] member C: 12 archived Bob screenshots (original target: 5+)  -> Historical Bob evidence is separate from Codex implementation readiness; --require-bob-evidence enforces the original target.
+  [WARN] member A: 4 archived Bob screenshots (original target: 5+)  -> Historical Bob evidence is separate from implementation readiness; --require-bob-evidence enforces the original target.
+  [PASS] member B: 6 archived Bob screenshots (original target: 5+)  -> Historical Bob evidence is separate from implementation readiness; --require-bob-evidence enforces the original target.
+  [PASS] member C: 12 archived Bob screenshots (original target: 5+)  -> Historical Bob evidence is separate from implementation readiness; --require-bob-evidence enforces the original target.
   [PASS] member A: LOG.md rows (4) cover screenshots (4)  -> Historical gaps are not fabricated.
   [PASS] member B: LOG.md rows (6) cover screenshots (6)  -> Historical gaps are not fabricated.
   [PASS] member C: LOG.md rows (12) cover screenshots (12)  -> Historical gaps are not fabricated.

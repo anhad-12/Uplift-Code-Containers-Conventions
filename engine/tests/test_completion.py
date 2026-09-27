@@ -39,13 +39,13 @@ def test_cross_scenario_repair_rejected():
 
 def test_migration_occurrences_keep_repairs_and_proofs():
     args = report_args()
-    args['repair_files'] = [{'module': 'users', 'worker': 'codex-users', 'scenario': 's1', 'fixedIds': ['shop/users/a.py#f'], 'filesChanged': ['shop/users/a.py'], 'testsAfter': {'passed': 2, 'failed': 0}, 'blocked': []}]
+    args['repair_files'] = [{'module': 'users', 'worker': 'uplift-worker-users', 'scenario': 's1', 'fixedIds': ['shop/users/a.py#f'], 'filesChanged': ['shop/users/a.py'], 'testsAfter': {'passed': 2, 'failed': 0}, 'blocked': []}]
     args['catalog'] = [{'id': 'c', 'title': 'change', 'kind': 'api_changed'}]
-    result = build_report(**args, occurrences=[{'file': 'shop/users/a.py', 'line': 1, 'enclosing': 'f', 'module': 'users'}], library='pydantic', generated_by='codex')
+    result = build_report(**args, occurrences=[{'file': 'shop/users/a.py', 'line': 1, 'enclosing': 'f', 'module': 'users'}], library='pydantic', generated_by='bob')
     assert result['metrics']['fixed'] == 1
     assert result['metrics']['confirmed'] == 1
     assert len(result['migration']['modules']) == 1
-    assert result['provenance']['generatedBy'] == 'codex'
+    assert result['provenance']['generatedBy'] == 'bob'
 
 
 def test_skipped_is_not_passed(tmp_path):
@@ -83,9 +83,9 @@ def test_cli_report_accepts_real_proof_envelope(tmp_path):
     args = report_args()
     for name, data in [('graph', args['graph']), ('verdicts', args['verdicts']), ('proofs', args['proofs']), ('verification', {'passed': 2, 'failed': 0, 'errors': 0, 'exitCode': 0})]:
         (tmp_path / (name + '.json')).write_text(json.dumps(data))
-    result = CliRunner().invoke(app, ['report', '--graph', str(tmp_path/'graph.json'), '--verdicts', str(tmp_path/'verdicts.json'), '--proofs', str(tmp_path/'proofs.json'), '--verification', str(tmp_path/'verification.json'), '--verified', '--generated-by', 'codex', '--scenario', 's1', '--title', 'S1', '--out', str(tmp_path/'report.json')])
+    result = CliRunner().invoke(app, ['report', '--graph', str(tmp_path/'graph.json'), '--verdicts', str(tmp_path/'verdicts.json'), '--proofs', str(tmp_path/'proofs.json'), '--verification', str(tmp_path/'verification.json'), '--verified', '--generated-by', 'bob', '--scenario', 's1', '--title', 'S1', '--out', str(tmp_path/'report.json')])
     assert result.exit_code == 0, result.output
     report = json.loads((tmp_path/'report.json').read_text())
     assert report['metrics']['confirmed'] == 1
     assert report['pipeline']['verify'] == 'done'
-    assert report['provenance']['generatedBy'] == 'codex'
+    assert report['provenance']['generatedBy'] == 'bob'

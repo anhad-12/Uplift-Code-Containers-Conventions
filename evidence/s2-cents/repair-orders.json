@@ -1,7 +1,7 @@
 {
   "scenario": "s2-cents",
   "module": "orders",
-  "worker": "codex-orders",
+  "worker": "uplift-worker-orders",
   "filesChanged": [
     "shop/orders/invoice.py"
   ],

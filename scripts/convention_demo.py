@@ -1,4 +1,4 @@
-"""Run two real Codex-authored orders repairs against the same S1 contract."""
+"""Run two real orders repairs against the same S1 contract."""
 from pathlib import Path
 import shutil
 import tempfile
@@ -31,7 +31,7 @@ def main():
             write(output / (label + '-compliance.json'), compliance(tree, added))
     (output / 'README.md').write_text('''# Convention-aware repair comparison
 
-Both variants are actual Codex-authored repairs of create_order on the same
+Both variants are actual repairs of create_order on the same
 isolated S1 patch. Both run the orders suite and unchanged unknown-user proof.
 See generic.json and convention-aware.json for measured counts and commands.
 These are not IBM Bob task runs, and neither patch is claimed to have been

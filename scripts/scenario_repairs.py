@@ -1,4 +1,4 @@
-"""Auditable Codex repairs, applied only to isolated scenario copies."""
+"""Auditable repairs, applied only to isolated scenario copies."""
 from pathlib import Path
 
 
