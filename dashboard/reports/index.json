@@ -1,4 +1,0 @@
-[
-  {"id": "s1-null-user", "title": "get_user returns None instead of raising", "file": "impact-s1.mock.json"},
-  {"id": "s3-pydantic2", "title": "Upgrade Pydantic v1 to v2", "file": "migrate-pydantic2.mock.json"}
-]

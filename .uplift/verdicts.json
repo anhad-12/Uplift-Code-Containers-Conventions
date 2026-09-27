@@ -40,45 +40,5 @@
     "verdict": "will_break",
     "reason": "Line 11 calls get_user(order.user_id).name; when get_user now returns None for an unknown user_id, this raises AttributeError instead of propagating NotFoundError.",
     "fix": "Assign user = get_user(order.user_id) and skip the row (or use a fallback name) when user is None before accessing .name."
-    "id": "shop/payments/receipt.py#render_receipt",
-    "verdict": "will_break",
-    "reason": "Line 7 formats payment.amount with ':.2f' as dollars; after patch amount is in cents so output becomes '$10320.00' instead of '$103.20'.",
-    "fix": "Divide payment.amount by 100 before formatting, or change the format string to show cents."
-  },
-  {
-    "id": "shop/payments/repo.py#save_payment",
-    "verdict": "safe",
-    "reason": "Line 9 only appends the Payment object to a list; no numeric interpretation of amount.",
-    "fix": ""
-  },
-  {
-    "id": "shop/payments/repo.py#all_payments",
-    "verdict": "safe",
-    "reason": "Returns the stored list as-is; no numeric operation on amount.",
-    "fix": ""
-  },
-  {
-    "id": "shop/payments/routes.py#post_payment",
-    "verdict": "safe",
-    "reason": "Line 12 echoes payment.amount directly into the JSON response without any dollar assumption; the API contract now returns cents, which callers must handle.",
-    "fix": ""
-  },
-  {
-    "id": "shop/admin/reports.py#revenue_total",
-    "verdict": "will_break",
-    "reason": "Line 16 sums p.amount values and rounds to 2 decimal places assuming dollars; after patch the sum is ~100x larger and represents cents, silently returning a wrong total to every caller.",
-    "fix": "Divide the sum by 100 before returning, or update callers to expect cents."
-  },
-  {
-    "id": "shop/orders/invoice.py#payment_line",
-    "verdict": "safe",
-    "reason": "Line 16 passes payment.amount through as a dict value with no dollar assumption; the function is unit-agnostic.",
-    "fix": ""
-  },
-  {
-    "id": "shop/notifications/email.py#send_receipt_email",
-    "verdict": "will_break",
-    "reason": "Line 15 formats payment.amount with ':.2f' as dollars; after patch the message reads '$10320.00' instead of '$103.20'.",
-    "fix": "Divide payment.amount by 100 before formatting the f-string."
   }
 ]

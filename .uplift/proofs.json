@@ -38,49 +38,9 @@
     {
       "item": "shop/admin/reports.py#user_spend_report",
       "testFile": "sample-app/tests/uplift_proofs/test_admin_user_spend_report.py",
-{
-  " proofs\: [
- {
- \item\: \shop/payments/receipt.py#render_receipt\,
- \testFile\: \sample-app/tests/uplift_proofs/test_payments_render_receipt.py\,
- \passesOnBase\: true,
- \failsOnHead\: true,
- \status\: \confirmed\
- },
- {
- \item\: \shop/admin/reports.py#revenue_total\,
- \testFile\: \sample-app/tests/uplift_proofs/test_admin_revenue_total.py\,
- \passesOnBase\: true,
- \failsOnHead\: true,
- \status\: \confirmed\
- },
- {
- \item\: \shop/notifications/email.py#send_receipt_email\,
- \testFile\: \sample-app/tests/uplift_proofs/test_notifications_send_receipt_email.py\,
- \passesOnBase\: true,
- \failsOnHead\: true,
- \status\: \confirmed\
- }
- ]
-}
-  "proofs": [
-    {
-      "item": "shop/orders/service.py#create_order",
-      "testFile": "tests/uplift_proofs/test_create_order_unknown_user.py",
       "passesOnBase": true,
       "failsOnHead": true,
       "status": "confirmed"
     }
   ]
-  ],
-  "suite": {
-    "base": {
-      "passed": 46,
-      "failed": 0
-    },
-    "head": {
-      "passed": 46,
-      "failed": 1
-    }
-  }
 }
