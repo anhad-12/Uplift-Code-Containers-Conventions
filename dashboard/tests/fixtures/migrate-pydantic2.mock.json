@@ -1,48 +1,241 @@
 {
   "schemaVersion": 1,
   "mode": "migrate",
-  "provenance": { "generatedBy": "mock", "bobModes": [], "generatedAt": "2026-09-26T00:00:00Z" },
-  "scenario": { "id": "s3-pydantic2", "title": "Upgrade Pydantic v1 to v2", "description": "Bob reads the official migration guide, predicts what breaks, proves it on Pydantic v2, then fixes each module with a sandboxed worker." },
-  "change": { "summary": "pydantic 1.10.x to 2.x (fastapi bumped to a v2-compatible release)", "kind": "dependency-upgrade", "library": "pydantic", "from": "1.10.13", "to": "2.9.0" },
+  "provenance": {
+    "generatedBy": "engine",
+    "bobModes": [
+      "uplift-migration-planner",
+      "uplift-convention-scanner",
+      "uplift-worker-users",
+      "uplift-worker-core",
+      "uplift-verifier"
+    ],
+    "generatedAt": "2026-09-27T10:02:49.188131+00:00"
+  },
+  "scenario": {
+    "id": "s3-pydantic2",
+    "title": "S3 \u2014 Pydantic v1 to v2 upgrade"
+  },
+  "change": {
+    "summary": "Dependency upgrade: pydantic 1.10.13 -> 2.9.2",
+    "kind": "dependency-upgrade",
+    "library": "pydantic",
+    "from": "1.10.13",
+    "to": "2.9.2"
+  },
   "changedSymbols": [
-    { "id": "requirements.txt#pydantic", "kind": "dependency", "changeType": "dependency", "hints": ["major version bump"] }
+    {
+      "id": "requirements.txt#pydantic",
+      "kind": "dependency",
+      "changeType": "dependency"
+    }
   ],
   "affected": [
-    { "id": "shop/config.py#Settings", "file": "shop/config.py", "line": 3, "module": "core", "hop": 1, "layer": "direct", "via": "requirements.txt#pydantic", "snippet": "from pydantic import BaseSettings", "tests": ["tests/notifications/test_email.py"], "verdict": "will_break", "reason": "BaseSettings moved to the pydantic-settings package in v2.", "fix": "Import BaseSettings from pydantic_settings and add it to requirements.txt.", "proof": { "status": "confirmed", "passesOnBase": true, "failsOnHead": true }, "repair": { "status": "fixed", "worker": "uplift-worker-core", "filesChanged": ["shop/config.py", "requirements.txt"] } },
-    { "id": "shop/users/schemas.py#UserOut", "file": "shop/users/schemas.py", "line": 14, "module": "users", "hop": 1, "layer": "direct", "via": "requirements.txt#pydantic", "snippet": "class Config:\n    orm_mode = True", "tests": ["tests/users/test_routes.py"], "verdict": "will_break", "reason": "orm_mode was renamed to from_attributes; serialization of ORM objects fails.", "fix": "Use model_config = ConfigDict(from_attributes=True).", "proof": { "status": "confirmed", "passesOnBase": true, "failsOnHead": true }, "repair": { "status": "fixed", "worker": "uplift-worker-users", "filesChanged": ["shop/users/schemas.py"] } },
-    { "id": "shop/orders/schemas.py#OrderIn", "file": "shop/orders/schemas.py", "line": 22, "module": "orders", "hop": 1, "layer": "direct", "via": "requirements.txt#pydantic", "snippet": "note: Optional[str]", "tests": ["tests/orders/test_service.py"], "verdict": "will_break", "reason": "Optional fields without a default became required in v2.", "fix": "Give the field a default of None.", "proof": { "status": "confirmed", "passesOnBase": true, "failsOnHead": true }, "repair": { "status": "fixed", "worker": "uplift-worker-orders", "filesChanged": ["shop/orders/schemas.py"] } },
-    { "id": "shop/payments/schemas.py#PaymentIn", "file": "shop/payments/schemas.py", "line": 9, "module": "payments", "hop": 1, "layer": "direct", "via": "requirements.txt#pydantic", "snippet": "card: str = Field(..., regex=r\"^\\d{16}$\")", "tests": ["tests/payments/test_routes.py"], "verdict": "will_break", "reason": "Field(regex=...) was renamed to pattern.", "fix": "Use Field(..., pattern=...).", "proof": { "status": "confirmed", "passesOnBase": true, "failsOnHead": true }, "repair": { "status": "fixed", "worker": "uplift-worker-payments", "filesChanged": ["shop/payments/schemas.py"] } }
+    {
+      "id": "sample-app/shop/config.py#config.py",
+      "file": "sample-app/shop/config.py",
+      "line": 1,
+      "hop": 1,
+      "layer": "direct",
+      "via": "requirements.txt#pydantic",
+      "verdict": "unknown",
+      "reason": "",
+      "fix": "",
+      "proof": {
+        "status": "not_attempted"
+      },
+      "module": "config.py"
+    },
+    {
+      "id": "sample-app/shop/payments/schemas.py#payments",
+      "file": "sample-app/shop/payments/schemas.py",
+      "line": 7,
+      "hop": 1,
+      "layer": "direct",
+      "via": "requirements.txt#pydantic",
+      "verdict": "unknown",
+      "reason": "",
+      "fix": "",
+      "proof": {
+        "status": "not_attempted"
+      },
+      "module": "payments"
+    }
   ],
   "contracts": [],
-  "infraImpact": [
-    { "file": "sample-app/Dockerfile", "layer": 3, "totalLayers": 7, "trigger": "requirements.txt changed (pydantic 1.10.13 -> 2.9.0)", "layersRebuilt": "3-7", "suggestion": "The dependency install layer is invalidated by the version bump; this rebuild is expected for a real upgrade. Keep requirements.txt in its own COPY so unrelated code changes do not trigger it." }
-  ],
-  "conventions": {
-    "naming": "snake_case for functions and variables, PascalCase for Pydantic models",
-    "imports": "absolute imports from shop.*, one schema class per file",
-    "errorHandling": "raise NotFoundError / ValidationError; never return None on not-found",
-    "fileLayout": "one module folder per domain (users, orders, payments) with a mirrored tests/<module>/ tree",
-    "evidenceFiles": ["shop/users/service.py", "shop/orders/service.py", "shop/payments/schemas.py", "shop/config.py", "tests/users/test_routes.py"],
-    "compliance": { "checkedLines": 22, "violations": 1, "retried": true }
-  },
-  "testsToRun": ["tests/notifications/test_email.py", "tests/users/test_routes.py", "tests/orders/test_service.py", "tests/payments/test_routes.py"],
+  "testsToRun": [],
   "untested": [],
-  "risk": { "score": 40, "level": "medium", "factors": ["4 will_break (+40)"] },
-  "pipeline": { "predict": "done", "prove": "done", "repair": "done", "verify": "done" },
+  "risk": {
+    "score": 0,
+    "level": "low",
+    "factors": [
+      "0 will_break (+0)",
+      "0 might_break (+0)",
+      "0 untested affected item (+0)",
+      "0 contract hit (+0)"
+    ]
+  },
+  "pipeline": {
+    "predict": "done",
+    "prove": "pending",
+    "repair": "done",
+    "verify": "done"
+  },
   "migration": {
     "catalog": [
-      { "id": "p2-basesettings", "title": "BaseSettings moved to pydantic-settings", "kind": "api_removed", "guideSection": "BaseSettings has moved to pydantic-settings", "detect": { "type": "import", "pattern": "from pydantic import BaseSettings" }, "replacement": "from pydantic_settings import BaseSettings", "occurrences": 1 },
-      { "id": "p2-orm-mode", "title": "orm_mode renamed to from_attributes", "kind": "api_changed", "guideSection": "Changes to pydantic.BaseModel", "detect": { "type": "regex", "pattern": "orm_mode\\s*=\\s*True" }, "replacement": "model_config = ConfigDict(from_attributes=True)", "occurrences": 2 },
-      { "id": "p2-optional-default", "title": "Optional fields are required unless they have a default", "kind": "behavior_changed", "guideSection": "Required, optional, and nullable fields", "detect": { "type": "regex", "pattern": ":\\s*Optional\\[[^\\]]+\\]\\s*$" }, "replacement": "add = None", "occurrences": 3 },
-      { "id": "p2-field-regex", "title": "Field(regex=...) renamed to pattern", "kind": "api_changed", "guideSection": "Changes to pydantic.Field", "detect": { "type": "regex", "pattern": "regex\\s*=" }, "replacement": "pattern=", "occurrences": 1 }
+      {
+        "id": "basesettings-moved",
+        "title": "BaseSettings moved to pydantic-settings package",
+        "kind": "api_removed",
+        "guideSection": "BaseSettings has moved to pydantic-settings",
+        "detect": {
+          "type": "import",
+          "pattern": "from pydantic import BaseSettings"
+        },
+        "replacement": "from pydantic_settings import BaseSettings  (pip install pydantic-settings)"
+      },
+      {
+        "id": "config-class-deprecated",
+        "title": "Inner class Config is deprecated; use model_config = ConfigDict(...) instead",
+        "kind": "syntax",
+        "guideSection": "Changes to config",
+        "detect": {
+          "type": "regex",
+          "pattern": "^\\s+class Config:"
+        },
+        "replacement": "model_config = ConfigDict(...)"
+      },
+      {
+        "id": "orm-mode-renamed",
+        "title": "Config key orm_mode renamed to from_attributes",
+        "kind": "api_changed",
+        "guideSection": "Changes to config",
+        "detect": {
+          "type": "identifier",
+          "pattern": "orm_mode"
+        },
+        "replacement": "model_config = ConfigDict(from_attributes=True)"
+      },
+      {
+        "id": "validator-deprecated",
+        "title": "@validator deprecated; replace with @field_validator",
+        "kind": "api_changed",
+        "guideSection": "@validator and @root_validator are deprecated",
+        "detect": {
+          "type": "regex",
+          "pattern": "@validator\\("
+        },
+        "replacement": "@field_validator(...)"
+      },
+      {
+        "id": "validator-each-item",
+        "title": "@validator each_item=True not supported in @field_validator; iterate in body instead",
+        "kind": "api_changed",
+        "guideSection": "@validator and @root_validator are deprecated",
+        "detect": {
+          "type": "regex",
+          "pattern": "each_item\\s*=\\s*True"
+        },
+        "replacement": "Use mode='before' and iterate: return [v.strip() for v in value]"
+      },
+      {
+        "id": "root-validator-deprecated",
+        "title": "@root_validator deprecated; replace with @model_validator",
+        "kind": "api_changed",
+        "guideSection": "@validator and @root_validator are deprecated",
+        "detect": {
+          "type": "regex",
+          "pattern": "@root_validator"
+        },
+        "replacement": "@model_validator(mode='before') or mode='after'"
+      },
+      {
+        "id": "field-regex-removed",
+        "title": "Field(regex=...) kwarg removed; use Field(pattern=...) instead",
+        "kind": "api_removed",
+        "guideSection": "Changes to pydantic.Field",
+        "detect": {
+          "type": "regex",
+          "pattern": "Field\\(.*regex\\s*="
+        },
+        "replacement": "Field(..., pattern=r'...')"
+      },
+      {
+        "id": "constr-regex-removed",
+        "title": "constr(regex=...) removed; use Annotated[str, StringConstraints(pattern=...)] instead",
+        "kind": "api_removed",
+        "guideSection": "Constrained types",
+        "detect": {
+          "type": "regex",
+          "pattern": "constr\\(.*regex\\s*="
+        },
+        "replacement": "Annotated[str, StringConstraints(pattern=r'...')]"
+      },
+      {
+        "id": "constrained-types-removed",
+        "title": "ConstrainedInt, ConstrainedStr, etc. removed; use Annotated[type, Field(...)] instead",
+        "kind": "api_removed",
+        "guideSection": "Constrained types",
+        "detect": {
+          "type": "regex",
+          "pattern": "Constrained(Int|Str|Float|Decimal|Bytes|List|Set|FrozenSet|Date)"
+        },
+        "replacement": "Annotated[int, Field(ge=0)] or Annotated[str, StringConstraints(...)]"
+      },
+      {
+        "id": "optional-required-semantics",
+        "title": "Optional[T] without default is now required (no implicit None default)",
+        "kind": "behavior_changed",
+        "guideSection": "Required, optional, and nullable fields",
+        "detect": {
+          "type": "regex",
+          "pattern": ":\\s*Optional\\[\\w+\\]\\s*$"
+        },
+        "replacement": "Add = None if field should be optional: field: Optional[str] = None"
+      },
+      {
+        "id": "dict-method-renamed",
+        "title": ".dict() renamed to .model_dump()",
+        "kind": "api_changed",
+        "guideSection": "Changes to pydantic.BaseModel",
+        "detect": {
+          "type": "regex",
+          "pattern": "\\.dict\\(\\)"
+        },
+        "replacement": ".model_dump()"
+      },
+      {
+        "id": "parse-obj-renamed",
+        "title": "parse_obj() renamed to model_validate()",
+        "kind": "api_changed",
+        "guideSection": "Changes to pydantic.BaseModel",
+        "detect": {
+          "type": "call",
+          "pattern": "parse_obj"
+        },
+        "replacement": "Model.model_validate(data)"
+      },
+      {
+        "id": "from-orm-deprecated",
+        "title": "from_orm() deprecated; use model_validate() with from_attributes=True in model_config",
+        "kind": "api_changed",
+        "guideSection": "Changes to pydantic.BaseModel",
+        "detect": {
+          "type": "call",
+          "pattern": "\\.from_orm\\("
+        },
+        "replacement": "Model.model_validate(obj) after model_config = ConfigDict(from_attributes=True)"
+      }
     ],
-    "modules": [
-      { "module": "users", "worker": "uplift-worker-users", "filesChanged": ["shop/users/schemas.py"], "fixesApplied": 2, "testsBefore": { "passed": 9, "failed": 3 }, "testsAfter": { "passed": 12, "failed": 0 } },
-      { "module": "orders", "worker": "uplift-worker-orders", "filesChanged": ["shop/orders/schemas.py"], "fixesApplied": 3, "testsBefore": { "passed": 10, "failed": 2 }, "testsAfter": { "passed": 12, "failed": 0 } },
-      { "module": "payments", "worker": "uplift-worker-payments", "filesChanged": ["shop/payments/schemas.py"], "fixesApplied": 1, "testsBefore": { "passed": 8, "failed": 2 }, "testsAfter": { "passed": 10, "failed": 0 } },
-      { "module": "core", "worker": "uplift-worker-core", "filesChanged": ["shop/config.py", "requirements.txt"], "fixesApplied": 2, "testsBefore": { "passed": 0, "failed": 2 }, "testsAfter": { "passed": 2, "failed": 0 } }
-    ],
-    "releaseNotes": "## Pydantic v2 upgrade\n\n- BaseSettings now imported from pydantic-settings\n- orm_mode replaced by from_attributes (2 places)\n- Optional fields given explicit defaults (3 places)\n- Field(regex=...) replaced by pattern (1 place)\n\nAll 36 tests pass on Pydantic v2."
+    "modules": []
   },
-  "metrics": { "filesScanned": 31, "secondsTaken": 190, "predicted": 4, "confirmed": 4, "unconfirmed": 0, "fixed": 4, "regressions": 0, "tests": { "before": { "passed": 27, "failed": 9 }, "after": { "passed": 36, "failed": 0 } } }
+  "metrics": {
+    "filesScanned": 25,
+    "secondsTaken": 0.0,
+    "predicted": 0,
+    "confirmed": 0,
+    "unconfirmed": 0,
+    "fixed": 0,
+    "regressions": 0
+  }
 }
