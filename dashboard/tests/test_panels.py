@@ -52,8 +52,9 @@ def test_detail_panel_returns_component_for_affected_item():
     # snippet in a code block (dcc.Markdown)
     assert "Markdown" in rendered
     assert "get_user" in rendered
-    # verdict badge
-    assert "will_break" in rendered
+    # verdict badge — humanized text ("will break"), raw enum kept as a title attr
+    assert "will break" in rendered
+    assert "verdict: will_break" in rendered
     # reason
     assert "None check" in rendered
     # fix
@@ -101,8 +102,8 @@ def test_detail_panel_returns_component_for_contract():
     assert "GET /users/{user_id}" in rendered
     # handler
     assert "shop/users/routes.py#get_user_route" in rendered
-    # verdict
-    assert "will_break" in rendered
+    # verdict — humanized text
+    assert "will break" in rendered
     # reason
     assert "null" in rendered.lower() or "404" in rendered or "None" in rendered
     # proof section
@@ -120,7 +121,7 @@ def test_detail_panel_for_contract_with_contract_prefix_in_id():
     }
     rendered = str(panels.detail_panel(contract))
     assert "GET /orders/{order_id}" in rendered
-    assert "might_break" in rendered
+    assert "might break" in rendered
     # Route and Handler headings appear (not file/module/hop/layer)
     assert "Route" in rendered
     assert "Handler" in rendered
@@ -147,7 +148,7 @@ def test_detail_panel_no_proof():
     }
     component = panels.detail_panel(item)
     rendered = str(component)
-    assert "might_break" in rendered
+    assert "might break" in rendered
     assert "Proof" in rendered
     # no crash, component renders
     assert "admin" in rendered
@@ -213,7 +214,7 @@ def test_detail_panel_on_migrate_report():
     item = affected[0]
     rendered = str(panels.detail_panel(item))
     assert item["id"] in rendered
-    assert item["verdict"] in rendered
+    assert panels.VERDICT_LABEL.get(item["verdict"], item["verdict"]) in rendered
 
 
 # ── 6. summary_strip() ───────────────────────────────────────────────────────

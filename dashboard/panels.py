@@ -28,12 +28,37 @@ _BOB_FEATURES = (
     "are the four IBM Bob features used to predict, prove, repair and verify every change."
 )
 
-# Maps verdict -> Bootstrap colour token
-VERDICT_COLOR = {
-    "will_break":  "danger",
-    "might_break": "warning",
-    "safe":        "success",
-    "unknown":     "secondary",
+# Verdict -> hex. Bootstrap's semantic colour tokens (danger/warning/success)
+# render a visibly different red/orange/green than the rest of the app (the
+# graph, the risk gauge, the filter chips), which is exactly the colour-token
+# fragmentation the design critique flagged as P2. These hexes match
+# graph.VERDICT_COLORS and panels._RISK_GAUGE_COLOR exactly, so every verdict
+# badge anywhere in the app reads as the same system. (graph.py stays
+# Dash-free and is not imported here — the four values are small and mirrored
+# deliberately, the same convention _RISK_GAUGE_COLOR already follows.)
+VERDICT_HEX = {
+    "will_break":  "#d64545",
+    "might_break": "#e0a030",
+    "safe":        "#3fa66a",
+    "unknown":     "#8a8f98",
+}
+
+# Badge background + text colour, one entry per badge "kind", chosen so every
+# badge clears 4.5:1 contrast — not just eyeballed as "white on a colour
+# chip". White on the raw VERDICT_HEX might_break/safe/unknown values is only
+# 2.3-3.3:1 (small badge text doesn't get the "large text" 3:1 exemption), so
+# those three use dark text instead. will_break/infra/accent needed the
+# background darkened one notch (same hue, same underlying node/graph colour
+# untouched — only the badge's own background differs) to clear 4.5:1 with
+# white text.
+BADGE_STYLE = {
+    "will_break":  {"backgroundColor": "#d43d3d", "color": "#ffffff"},
+    "might_break": {"backgroundColor": VERDICT_HEX["might_break"], "color": "#1d2330"},
+    "safe":        {"backgroundColor": VERDICT_HEX["safe"],        "color": "#1d2330"},
+    "unknown":     {"backgroundColor": VERDICT_HEX["unknown"],     "color": "#1d2330"},
+    "changed":     {"backgroundColor": "#3b5bdb", "color": "#ffffff"},
+    "infra":       {"backgroundColor": "#0b8177", "color": "#ffffff"},
+    "accent":      {"backgroundColor": "#4565f4", "color": "#ffffff"},
 }
 
 # Maps verdict -> short icon character
@@ -50,6 +75,15 @@ PROOF_STATUS_LABEL = {
     "unconfirmed":   "Unconfirmed",
     "not_attempted": "Not attempted",
     "not_applicable": "Not applicable",
+}
+
+# Humanized verdict text so a cold reader never sees a raw snake_case enum
+# next to the filter chips/legend, which already show "will break" etc.
+VERDICT_LABEL = {
+    "will_break":  "will break",
+    "might_break": "might break",
+    "safe":        "safe",
+    "unknown":     "unknown",
 }
 
 
@@ -80,16 +114,18 @@ def detail_panel(item: dict) -> dbc.Card:
     is_contract = item_id.startswith("contract:") or item.get("type") in ("route", "contract") or "file" not in item
 
     verdict = item.get("verdict", "unknown")
-    badge_color = VERDICT_COLOR.get(verdict, "secondary")
+    badge_style = BADGE_STYLE.get(verdict, BADGE_STYLE["unknown"])
     badge_icon  = VERDICT_ICON.get(verdict, "?")
 
     # ── header row: id + verdict badge ──────────────────────────────────────
     header = dbc.CardHeader([
         html.Span(item_id, className="fw-bold small font-monospace d-block"),
         dbc.Badge(
-            [html.Span(badge_icon, className="me-1", **{"aria-hidden": "true"}), verdict],
-            color=badge_color,
+            [html.Span(badge_icon, className="me-1", **{"aria-hidden": "true"}),
+             VERDICT_LABEL.get(verdict, verdict)],
             className="mt-1",
+            style=badge_style,
+            title=f"verdict: {verdict}",
         ),
     ])
 
@@ -121,7 +157,7 @@ def detail_panel(item: dict) -> dbc.Card:
         ))
 
     # ── verdict / reason / fix ───────────────────────────────────────────────
-    body_children.append(html.P(item.get("reason", ""), className="small text-muted mb-1"))
+    body_children.append(html.P(item.get("reason", ""), className="small text-dim mb-1"))
     fix = item.get("fix", "")
     if fix:
         body_children.append(html.P(["Fix: ", html.Em(fix)], className="small mb-2"))
@@ -160,6 +196,143 @@ def detail_panel(item: dict) -> dbc.Card:
     return dbc.Card([header, dbc.CardBody(body_children)], className="detail-card")
 
 
+def changed_symbol_panel(symbol: dict, change: dict | None = None) -> dbc.Card:
+    """Detail card for the star "changed symbol" node — the root cause.
+
+    Args:
+        symbol: One entry from ``report["changedSymbols"]`` (id, kind,
+                changeType, optional hints).
+        change: The report's top-level ``change`` block (summary, kind),
+                shown as context for what triggered this run.
+
+    Returns:
+        A ``dbc.Card`` Dash component, styled like ``detail_panel``'s output
+        so tapping the root node feels like part of the same system rather
+        than a dead end.
+    """
+    change = change or {}
+    header = dbc.CardHeader([
+        html.Span(symbol.get("id", ""), className="fw-bold small font-monospace d-block"),
+        dbc.Badge(
+            [html.Span("★", className="me-1", **{"aria-hidden": "true"}), "changed symbol"],
+            className="mt-1",
+            # Matches graph.py's .changed node colour and the legend's star swatch.
+            style=BADGE_STYLE["changed"],
+        ),
+    ])
+    body_children: list = [
+        html.Dl([
+            html.Dt("Kind"),       html.Dd(symbol.get("kind", "—")),
+            html.Dt("Change type"), html.Dd(symbol.get("changeType", "—")),
+        ], className="row-dl"),
+    ]
+    hints = symbol.get("hints") or []
+    if hints:
+        body_children.append(html.Div("What changed:", className="small fw-semibold mb-1"))
+        body_children.append(html.Ul([html.Li(h, className="small") for h in hints]))
+    if change.get("summary"):
+        body_children.append(html.P(change["summary"], className="small text-dim mb-0"))
+    return dbc.Card([header, dbc.CardBody(body_children)], className="detail-card")
+
+
+def infra_panel(infra: dict) -> dbc.Card:
+    """Detail card for a Docker/infra-impact node (F17).
+
+    Args:
+        infra: One entry from ``report["infraImpact"]`` (file, trigger,
+               optional layer/totalLayers/layersRebuilt/suggestion/
+               measuredRebuildSeconds).
+
+    Returns:
+        A ``dbc.Card`` Dash component. Only shows a rebuild time when one was
+        actually measured — never a made-up number.
+    """
+    header = dbc.CardHeader([
+        html.Span(infra.get("file", ""), className="fw-bold small font-monospace d-block"),
+        dbc.Badge(
+            [html.Span("🐳", className="me-1", **{"aria-hidden": "true"}), "Docker layer impact"],
+            className="mt-1",
+            # Matches graph.py's .infra node colour and the legend's Docker swatch.
+            style=BADGE_STYLE["infra"],
+        ),
+    ])
+    body_children: list = []
+    layer, total = infra.get("layer"), infra.get("totalLayers")
+    if layer is not None and total is not None:
+        body_children.append(html.P(f"Layer {layer} of {total}", className="small fw-semibold mb-1"))
+    body_children.append(html.P(infra.get("trigger", ""), className="small text-dim mb-1"))
+    if infra.get("layersRebuilt"):
+        body_children.append(html.P(["Layers rebuilt: ", html.Strong(infra["layersRebuilt"])], className="small mb-1"))
+    if infra.get("suggestion"):
+        body_children.append(html.P(["Fix: ", html.Em(infra["suggestion"])], className="small mb-1"))
+    if infra.get("measuredRebuildSeconds") is not None:
+        body_children.append(html.P(
+            f"Measured rebuild time: {infra['measuredRebuildSeconds']}s",
+            className="small mb-0",
+        ))
+    return dbc.Card([header, dbc.CardBody(body_children)], className="detail-card")
+
+
+def conventions_card(conventions: dict) -> dbc.Card | None:
+    """'Repo conventions' card (F16): naming/imports/error-handling/file-layout
+    plus a compliance badge, from ``report["conventions"]``.
+
+    Returns None when *conventions* is absent/empty so callers can render
+    nothing rather than an empty card.
+    """
+    if not conventions:
+        return None
+
+    rows: list = []
+    for label, key in (("Naming", "naming"), ("Imports", "imports"),
+                        ("Error handling", "errorHandling"), ("File layout", "fileLayout")):
+        value = conventions.get(key)
+        if value:
+            rows.append(html.Dt(label))
+            rows.append(html.Dd(value))
+
+    evidence = conventions.get("evidenceFiles") or []
+    evidence_block = []
+    if evidence:
+        evidence_block = [
+            html.Div("Evidence files:", className="small fw-semibold mt-2 mb-1"),
+            html.Ul([html.Li(html.Code(f, className="small"), className="small") for f in evidence]),
+        ]
+
+    compliance = conventions.get("compliance") or {}
+    badge_children = []
+    if compliance:
+        checked   = compliance.get("checkedLines")
+        violated  = compliance.get("violations")
+        retried   = compliance.get("retried")
+        if checked is not None:
+            badge_children.append(dbc.Badge(
+                f"{checked} lines checked", className="me-1",
+                style=BADGE_STYLE["unknown"],
+            ))
+        if violated is not None:
+            badge_children.append(dbc.Badge(
+                f"{violated} violation{'s' if violated != 1 else ''}",
+                className="me-1",
+                style=BADGE_STYLE["safe"] if violated == 0 else BADGE_STYLE["might_break"],
+            ))
+        if retried:
+            badge_children.append(dbc.Badge(
+                "retried after violation",
+                style=BADGE_STYLE["accent"],
+            ))
+
+    return dbc.Card([
+        dbc.CardHeader(html.Strong("Repo conventions", style={"color": "#1d2330"}),
+                       style={"backgroundColor": "#f7f8fa", "borderBottom": "1px solid #e5e7eb"}),
+        dbc.CardBody([
+            html.Dl(rows, className="row-dl mb-2") if rows else html.Div(),
+            html.Div(badge_children, className="mb-1") if badge_children else html.Div(),
+            *evidence_block,
+        ], style={"backgroundColor": "#ffffff", "color": "#1d2330"}),
+    ], className="mb-3", style={"border": "1px solid #e5e7eb", "borderRadius": "6px"})
+
+
 # ── DataTable columns definition ─────────────────────────────────────────────
 TABLE_COLUMNS = [
     {"name": "ID",      "id": "id"},
@@ -177,8 +350,19 @@ TABLE_STYLE_DATA_CONDITIONAL = [
     {"if": {"filter_query": '{verdict} = "might_break"'}, "backgroundColor": "#fefae8", "color": "#7b5900"},
     {"if": {"filter_query": '{verdict} = "safe"'},        "backgroundColor": "#f0faf3", "color": "#14532d"},
     {"if": {"filter_query": '{verdict} = "unknown"'},     "backgroundColor": "#f5f5f5", "color": "#444"},
-    {"if": {"state": "selected"},                         "backgroundColor": "#dbeafe", "border": "1px solid #3b82d4"},
+    # Selected row: stable teal highlight (not Dash's default blue active-cell)
+    {"if": {"state": "selected"},                         "backgroundColor": "#e8f0fe", "border": "none"},
 ]
+
+# Active-cell style: added as a state condition in style_data_conditional
+# (style_active_cell is not available in dash_table 4.x)
+TABLE_STYLE_ACTIVE_CELL = {
+    "backgroundColor": "inherit",
+    "border": "none",
+}
+
+# Extra conditional for the "active" state — suppresses Dash's default blue active-cell highlight
+_TABLE_ACTIVE_CELL_COND = {"if": {"state": "active"}, "backgroundColor": "inherit", "border": "none"}
 
 
 def build_table_rows(report: dict) -> list[dict]:
@@ -224,7 +408,7 @@ def affected_table(report: dict) -> dash_table.DataTable:
             "position": "sticky",
             "top": 0,
         },
-        style_data_conditional=TABLE_STYLE_DATA_CONDITIONAL,
+        style_data_conditional=TABLE_STYLE_DATA_CONDITIONAL + [_TABLE_ACTIVE_CELL_COND],
     )
 
 
@@ -436,9 +620,9 @@ def _accuracy_card(accuracy: dict, reports_dir: Path | None = None) -> dbc.Card 
             ], xs=6),
         ], className="g-2 mb-2"),
         html.Div([
-            dbc.Badge(f"TP {tp}", color="success", className="me-1"),
-            dbc.Badge(f"FP {fp}", color="warning", className="me-1"),
-            dbc.Badge(f"FN {fn}", color="danger"),
+            dbc.Badge(f"TP {tp}", className="me-1", style=BADGE_STYLE["safe"]),
+            dbc.Badge(f"FP {fp}", className="me-1", style=BADGE_STYLE["might_break"]),
+            dbc.Badge(f"FN {fn}", style=BADGE_STYLE["will_break"]),
         ], className="mb-1"),
     ] + modal_button
 
@@ -768,6 +952,10 @@ def migrate_view(report: dict) -> html.Div:
     modules       = migration.get("modules") or []
     release_notes = migration.get("releaseNotes") or ""
 
+    # ── Repo conventions (F16) — top-level report field, optional ────────────
+    conv_card = conventions_card(report.get("conventions"))
+    conv_section = conv_card if conv_card is not None else html.Div()
+
     # ── 1. Graph ──────────────────────────────────────────────────────────────
     elements  = _graph.build_elements(report)
     stylesheet = _graph.build_stylesheet()
@@ -808,7 +996,7 @@ def migrate_view(report: dict) -> html.Div:
             _catalog_table(catalog),
         ])
     else:
-        catalog_section = html.P("No catalog entries.", className="text-muted small mt-3")
+        catalog_section = html.P("No catalog entries.", className="text-dim small mt-3")
 
     # ── 3. Worker lanes ───────────────────────────────────────────────────────
     lanes = [_module_lane(m) for m in modules]
@@ -824,7 +1012,7 @@ def migrate_view(report: dict) -> html.Div:
             dbc.Row(lanes, className="g-3", style={"alignItems": "stretch"}),
         ], style={"marginBottom": "24px"})
     else:
-        lanes_section = html.P("No worker lanes.", className="text-muted small mt-3")
+        lanes_section = html.P("No worker lanes.", className="text-dim small mt-3")
 
     # ── 4. Release notes ──────────────────────────────────────────────────────
     if release_notes:
@@ -854,6 +1042,7 @@ def migrate_view(report: dict) -> html.Div:
 
     return html.Div([
         graph_section,
+        conv_section,
         catalog_section,
         lanes_section,
         rn_section,

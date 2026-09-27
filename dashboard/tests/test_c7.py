@@ -264,4 +264,4 @@ def test_route_uploaded_with_store_renders_detail():
 def test_route_uploaded_without_store_falls_back_to_home():
     """route('?scenario=uploaded', None) must fall back to home."""
     rendered = str(_app.route("?scenario=uploaded", None))
-    assert "Know what a change will break" in rendered
+    assert "Know what a change will " in rendered and "Fix it." in rendered

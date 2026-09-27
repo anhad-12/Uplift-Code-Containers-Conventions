@@ -19,6 +19,12 @@
   --safe:        var(--ok);
   --unknown:     #8a8f98;
   --radius:      14px;
+  /* Shadow system — two-tone layered */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.18);
+  --shadow-md:   0 2px 6px rgba(0,0,0,0.30), 0 8px 24px rgba(0,0,0,0.22);
+  --shadow-lift: 0 4px 12px rgba(0,0,0,0.32), 0 12px 32px rgba(0,0,0,0.24);
+  /* Inner highlight for dark cards */
+  --inner-highlight: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 /* ── Reset / base ─────────────────────────────────────────────────────────── */
@@ -51,7 +57,13 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 }
 
 /* ── Transitions (respects prefers-reduced-motion) ─────────────────────────── */
-* { transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease; }
+/* Scoped transitions — never applied to DataTable cells to avoid hover-flash */
+.btn-primary-cta, .btn-secondary-cta, .btn-uplift-primary, .copy-comment-btn,
+.filter-chip-label, .upload, .nav-tabs .nav-link, .nav-tabs .nav-link::after,
+.step, .scenario-card, .legend-chip {
+  transition: background-color 160ms ease, border-color 160ms ease,
+              color 160ms ease, box-shadow 160ms ease;
+}
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
 /* ── Hero section ────────────────────────────────────────────────────────── */
@@ -81,21 +93,34 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   line-height: 1.2;
   letter-spacing: -0.02em;
   margin-bottom: 16px;
-  /* gradient text on landing page */
-  background: linear-gradient(90deg, #ffffff 0%, #a9b8ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
 }
+/* The one word the whole product is about — solid accent colour, not a
+   decorative gradient. Bolder pass: gradient-clip-text read as a generic
+   "AI dashboard" tell (flagged independently by the design hook and the
+   Impeccable critique); a single confident colour on the load-bearing word
+   is a stronger, more specific move. */
+.hero-emphasis { color: var(--accent); }
 .hero-sub {
   font-size: clamp(1rem, 2.5vw, 1.15rem);
   color: var(--text-muted);
   max-width: 680px;
   margin-bottom: 0;
-  /* reset gradient for sub */
-  -webkit-text-fill-color: initial;
-  background: none;
+}
+
+/* Hero proof teaser: the *real* pipeline stepper component, reused here as
+   proof-of-product rather than decoration — the hero shows a literal piece
+   of the actual UI you land on, not a generic promise. */
+.hero-proof-teaser {
+  margin-top: 20px;
+}
+.hero-proof-teaser .stepper { margin: 0; }
+.hero-proof-caption {
+  font-size: 0.72rem;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
 }
 
 /* Hero CTA buttons */
@@ -109,37 +134,48 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  padding: 12px 28px;
   min-height: 44px;
   background: var(--accent);
   color: #ffffff !important;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(79,109,245,0.35);
 }
-.btn-primary-cta:hover { background: #3b57d8; color: #ffffff !important; }
+.btn-primary-cta:hover {
+  background: #3b57d8;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(79,109,245,0.50);
+  transform: translateY(-1px);
+}
 .btn-primary-cta:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.btn-primary-cta:active { background: #2e46c2; }
+.btn-primary-cta:active { background: #2e46c2; transform: none; box-shadow: none; }
 
 .btn-secondary-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  padding: 12px 28px;
   min-height: 44px;
   background: transparent;
   color: var(--text) !important;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
 }
-.btn-secondary-cta:hover { border-color: var(--text-muted); color: var(--text) !important; }
+.btn-secondary-cta:hover {
+  border-color: var(--accent);
+  color: var(--text) !important;
+  box-shadow: 0 2px 8px rgba(79,109,245,0.18);
+  transform: translateY(-1px);
+}
 .btn-secondary-cta:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
 /* ── Primary button (for Validate etc.) ────────────────────────────────────── */
@@ -147,29 +183,35 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 10px 22px;
   min-height: 44px;
   background: var(--accent);
   color: #ffffff !important;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(79,109,245,0.35);
 }
-.btn-uplift-primary:hover { background: #3b57d8; }
+.btn-uplift-primary:hover {
+  background: #3b57d8;
+  box-shadow: 0 4px 14px rgba(79,109,245,0.50);
+  transform: translateY(-1px);
+}
 .btn-uplift-primary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.btn-uplift-primary:active { background: #2e46c2; }
+.btn-uplift-primary:active { background: #2e46c2; transform: none; box-shadow: none; }
 
 /* ── Section headings ────────────────────────────────────────────────────── */
 .section-heading {
-  font-size: 1.35rem;
-  font-weight: 600;
-  margin: 32px 0 16px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 28px 0 14px;
   padding-left: 12px;
   border-left: 3px solid var(--accent);
   color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 /* ── How-it-works strip ──────────────────────────────────────────────────── */
@@ -177,30 +219,50 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px 20px;
-  margin: 24px 0;
+  padding: 28px 24px;
+  margin: 28px 0;
+  box-shadow: var(--shadow-sm), var(--inner-highlight);
   /* anchor id for scroll target */
 }
 .hiw-heading {
-  font-size: 1rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.10em;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
+/* Bolder pass: a bare 1-2-3-4 numbered list is the single most generic
+   "SaaS feature strip" pattern there is. Each step becomes its own card,
+   reusing the surface/border/radius/shadow tokens .scenario-card already
+   owns. An accent-bar/side-stripe on the card was tried and dropped — the
+   design hook correctly flagged it as the "side-tab" pattern, one of the
+   most recognizable AI-generated-UI tells, so the circular number badge
+   below carries the visual weight instead of a colored border. */
 .hiw-step {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 18px 16px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 .hiw-num {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 1.05rem;
   font-weight: 800;
-  color: var(--accent);
-  line-height: 1.2;
+  line-height: 1;
   flex-shrink: 0;
-  width: 28px;
 }
 .hiw-text { font-size: 0.9rem; padding-top: 2px; color: var(--text); }
 
@@ -209,35 +271,42 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   border-radius: var(--radius) !important;
   border: 1px solid var(--border) !important;
   background: var(--surface) !important;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md), var(--inner-highlight);
   color: var(--text);
 }
 .scenario-card .card-body { background: var(--surface); color: var(--text); border-radius: var(--radius); }
+/* Bootstrap's own `.text-muted` utility sets `color: var(--bs-secondary-color)
+   !important`, which resolves to a dark charcoal grey calibrated for a WHITE
+   background. Paired with any of our dark cards, it silently beats our own
+   (non-!important) muted colour and renders as near-invisible dark-on-dark
+   text. `.text-dim` is the safe replacement: same intent, guaranteed to win. */
+.text-dim { color: var(--text-muted) !important; }
+
 .card-desc {
   font-size: 0.88rem;
   margin-bottom: 4px;
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.risk-badge { font-size: 0.7rem; letter-spacing: 0.06em; }
+.risk-badge { font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; }
 
-/* Headline figure numbers */
-.fig-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; color: var(--text); }
-.fig-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+/* Headline figure numbers — larger, bolder primary number */
+.fig-value { font-size: 1.9rem; font-weight: 800; line-height: 1.05; color: var(--text); }
+.fig-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
 .fig-regressions { color: var(--bad); }
 
 /* ── Metric cards (detail page) ──────────────────────────────────────────── */
-.metric-value { font-size: 2rem; font-weight: 700; color: var(--text); }
-.metric-label { color: var(--text-muted); }
+.metric-value { font-size: 2.2rem; font-weight: 800; color: var(--text); line-height: 1.05; }
+.metric-label { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
 
 /* White cards (accuracy, bob panel, release notes) keep white bg, dark text */
 .card-white, .dbc-card-white {
   background-color: #ffffff !important;
   border-radius: var(--radius) !important;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md);
   padding: 24px;
 }
 
@@ -247,6 +316,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
   color: var(--text);
+  box-shadow: var(--shadow-sm), var(--inner-highlight);
 }
 /* Preserve white cards (they have inline backgroundColor: #ffffff) */
 
@@ -501,18 +571,23 @@ textarea#paste-json:focus,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 18px;
   min-height: 44px;
   background: var(--surface-2);
   color: var(--text) !important;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
 }
-.copy-comment-btn:hover { border-color: var(--accent); color: var(--text) !important; }
+.copy-comment-btn:hover {
+  border-color: var(--accent);
+  color: var(--text) !important;
+  box-shadow: 0 2px 8px rgba(79,109,245,0.18);
+  transform: translateY(-1px);
+}
 .copy-comment-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
 .pr-comment-caption {
@@ -531,21 +606,37 @@ textarea#paste-json:focus,
   position: sticky !important;
   top: 0;
   z-index: 2;
+  letter-spacing: 0.03em;
 }
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
   font-size: 14px !important;
   padding: 10px 14px !important;
   min-height: 44px !important;
   line-height: 1.4;
+  /* No transition on cells — prevents hover-flash refire */
+  transition: none !important;
 }
-/* Hover row highlight */
+/* Hover row highlight — subtle, single-fire, no transition on cells.
+   Uses an inset box-shadow overlay (not background-color) so it tints ON TOP
+   of a row's existing verdict colour instead of replacing it — a will_break
+   row must not lose its red tint the moment the cursor is over it. */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:hover td {
-  background-color: rgba(79,109,245,0.08) !important;
+  box-shadow: inset 0 0 0 9999px rgba(79,109,245,0.07) !important;
+  /* Do NOT use transition here — it causes the dark-flash on every mousemove */
 }
-/* Selected row outline */
+/* Selected row: stable highlight, no active-cell blue border */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr.row-selected td {
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px;
+  background-color: rgba(79,109,245,0.12) !important;
+  outline: none !important;
+  border-left: 3px solid var(--accent) !important;
+}
+/* Kill Dash's default active-cell focus ring completely */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td.focused,
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td.cell--selected {
+  background-color: inherit !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 /* ── Filter chips ────────────────────────────────────────────────────────── */
