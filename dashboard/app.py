@@ -37,6 +37,9 @@ app.index_string = """<!DOCTYPE html>
 </body>
 </html>"""
 
+# Accent colour for Loading spinner (matches --accent CSS token)
+var_accent = "#4f6df5"
+
 # ── risk-level colour token map (matches CSS variables) ────────────────────
 RISK_COLOURS = {
     "high":    "danger",
@@ -328,16 +331,25 @@ def detail_view(sid: str, uploaded_report: dict | None = None) -> html.Div:
                 # ── Fit button + Cytoscape graph ─────────────────────────────
                 html.Div([
                     html.Button("Fit", id="fit-btn", className="btn btn-sm btn-outline-secondary fit-btn",
-                                title="Reset zoom and pan to fit all nodes"),
+                                title="Reset zoom and pan to fit all nodes",
+                                **{"aria-label": "Fit graph — reset zoom and pan to show all nodes"}),
                 ], className="graph-toolbar"),
-                cyto.Cytoscape(
-                    id="graph",
-                    elements=initial_elements,
-                    stylesheet=graph.build_stylesheet(large=large),
-                    layout={"name": "preset", "fit": True, "padding": 30},
-                    style={"width": "100%", "height": "520px"},
-                    minZoom=0.15,
-                    maxZoom=3.0,
+                html.Div(
+                    dcc.Loading(
+                        cyto.Cytoscape(
+                            id="graph",
+                            elements=initial_elements,
+                            stylesheet=graph.build_stylesheet(large=large),
+                            layout={"name": "preset", "fit": True, "padding": 30},
+                            style={"width": "100%", "height": "520px"},
+                            minZoom=0.15,
+                            maxZoom=3.0,
+                        ),
+                        type="circle",
+                        color=var_accent,
+                    ),
+                    **{"aria-label": "Change impact graph — click a node to see details",
+                       "role": "img"},
                 ),
                 graph_legend(),
             ], md=8),
@@ -412,12 +424,16 @@ app.layout = dbc.Container([
     dcc.Location(id="url"),
     html.Div(id="page"),
     # ── Upload area ───────────────────────────────────────────────────────────
-    dcc.Upload(
-        id="upload",
-        children=html.Div([
-            html.Span("Drop a report.json here or click to browse"),
-        ]),
-        className="upload",
+    html.Div(
+        dcc.Upload(
+            id="upload",
+            children=html.Div([
+                html.Span("Drop a report.json here or click to browse"),
+            ]),
+            className="upload",
+        ),
+        **{"aria-label": "Upload a report JSON file — drop here or click to browse",
+           "role": "region"},
     ),
     # ── Paste JSON area ───────────────────────────────────────────────────────
     html.Div([

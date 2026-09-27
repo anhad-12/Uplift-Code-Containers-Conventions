@@ -177,8 +177,19 @@ TABLE_STYLE_DATA_CONDITIONAL = [
     {"if": {"filter_query": '{verdict} = "might_break"'}, "backgroundColor": "#fefae8", "color": "#7b5900"},
     {"if": {"filter_query": '{verdict} = "safe"'},        "backgroundColor": "#f0faf3", "color": "#14532d"},
     {"if": {"filter_query": '{verdict} = "unknown"'},     "backgroundColor": "#f5f5f5", "color": "#444"},
-    {"if": {"state": "selected"},                         "backgroundColor": "#dbeafe", "border": "1px solid #3b82d4"},
+    # Selected row: stable teal highlight (not Dash's default blue active-cell)
+    {"if": {"state": "selected"},                         "backgroundColor": "#e8f0fe", "border": "none"},
 ]
+
+# Active-cell style: added as a state condition in style_data_conditional
+# (style_active_cell is not available in dash_table 4.x)
+TABLE_STYLE_ACTIVE_CELL = {
+    "backgroundColor": "inherit",
+    "border": "none",
+}
+
+# Extra conditional for the "active" state — suppresses Dash's default blue active-cell highlight
+_TABLE_ACTIVE_CELL_COND = {"if": {"state": "active"}, "backgroundColor": "inherit", "border": "none"}
 
 
 def build_table_rows(report: dict) -> list[dict]:
@@ -224,7 +235,7 @@ def affected_table(report: dict) -> dash_table.DataTable:
             "position": "sticky",
             "top": 0,
         },
-        style_data_conditional=TABLE_STYLE_DATA_CONDITIONAL,
+        style_data_conditional=TABLE_STYLE_DATA_CONDITIONAL + [_TABLE_ACTIVE_CELL_COND],
     )
 
 
