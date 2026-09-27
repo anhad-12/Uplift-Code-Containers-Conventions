@@ -43,7 +43,9 @@ def main():
     lines += ['', '## Provenance and reproduction', '', '- Run `engine/.venv/Scripts/python scripts/reproduce.py` then `engine/.venv/Scripts/python scripts/evaluate_evidence.py` (use bin/python on POSIX).', '- Each evidence/<scenario>/ directory contains base/before/after logs, JUnit XML, parsed counts, input graph/verdicts/proofs, repairs, added-line convention checks, and source/patch hashes.', '- New work was completed using Bob modes. Existing Bob screenshots and commit history are historical evidence only; missing screenshots are not fabricated.', '- The old contaminated branches are preserved for audit; the reproducible isolated runner is the supported scenario execution path.', '- Docker effects are conservative instruction invalidation estimates; no build duration or actual image-layer count is claimed.', '- The app is a deliberately small synthetic fixture. These precision/recall values measure two fixed scenarios, not general performance on arbitrary repositories.', '']
     content='\n'.join(lines)
     for folder in ('.uplift','evidence','dashboard/reports'):
-        (ROOT/folder/'eval.md').write_text(content,encoding='utf8')
+        dest = ROOT/folder
+        dest.mkdir(parents=True, exist_ok=True)
+        (dest/'eval.md').write_text(content,encoding='utf8')
     print('Evaluated S1/S2 against unchanged truth; published measured S3 counts.')
 
 
