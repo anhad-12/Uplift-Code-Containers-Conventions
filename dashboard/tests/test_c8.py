@@ -116,21 +116,34 @@ def test_css_datatable_cells_have_no_transition():
 # ── 3. Hover tint is subtle (no dark-blue opacity >= 20%) ─────────────────────
 
 def test_css_hover_tint_is_subtle():
-    """The tr:hover td background-color must use a low-opacity tint (< 0.15)."""
-    # Find the hover rule
+    """The tr:hover td hover tint must use a low-opacity overlay (< 0.15).
+
+    This uses `box-shadow: inset ... rgba(...)` rather than `background-color`
+    on purpose: a plain background-color hover rule with !important beats a
+    row's own verdict-colour background (also set via !important) because it
+    comes later in the stylesheet, so a will_break row's red tint would
+    disappear the instant the cursor is over it. An inset box-shadow paints
+    ON TOP of the existing background instead of replacing it.
+    """
     pattern = re.compile(
-        r"tr:hover\s+td\s*\{[^}]*background-color\s*:\s*rgba\s*\([^)]+\)",
+        r"tr:hover\s+td\s*\{[^}]*box-shadow\s*:\s*inset[^;]*rgba\s*\([^)]+\)",
         re.IGNORECASE | re.DOTALL,
     )
     match = pattern.search(_CSS)
-    assert match is not None, "tr:hover td background-color must be set in CSS"
+    assert match is not None, "tr:hover td must set an inset box-shadow rgba() hover tint"
     rgba_text = match.group()
     # Extract the alpha value from rgba(r,g,b,a)
     alpha_match = re.search(r"rgba\s*\(\s*[\d,\s]+,\s*([\d.]+)\s*\)", rgba_text)
-    assert alpha_match is not None, "background-color must use rgba() for the hover tint"
+    assert alpha_match is not None, "hover tint must use rgba() with an alpha value"
     alpha = float(alpha_match.group(1))
     assert alpha < 0.15, (
         f"Hover tint opacity {alpha} is too high (must be < 0.15) — jarring on mouse move"
+    )
+    # The overlay approach must not also replace background-color on hover,
+    # which is the exact bug this rule was rewritten to avoid.
+    assert "background-color" not in match.group(), (
+        "tr:hover td must not set background-color — it overrides verdict-tinted rows; "
+        "use box-shadow inset instead"
     )
 
 

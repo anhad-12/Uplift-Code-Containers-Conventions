@@ -39,13 +39,13 @@ def test_route_no_search_returns_home():
     layout = _app_module.route(None)
     rendered = _render(layout)
     # Home layout must contain the hero headline
-    assert "Know what a change will break" in rendered
+    assert "Know what a change will " in rendered and "Fix it." in rendered
 
 
 def test_route_empty_search_returns_home():
     layout = _app_module.route("")
     rendered = _render(layout)
-    assert "Know what a change will break" in rendered
+    assert "Know what a change will " in rendered and "Fix it." in rendered
 
 
 # ── 3. route("?scenario=s1-null-user") returns the detail layout ─────────────
@@ -64,7 +64,7 @@ def test_route_known_scenario_returns_detail():
 def test_route_unknown_scenario_falls_back_to_home():
     layout = _app_module.route("?scenario=does-not-exist")
     rendered = _render(layout)
-    assert "Know what a change will break" in rendered
+    assert "Know what a change will " in rendered and "Fix it." in rendered
 
 
 # ── 5. home() structure checks ───────────────────────────────────────────────
@@ -80,6 +80,40 @@ def test_home_contains_how_it_works_strip():
     assert "Prove" in rendered
     assert "Repair" in rendered
     assert "Verify" in rendered
+
+
+# ── Bolder pass: hero emphasis + real-stepper proof teaser ───────────────────
+
+def test_hero_h1_uses_emphasis_span_not_gradient_class():
+    """The hero H1 must colour 'break' via a real span (hero-emphasis), not
+    the old gradient-clip-text technique (a common generic-AI-dashboard tell,
+    flagged independently by the design hook and the Impeccable critique)."""
+    rendered = _render(_app_module.home())
+    assert "hero-emphasis" in rendered
+    assert "break" in rendered
+
+
+def test_hero_css_has_no_gradient_clip_text():
+    css = (Path(_app_module.__file__).resolve().parent / "assets" / "style.css").read_text(encoding="utf-8")
+    assert "background-clip: text" not in css
+    assert "-webkit-text-fill-color: transparent" not in css
+
+
+def test_home_hero_includes_real_stepper_proof_teaser():
+    """The hero must reuse the actual stepper() component (proof-of-product),
+    not a decorative promise — this is the bolder-pass amplification move."""
+    rendered = _render(_app_module.home())
+    assert "hero-proof-teaser" in rendered
+    assert "stepper" in rendered
+    # The teaser marks all four steps done, using the real step-done styling.
+    assert "step-done" in rendered
+
+
+def test_how_it_works_step_cards_use_system_owned_tokens():
+    """Each how-it-works step must render as its own hiw-step card (the
+    bolder-pass replacement for a bare numbered list)."""
+    rendered = _render(_app_module.home())
+    assert rendered.count("hiw-step") >= 4
 
 
 def test_home_contains_scenario_cards():

@@ -259,7 +259,6 @@ Keep total runtime 3:00 or under, with 90+ seconds of the product actually runni
 **Bob Usage (<=500 words).**
 - List every Bob task by ID from `bob_sessions/LOG.md` with what Bob did, files written and Bobcoins consumed. Lead with tasks A2-A8.
 - Name the modes honestly using the count from section 7 (6 roles / 9 sandboxed modes; do not paste a round "5 modes" figure).
-- List Claude Code's role separately: planning, README, statement drafts, glue code.
 - Say the four Bob features by name: Agent mode, parallel tasks, subagents, document understanding.
 
 ## 17. Pre-submission checklist
@@ -268,7 +267,7 @@ Keep total runtime 3:00 or under, with 90+ seconds of the product actually runni
 
 **Repo:** `.bob/` contains the modes from section 7; `engine/` has the Dockerfile parser (F17); `sample-app/` has a Dockerfile with a deliberate layer-ordering issue; `bob_sessions/` has screenshots from all three members + LOG.md; SOURCES.md complete; MIT LICENSE present; README has the risk-score formula AND the convention-detection explanation; real `report.json` for S1, S2, S3 committed (with `infraImpact` + `conventions` where applicable).
 
-**Statements:** Problem & Solution under 500 words and mentions change impact + Docker impact + convention-aware fixes; Bob Usage lists every task with the correct mode count and a separate Claude Code role; no unexplained percentages.
+**Statements:** Problem & Solution under 500 words and mentions change impact + Docker impact + convention-aware fixes; Bob Usage lists every task with the correct mode count and a separate no unexplained percentages.
 
 **Dashboard:** live URL works with no backend (static site reading committed JSON); risk-score formula visible on hover/click; infra-impact nodes render with a container icon and layer detail on click; Migrate view shows the convention badge and compliance status; both Impact and Migrate views work on real data.
 
