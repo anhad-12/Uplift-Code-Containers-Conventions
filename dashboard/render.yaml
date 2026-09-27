@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: uplift-dashboard
+    runtime: python
+    rootDir: dashboard
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:server
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.6
