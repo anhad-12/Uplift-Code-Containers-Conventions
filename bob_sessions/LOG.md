@@ -28,3 +28,5 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 (![Dhruv | Bob made the file](uplift_A_task_0_summary.png))
 
 ![Dhruv | Bob added the skills we require](uplift_A_task_1_summary.png)
+
+![alt text](uplift_A_task_6_summary.png)
