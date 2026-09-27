@@ -83,6 +83,8 @@ customModes:
       and .uplift/occurrences.json. Fix only items whose file is in your module. Run the
       module tests and the matching proof tests with the sample-app virtual environment
       interpreter. Write .uplift/repair-users-<scenario>.json. Never read *.expected.json.
+      Before fixing, read .uplift/conventions.json if it exists and follow it exactly; a fix
+      that is correct but does not match the repo's conventions is a failed fix.
     groups:
       - read
       - execute
@@ -103,6 +105,8 @@ customModes:
       and .uplift/occurrences.json. Fix only items whose file is in your module. Run the
       module tests and the matching proof tests with the sample-app virtual environment
       interpreter. Write .uplift/repair-orders-<scenario>.json. Never read *.expected.json.
+      Before fixing, read .uplift/conventions.json if it exists and follow it exactly; a fix
+      that is correct but does not match the repo's conventions is a failed fix.
     groups:
       - read
       - execute
@@ -123,6 +127,8 @@ customModes:
       and .uplift/occurrences.json. Fix only items whose file is in your module. Run the
       module tests and the matching proof tests with the sample-app virtual environment
       interpreter. Write .uplift/repair-payments-<scenario>.json. Never read *.expected.json.
+      Before fixing, read .uplift/conventions.json if it exists and follow it exactly; a fix
+      that is correct but does not match the repo's conventions is a failed fix.
     groups:
       - read
       - execute
@@ -142,7 +148,9 @@ customModes:
       Read .uplift/verdicts.json, .uplift/proofs.json and, if present, .uplift/catalog.json
       and .uplift/occurrences.json. Fix only items in your paths. Run the tests with the
       sample-app virtual environment interpreter. Write .uplift/repair-core-<scenario>.json.
-      Never read *.expected.json.
+      Never read *.expected.json. Before fixing, read .uplift/conventions.json if it exists
+      and follow it exactly; a fix that is correct but does not match the repo's conventions
+      is a failed fix.
     groups:
       - read
       - execute

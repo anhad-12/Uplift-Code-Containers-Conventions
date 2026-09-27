@@ -1,0 +1,25 @@
+{
+  "scenario": "s3-pydantic2",
+  "module": "users",
+  "worker": "codex-users",
+  "filesChanged": [
+    "shop/users/schemas.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/users/schemas.py#migration"
+  ],
+  "testsBefore": {
+    "passed": 6,
+    "failed": 0,
+    "errors": 7,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 47,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

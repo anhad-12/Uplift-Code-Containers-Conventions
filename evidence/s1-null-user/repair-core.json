@@ -1,0 +1,25 @@
+{
+  "scenario": "s1-null-user",
+  "module": "core",
+  "worker": "codex-core",
+  "filesChanged": [
+    "shop/admin/reports.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/admin/reports.py#user_spend_report"
+  ],
+  "testsBefore": {
+    "passed": 8,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 9,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

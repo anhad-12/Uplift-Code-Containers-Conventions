@@ -1,0 +1,25 @@
+{
+  "scenario": "s1-null-user",
+  "module": "users",
+  "worker": "codex-users",
+  "filesChanged": [
+    "shop/users/routes.py"
+  ],
+  "fixesApplied": 1,
+  "fixedIds": [
+    "shop/users/routes.py#get_user_route"
+  ],
+  "testsBefore": {
+    "passed": 46,
+    "failed": 7,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 53,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

@@ -209,21 +209,26 @@ SAMPLE_APP = Path(__file__).parent.parent.parent / "sample-app"
 
 @pytest.mark.skipif(not SAMPLE_APP.exists(), reason="sample-app not present")
 def test_scan_real_app_counts() -> None:
-    """Sample app is fully migrated to pydantic v2 — scan finds zero occurrences."""
+    """On the real demo app the catalog finds the expected occurrences."""
     results = scan(SAMPLE_APP, CATALOG)
     counts: dict[str, int] = {}
     for r in results:
         counts[r["entry"]] = counts.get(r["entry"], 0) + 1
 
-    assert counts.get("p2-basesettings", 0) == 0, f"basesettings count: {counts}"
-    assert counts.get("p2-orm-mode", 0) == 0, f"orm-mode count: {counts}"
-    assert counts.get("p2-validator", 0) == 0, f"validator count: {counts}"
-    assert counts.get("p2-optional", 0) == 0, f"optional count: {counts}"
-    assert counts.get("p2-field-regex", 0) == 0, f"field-regex count: {counts}"
+    assert counts.get("p2-basesettings", 0) == 1, f"basesettings count: {counts}"
+    assert counts.get("p2-orm-mode", 0) == 2, f"orm-mode count: {counts}"
+    assert counts.get("p2-validator", 0) == 1, f"validator count: {counts}"
+    assert counts.get("p2-optional", 0) == 1, f"optional count: {counts}"
+    assert counts.get("p2-field-regex", 0) == 2, f"field-regex count: {counts}"
 
 
 @pytest.mark.skipif(not SAMPLE_APP.exists(), reason="sample-app not present")
 def test_scan_real_app_modules() -> None:
-    """Sample app is fully migrated to pydantic v2 — no pattern entries by module."""
+    """basesettings is in core, orm-mode in users and orders."""
     results = scan(SAMPLE_APP, CATALOG)
-    assert results == [], f"unexpected occurrences after migration: {results}"
+    by_entry: dict[str, set[str]] = {}
+    for r in results:
+        by_entry.setdefault(r["entry"], set()).add(r["module"])
+
+    assert by_entry.get("p2-basesettings") == {"core"}, by_entry
+    assert by_entry.get("p2-orm-mode") == {"users", "orders"}, by_entry

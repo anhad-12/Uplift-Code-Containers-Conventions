@@ -1,14 +1,17 @@
-"""accuracy.py — compare an Uplift report against ground truth expected.json.
+"""
+Compute prediction accuracy for an Uplift impact report against ground truth.
 
 Usage:
-    python scripts/accuracy.py --report reports/s2-cents.json \
-                               --truth sample-app/scenarios/s2-cents.expected.json
+    python scripts/accuracy.py --report <report.json> --truth <expected.json>
+
+The report's affected items whose verdict is will_break or might_break form the
+predicted_broken set (changed symbols are excluded).  The truth_broken set is every
+item in the expected.json whose "expected" field is "will_break".  Items that appear
+in truth but are absent from the report count as false negatives.
 """
-from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 
 def accuracy(
@@ -30,69 +33,85 @@ def accuracy(
     }
 
 
-def evaluate(report_path: Path, truth_path: Path) -> dict:
-    report = json.loads(report_path.read_text(encoding="utf-8"))
-    truth = json.loads(truth_path.read_text(encoding="utf-8"))
+def evaluate(report: dict, truth: dict) -> dict:
+    """Reject mismatched inputs before calculating candidate-only metrics."""
+    if not isinstance(report, dict) or not isinstance(truth, dict):
+        raise ValueError("Report and truth must be objects")
+    scenario = report.get("scenario", {})
+    if not isinstance(scenario, dict) or not scenario.get("id"):
+        raise ValueError("Report must contain scenario.id")
+    if scenario["id"] != truth.get("scenario"):
+        raise ValueError("Report and truth scenarios do not match")
+    if report.get("mode") != "impact":
+        raise ValueError("Accuracy requires an impact report")
+    changed = report.get("changedSymbols")
+    if not isinstance(changed, list) or not all(isinstance(x, dict) and isinstance(x.get("id"), str) for x in changed):
+        raise ValueError("changedSymbols must contain symbol ids")
+    changed_ids = {x["id"] for x in changed}
+    if not truth.get("changedSymbol") or truth["changedSymbol"] not in changed_ids:
+        raise ValueError("Ground-truth changedSymbol is absent from the report")
+    affected, items = report.get("affected"), truth.get("items")
+    if not isinstance(affected, list) or not isinstance(items, list) or not items:
+        raise ValueError("affected and nonempty truth items must be lists")
+    for rows, field, allowed in [
+        (affected, "verdict", {"will_break", "might_break", "safe", "unknown"}),
+        (items, "expected", {"will_break", "safe"}),
+    ]:
+        seen = set()
+        for item in rows:
+            if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not item["id"]:
+                raise ValueError("Every candidate must have a nonempty string id")
+            if item["id"] in seen:
+                raise ValueError("Duplicate candidate id: " + item["id"])
+            seen.add(item["id"])
+            if item.get(field) not in allowed:
+                raise ValueError("Invalid " + field + " for " + item["id"])
+    predicted = {x["id"] for x in affected if x["id"] not in changed_ids and x["verdict"] in ("will_break", "might_break")}
+    broken = {x["id"] for x in items if x["expected"] == "will_break"}
+    return {"accuracy": accuracy(predicted, broken, {x["id"] for x in items}),
+            "predicted": sorted(predicted), "truthBroken": sorted(broken),
+            "falsePositives": sorted(predicted - broken),
+            "falseNegatives": sorted(broken - predicted)}
 
-    truth_items = {item["id"]: item["expected"] for item in truth.get("items", [])}
-    truth_broken: set[str] = {id_ for id_, exp in truth_items.items() if exp == "will_break"}
-    truth_all: set[str] = set(truth_items.keys())
 
-    predicted_broken: set[str] = set()
-    for candidate in report.get("affected", []):
-        if candidate.get("verdict") in ("will_break", "might_break"):
-            predicted_broken.add(candidate["id"])
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Compute Uplift prediction accuracy.")
+    parser.add_argument("--report", required=True, help="Path to the Uplift report JSON.")
+    parser.add_argument("--truth", required=True, help="Path to the expected.json ground truth.")
+    parser.add_argument("--json", action="store_true", help="Print machine-readable results.")
+    args = parser.parse_args(argv)
 
-    metrics = accuracy(predicted_broken, truth_broken, truth_all)
+    try:
+        with open(args.report, encoding="utf-8-sig") as f:
+            report = json.load(f)
+        with open(args.truth, encoding="utf-8-sig") as f:
+            truth = json.load(f)
+        evaluation = evaluate(report, truth)
+    except (OSError, ValueError) as exc:
+        parser.exit(2, "Accuracy input error: " + str(exc) + "\n")
+    if args.json:
+        print(json.dumps(evaluation, indent=2))
+        return
+    predicted_broken = set(evaluation["predicted"])
+    truth_broken = set(evaluation["truthBroken"])
+    result = evaluation["accuracy"]
 
-    rows = []
-    all_ids = truth_all | predicted_broken
-    for id_ in sorted(all_ids):
-        pred = "will_break" if id_ in predicted_broken else "safe/unknown"
-        truth_exp = truth_items.get(id_, "(not in truth)")
-        correct = pred == truth_exp or (pred == "safe/unknown" and truth_exp not in ("will_break",))
-        rows.append({"id": id_, "predicted": pred, "truth": truth_exp, "correct": correct})
-
-    return {
-        "scenario": report.get("scenario", {}).get("id", ""),
-        "metrics": metrics,
-        "rows": rows,
-        "misses": {
-            "falsePositives": sorted(predicted_broken - truth_broken),
-            "falseNegatives": sorted(truth_broken - predicted_broken),
-        },
-    }
-
-
-def _print_results(result: dict) -> None:
-    scenario = result["scenario"]
-    m = result["metrics"]
-    print(f"\n=== {scenario} ===")
-    print(f"Precision: {m['precision']:.2f}  Recall: {m['recall']:.2f}")
-    print(f"TP={m['truePositives']}  FP={m['falsePositives']}  FN={m['falseNegatives']}")
+    print(f"predicted_broken : {sorted(predicted_broken) or '(none)'}")
+    print(f"truth_broken     : {sorted(truth_broken)}")
     print()
-    print(f"{'id':<55} {'predicted':<14} {'truth':<14} correct")
-    print("-" * 100)
-    for row in result["rows"]:
-        mark = "✓" if row["correct"] else "✗"
-        print(f"{row['id']:<55} {row['predicted']:<14} {row['truth']:<14} {mark}")
-    if result["misses"]["falsePositives"]:
-        print("\nFalse positives (predicted broken, actually safe):")
-        for fp in result["misses"]["falsePositives"]:
-            print(f"  {fp}")
-    if result["misses"]["falseNegatives"]:
-        print("\nFalse negatives (missed — truth says broken, we said safe/absent):")
-        for fn in result["misses"]["falseNegatives"]:
-            print(f"  {fn}")
+    print(f"truePositives  : {result['truePositives']}")
+    print(f"falsePositives : {result['falsePositives']}")
+    print(f"falseNegatives : {result['falseNegatives']}")
+    print(f"precision      : {result['precision']:.2f}")
+    print(f"recall         : {result['recall']:.2f}")
 
+    missed = truth_broken - predicted_broken
+    if missed:
+        print(f"\nMissed (false negatives): {sorted(missed)}")
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate Uplift report accuracy")
-    parser.add_argument("--report", required=True, help="Path to report JSON")
-    parser.add_argument("--truth", required=True, help="Path to expected.json ground truth")
-    args = parser.parse_args()
-    result = evaluate(Path(args.report), Path(args.truth))
-    _print_results(result)
+    spurious = predicted_broken - truth_broken
+    if spurious:
+        print(f"Spurious (false positives): {sorted(spurious)}")
 
 
 if __name__ == "__main__":

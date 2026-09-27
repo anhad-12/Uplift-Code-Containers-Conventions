@@ -1,0 +1,27 @@
+{
+  "accuracy": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "truePositives": 6,
+    "falsePositives": 0,
+    "falseNegatives": 0
+  },
+  "predicted": [
+    "shop/admin/reports.py#user_spend_report",
+    "shop/orders/invoice.py#build_invoice",
+    "shop/orders/service.py#create_order",
+    "shop/payments/charge.py#charge",
+    "shop/payments/receipt.py#render_receipt",
+    "shop/users/routes.py#get_user_route"
+  ],
+  "truthBroken": [
+    "shop/admin/reports.py#user_spend_report",
+    "shop/orders/invoice.py#build_invoice",
+    "shop/orders/service.py#create_order",
+    "shop/payments/charge.py#charge",
+    "shop/payments/receipt.py#render_receipt",
+    "shop/users/routes.py#get_user_route"
+  ],
+  "falsePositives": [],
+  "falseNegatives": []
+}

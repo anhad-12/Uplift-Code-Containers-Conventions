@@ -1,0 +1,182 @@
+--- a/shop/admin/reports.py
++++ b/shop/admin/reports.py
+@@ -1,3 +1,4 @@
++from shop.payments.amounts import DollarPayment, dollar_amount
+ from typing import List
+ 
+ from shop.orders import repo as order_repo
+@@ -12,5 +13,5 @@
+     return rows
+ 
+ 
+-def revenue_total(payments: List[Payment]) -> float:
+-    return round(sum(p.amount for p in payments), 2)
++def revenue_total(payments: List[Payment | DollarPayment]) -> float:
++    return round(sum(dollar_amount(p) for p in payments), 2)
+--- a/shop/notifications/email.py
++++ b/shop/notifications/email.py
+@@ -1,3 +1,4 @@
++from shop.payments.amounts import DollarPayment, dollar_amount
+ from shop.config import get_settings
+ from shop.payments.charge import Payment
+ from shop.users.service import get_user
+@@ -11,5 +12,5 @@
+     return bool(f"from {settings.sender} to {user.email}")
+ 
+ 
+-def send_receipt_email(payment: Payment) -> str:
+-    return f"Thanks! We charged ${payment.amount:.2f}"
++def send_receipt_email(payment: Payment | DollarPayment) -> str:
++    return f"Thanks! We charged ${dollar_amount(payment):.2f}"
+--- a/shop/orders/invoice.py
++++ b/shop/orders/invoice.py
+@@ -1,3 +1,4 @@
++from shop.payments.amounts import DollarPayment, dollar_amount
+ from shop.orders.repo import Order
+ from shop.payments.charge import Payment
+ from shop.users.service import get_user
+@@ -12,5 +13,5 @@
+     }
+ 
+ 
+-def payment_line(payment: Payment) -> dict:
+-    return {"label": "payment", "amount": payment.amount}
++def payment_line(payment: Payment | DollarPayment) -> dict:
++    return {"label": "payment", "amount": dollar_amount(payment)}
+--- a/shop/payments/amounts.py
++++ b/shop/payments/amounts.py
+@@ -0,0 +1,16 @@
++from dataclasses import dataclass
++
++from shop.payments.charge import Payment
++
++
++@dataclass(frozen=True)
++class DollarPayment:
++    user_id: int
++    amount: float
++
++
++def dollar_amount(payment: Payment | DollarPayment) -> float:
++    """Convert charged cents once; persisted dollar values are already converted."""
++    if isinstance(payment, DollarPayment):
++        return payment.amount
++    return payment.amount / 100
+--- a/shop/payments/receipt.py
++++ b/shop/payments/receipt.py
+@@ -1,7 +1,8 @@
++from shop.payments.amounts import DollarPayment, dollar_amount
+ from shop.payments.charge import Payment
+ from shop.users.service import get_user
+ 
+ 
+-def render_receipt(payment: Payment) -> str:
++def render_receipt(payment: Payment | DollarPayment) -> str:
+     user = get_user(payment.user_id)
+-    return f"Receipt for {user.name}: ${payment.amount:.2f}"
++    return f"Receipt for {user.name}: ${dollar_amount(payment):.2f}"
+--- a/shop/payments/repo.py
++++ b/shop/payments/repo.py
+@@ -1,16 +1,18 @@
+ from typing import List
+ 
+ from shop.payments.charge import Payment
++from shop.payments.amounts import DollarPayment, dollar_amount
+ 
+-_PAYMENTS: List[Payment] = []
++_PAYMENTS: List[DollarPayment] = []
+ 
+ 
+-def save_payment(payment: Payment) -> Payment:
+-    _PAYMENTS.append(payment)
+-    return payment
++def save_payment(payment: Payment | DollarPayment) -> DollarPayment:
++    stored = DollarPayment(payment.user_id, dollar_amount(payment))
++    _PAYMENTS.append(stored)
++    return stored
+ 
+ 
+-def all_payments() -> List[Payment]:
++def all_payments() -> List[DollarPayment]:
+     return list(_PAYMENTS)
+ 
+ 
+--- a/tests/notifications/test_email.py
++++ b/tests/notifications/test_email.py
+@@ -7,7 +7,7 @@
+ 
+ 
+ def test_receipt_email_mentions_the_amount():
+-    assert send_receipt_email(Payment(1, 103.2)) == "Thanks! We charged $103.20"
++    assert send_receipt_email(Payment(1, 10320)) == "Thanks! We charged $103.20"
+ 
+ 
+ def test_send_welcome_user_two():
+--- a/tests/orders/test_invoice.py
++++ b/tests/orders/test_invoice.py
+@@ -4,7 +4,7 @@
+ 
+ 
+ def test_payment_line_uses_the_payment_amount():
+-    assert payment_line(Payment(1, 103.2)) == {"label": "payment", "amount": 103.2}
++    assert payment_line(Payment(1, 10320)) == {"label": "payment", "amount": 103.2}
+ 
+ 
+ def test_invoice_addresses_the_user():
+--- a/tests/payments/test_persisted_dollars.py
++++ b/tests/payments/test_persisted_dollars.py
+@@ -0,0 +1,20 @@
++"""Regression for consumers of dollar-denominated persisted payments."""
++from shop.payments import repo
++from shop.payments.charge import charge
++from shop.payments.receipt import render_receipt
++from shop.orders.invoice import payment_line
++from shop.notifications.email import send_receipt_email
++from shop.admin.reports import revenue_total
++
++
++def test_persisted_dollars_are_not_converted_twice():
++    charged = charge(1, 100.0)
++    assert charged.amount == 10320
++    stored = repo.save_payment(charged)
++    stored_again = repo.save_payment(stored)
++    assert stored.amount == stored_again.amount == 103.2
++    for payment in (charged, stored, stored_again):
++        assert render_receipt(payment) == 'Receipt for Asha Rao: $103.20'
++        assert payment_line(payment)['amount'] == 103.2
++        assert send_receipt_email(payment) == 'Thanks! We charged $103.20'
++        assert revenue_total([payment]) == 103.2
+--- a/tests/payments/test_receipt.py
++++ b/tests/payments/test_receipt.py
+@@ -3,4 +3,4 @@
+ 
+ 
+ def test_receipt_shows_dollars():
+-    assert render_receipt(Payment(1, 103.2)) == "Receipt for Asha Rao: $103.20"
++    assert render_receipt(Payment(1, 10320)) == "Receipt for Asha Rao: $103.20"
+--- a/tests/payments/test_receipt_more.py
++++ b/tests/payments/test_receipt_more.py
+@@ -3,12 +3,12 @@
+ 
+ 
+ def test_receipt_for_user_two():
+-    assert render_receipt(Payment(2, 50.0)) == "Receipt for Ben Ito: $50.00"
++    assert render_receipt(Payment(2, 5000)) == "Receipt for Ben Ito: $50.00"
+ 
+ 
+ def test_receipt_formats_zero_cents():
+-    assert render_receipt(Payment(1, 10.0)) == "Receipt for Asha Rao: $10.00"
++    assert render_receipt(Payment(1, 1000)) == "Receipt for Asha Rao: $10.00"
+ 
+ 
+ def test_receipt_formats_large_amount():
+-    assert render_receipt(Payment(1, 1000.0)) == "Receipt for Asha Rao: $1000.00"
++    assert render_receipt(Payment(1, 100000)) == "Receipt for Asha Rao: $1000.00"
+--- a/tests/payments/test_routes.py
++++ b/tests/payments/test_routes.py
+@@ -6,4 +6,4 @@
+ 
+ def test_post_payment_ok():
+     body = {"user_id": 1, "amount": 100, "card": "4242424242424242"}
+-    assert client.post("/payments", json=body).json()["amount"] == 10320
++    assert client.post("/payments", json=body).json()["amount"] == 103.2

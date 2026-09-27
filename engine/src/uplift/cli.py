@@ -68,6 +68,10 @@ def graph(
     changed = changed_symbols(head, base, patch)
     candidates = find_candidates(head, changed)
 
+    from uplift.docker import impact
+    from unidiff import PatchSet
+    infra = impact(head, [f.path for f in PatchSet(patch.read_text(encoding="utf-8"))])
+
     # Route map + contracts
     routes = route_map(head)
     contracts = contracts_for(candidates, routes)
@@ -85,7 +89,7 @@ def graph(
     files_scanned = sum(
         1 for p in head.rglob("*.py")
         if not any(
-            part in ("tests", "test") or part.startswith("test_")
+            part in ("tests", "test", "node_modules", "__pycache__") or part.startswith(("test_", "."))
             for part in p.relative_to(head).parts
         )
     )
@@ -93,6 +97,7 @@ def graph(
 
     payload = {
         "changedSymbols": changed,
+        "infraImpact": infra,
         "candidates": candidates,
         "contracts": contracts,
         "testsToRun": tests_to_run,
@@ -146,6 +151,9 @@ def report(
     catalog_file: Optional[Path] = typer.Option(None, "--catalog", help="Path to .uplift/catalog.json."),
     bob_modes: Optional[str] = typer.Option(None, "--bob-modes", help="Comma-separated Bob mode names for provenance."),
     verified: bool = typer.Option(False, "--verified", help="Mark pipeline.verify as done."),
+    generated_by: Optional[str] = typer.Option(None, "--generated-by", help="bob, codex, or engine."),
+    verification_file: Optional[Path] = typer.Option(None, "--verification", help="Measured full-suite result JSON."),
+    conventions_file: Optional[Path] = typer.Option(None, "--conventions", help="Conventions with compliance results."),
     occurrences_file: Optional[Path] = typer.Option(None, "--occurrences", help="Path to .uplift/occurrences.json (migrate mode)."),
     library: Optional[str] = typer.Option(None, "--library", help="Library name for dependency upgrade, e.g. pydantic."),
     lib_from: Optional[str] = typer.Option(None, "--from", help="Library version being upgraded from."),
@@ -155,45 +163,44 @@ def report(
     if not graph_file.exists():
         typer.echo(f"ERROR: graph file not found: {graph_file}", err=True)
         raise typer.Exit(1)
-    graph = json.loads(graph_file.read_text(encoding="utf-8"))
+    graph = json.loads(graph_file.read_text(encoding="utf-8-sig"))
 
     verdicts = None
     if verdicts_file is not None:
         if not verdicts_file.exists():
             typer.echo(f"ERROR: verdicts file not found: {verdicts_file}", err=True)
             raise typer.Exit(1)
-        verdicts = json.loads(verdicts_file.read_text(encoding="utf-8"))
+        verdicts = json.loads(verdicts_file.read_text(encoding="utf-8-sig"))
 
     proofs = None
     if proofs_file is not None:
         if not proofs_file.exists():
             typer.echo(f"ERROR: proofs file not found: {proofs_file}", err=True)
             raise typer.Exit(1)
-        proofs = json.loads(proofs_file.read_text(encoding="utf-8"))
-        if isinstance(proofs, dict):
-            proofs = proofs.get("proofs", [])
+        proofs = json.loads(proofs_file.read_text(encoding="utf-8-sig"))
 
     repair_dicts: list[dict] = []
     if repairs_glob:
         for rpath in sorted(_glob.glob(repairs_glob)):
             try:
-                repair_dicts.append(json.loads(Path(rpath).read_text(encoding="utf-8")))
+                repair_dicts.append(json.loads(Path(rpath).read_text(encoding="utf-8-sig")))
             except Exception as exc:
-                typer.echo(f"WARNING: could not read repair file {rpath}: {exc}", err=True)
+                typer.echo(f"ERROR: could not read repair file {rpath}: {exc}", err=True)
+                raise typer.Exit(1)
 
     catalog = None
     if catalog_file is not None:
         if not catalog_file.exists():
             typer.echo(f"ERROR: catalog file not found: {catalog_file}", err=True)
             raise typer.Exit(1)
-        catalog = json.loads(catalog_file.read_text(encoding="utf-8"))
+        catalog = json.loads(catalog_file.read_text(encoding="utf-8-sig"))
 
     occurrences_data = None
     if occurrences_file is not None:
         if not occurrences_file.exists():
             typer.echo(f"ERROR: occurrences file not found: {occurrences_file}", err=True)
             raise typer.Exit(1)
-        occurrences_data = json.loads(occurrences_file.read_text(encoding="utf-8"))
+        occurrences_data = json.loads(occurrences_file.read_text(encoding="utf-8-sig"))
         # May be {"occurrences": [...], "counts": {...}} or a raw list
         if isinstance(occurrences_data, dict):
             occurrences_data = occurrences_data.get("occurrences", [])
@@ -214,6 +221,9 @@ def report(
         library=library,
         lib_from=lib_from,
         lib_to=lib_to,
+        generated_by=generated_by,
+        verification=json.loads(verification_file.read_text(encoding="utf-8-sig")) if verification_file else None,
+        conventions=json.loads(conventions_file.read_text(encoding="utf-8-sig")) if conventions_file else None,
     )
 
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -485,14 +495,17 @@ def run_all(
     files_scanned = sum(
         1 for p in head.rglob("*.py")
         if not any(
-            part in ("tests", "test") or part.startswith("test_")
+            part in ("tests", "test", "node_modules", "__pycache__") or part.startswith(("test_", "."))
             for part in p.relative_to(head).parts
         )
     )
     seconds_taken = round(time.monotonic() - t0, 3)
 
+    from uplift.docker import impact
+    from unidiff import PatchSet
     payload = {
         "changedSymbols": changed,
+        "infraImpact": impact(head, [f.path for f in PatchSet(patch.read_text(encoding="utf-8"))]),
         "candidates": candidates,
         "contracts": contracts,
         "testsToRun": tests_to_run,

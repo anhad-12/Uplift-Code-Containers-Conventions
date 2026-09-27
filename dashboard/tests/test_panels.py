@@ -21,7 +21,7 @@ import panels  # noqa: E402
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
-_REPORTS = _DASH_ROOT / "reports"
+_REPORTS = _DASH_ROOT / "tests" / "fixtures"
 
 
 def _report(name: str) -> dict:

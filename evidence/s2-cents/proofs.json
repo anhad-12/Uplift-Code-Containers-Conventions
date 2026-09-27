@@ -1,0 +1,46 @@
+{
+  "proofs": [
+    {
+      "item": "shop/admin/reports.py#revenue_total",
+      "testFile": "tests/uplift_proofs/test_admin_revenue_total.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    },
+    {
+      "item": "shop/notifications/email.py#send_receipt_email",
+      "testFile": "tests/uplift_proofs/test_notifications_send_receipt_email.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    },
+    {
+      "item": "shop/orders/invoice.py#payment_line",
+      "testFile": "tests/uplift_proofs/test_orders_payment_line.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    },
+    {
+      "item": "shop/payments/receipt.py#render_receipt",
+      "testFile": "tests/uplift_proofs/test_payments_render_receipt.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    },
+    {
+      "item": "shop/payments/routes.py#post_payment",
+      "testFile": "tests/uplift_proofs/test_payments_route_dollars.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    },
+    {
+      "item": "shop/payments/repo.py#save_payment",
+      "testFile": "tests/uplift_proofs/test_payments_store_dollars.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    }
+  ]
+}

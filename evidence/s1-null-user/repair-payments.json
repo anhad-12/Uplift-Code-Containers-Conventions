@@ -1,0 +1,27 @@
+{
+  "scenario": "s1-null-user",
+  "module": "payments",
+  "worker": "codex-payments",
+  "filesChanged": [
+    "shop/payments/charge.py",
+    "shop/payments/receipt.py"
+  ],
+  "fixesApplied": 2,
+  "fixedIds": [
+    "shop/payments/charge.py#charge",
+    "shop/payments/receipt.py#render_receipt"
+  ],
+  "testsBefore": {
+    "passed": 33,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 35,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

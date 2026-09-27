@@ -66,7 +66,7 @@ def test_active_cell_applied_to_affected_table():
     """affected_table() style_data_conditional must include an 'active' state rule
     that suppresses Dash's blue highlight."""
     import json  # noqa: PLC0415
-    r = json.loads((_DASH_ROOT / "reports" / "impact-s1.mock.json").read_text(encoding="utf-8"))
+    r = json.loads((_DASH_ROOT / "tests" / "fixtures" / "impact-s1.mock.json").read_text(encoding="utf-8"))
     table = panels.affected_table(r)
     conds = table.style_data_conditional or []
     # Find the condition that targets active state

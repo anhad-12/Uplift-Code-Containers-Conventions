@@ -1,0 +1,13 @@
+{
+  "changedSymbols": [
+    {
+      "id": "shop/users/service.py#get_user",
+      "kind": "function",
+      "changeType": "behavior",
+      "hints": [
+        "raise removed",
+        "None check removed"
+      ]
+    }
+  ]
+}

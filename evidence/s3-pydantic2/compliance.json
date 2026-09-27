@@ -1,0 +1,84 @@
+{
+  "checkedLines": 14,
+  "violations": 0,
+  "retried": false,
+  "checks": [
+    "absolute imports",
+    "module-level imports",
+    "snake_case functions",
+    "typed domain exceptions"
+  ],
+  "details": [],
+  "addedLines": [
+    {
+      "file": "requirements.txt",
+      "line": 5,
+      "text": "pydantic-settings==2.5.2"
+    },
+    {
+      "file": "shop/config.py",
+      "line": 1,
+      "text": "from pydantic_settings import BaseSettings"
+    },
+    {
+      "file": "shop/orders/schemas.py",
+      "line": 3,
+      "text": "from pydantic import BaseModel, ConfigDict, field_validator"
+    },
+    {
+      "file": "shop/orders/schemas.py",
+      "line": 9,
+      "text": "    note: Optional[str] = None"
+    },
+    {
+      "file": "shop/orders/schemas.py",
+      "line": 12,
+      "text": "    @field_validator(\"tags\")"
+    },
+    {
+      "file": "shop/orders/schemas.py",
+      "line": 13,
+      "text": "    @classmethod"
+    },
+    {
+      "file": "shop/orders/schemas.py",
+      "line": 15,
+      "text": "        return [tag.strip() for tag in value]"
+    },
+    {
+      "file": "shop/orders/schemas.py",
+      "line": 23,
+      "text": "    model_config = ConfigDict(from_attributes=True)"
+    },
+    {
+      "file": "shop/payments/schemas.py",
+      "line": 7,
+      "text": "    card: str = Field(..., pattern=r\"^\\d{16}$\")"
+    },
+    {
+      "file": "shop/users/schemas.py",
+      "line": 1,
+      "text": "from typing import Annotated"
+    },
+    {
+      "file": "shop/users/schemas.py",
+      "line": 2,
+      "text": ""
+    },
+    {
+      "file": "shop/users/schemas.py",
+      "line": 3,
+      "text": "from pydantic import BaseModel, ConfigDict, StringConstraints"
+    },
+    {
+      "file": "shop/users/schemas.py",
+      "line": 9,
+      "text": "    email: Annotated[str, StringConstraints(pattern=r\"^[^@]+@[^@]+$\")]"
+    },
+    {
+      "file": "shop/users/schemas.py",
+      "line": 11,
+      "text": "    model_config = ConfigDict(from_attributes=True)"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "naming": "snake_case functions and variables; PascalCase domain models/exceptions. Evidence: shop/users/service.py, shop/errors.py.",
+  "imports": "Absolute imports at module scope, usually from-imports. Ordering is mixed. Evidence: shop/orders/service.py, shop/users/routes.py, shop/payments/repo.py.",
+  "errorHandling": "Services raise typed NotFoundError/ValidationError; routes use HTTP errors. Safe decoys may return False explicitly. Evidence: shop/orders/service.py, shop/errors.py, shop/notifications/email.py.",
+  "fileLayout": "Separate service, route, schema and repo modules; tests mirror modules. Evidence: shop/users/service.py, shop/users/routes.py, tests/users/test_service.py, tests/payments/test_routes.py.",
+  "evidenceFiles": [
+    "shop/users/service.py",
+    "shop/users/routes.py",
+    "shop/users/schemas.py",
+    "shop/orders/service.py",
+    "shop/orders/invoice.py",
+    "shop/payments/repo.py",
+    "shop/errors.py",
+    "shop/notifications/email.py",
+    "tests/users/test_service.py",
+    "tests/payments/test_routes.py",
+    "requirements.txt"
+  ],
+  "generatedBy": "codex",
+  "scope": "Observed on restored baseline; compliance checks added-line naming, absolute/module-level imports, and typed raises. Semantic contract correctness is verified by tests.",
+  "compliance": {
+    "checkedLines": 14,
+    "violations": 0,
+    "retried": false
+  }
+}

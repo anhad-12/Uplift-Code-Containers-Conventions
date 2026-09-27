@@ -1,0 +1,26 @@
+[
+  {
+    "id": "shop/config.py#migration",
+    "verdict": "will_break",
+    "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+    "fix": "Apply the recorded guide replacements."
+  },
+  {
+    "id": "shop/orders/schemas.py#migration",
+    "verdict": "will_break",
+    "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+    "fix": "Apply the recorded guide replacements."
+  },
+  {
+    "id": "shop/payments/schemas.py#migration",
+    "verdict": "will_break",
+    "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+    "fix": "Apply the recorded guide replacements."
+  },
+  {
+    "id": "shop/users/schemas.py#migration",
+    "verdict": "will_break",
+    "reason": "Pydantic v2 incompatibilities in this file; see catalog entries and before.xml collection errors.",
+    "fix": "Apply the recorded guide replacements."
+  }
+]

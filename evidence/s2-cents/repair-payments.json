@@ -1,0 +1,29 @@
+{
+  "scenario": "s2-cents",
+  "module": "payments",
+  "worker": "codex-payments",
+  "filesChanged": [
+    "shop/payments/amounts.py",
+    "shop/payments/receipt.py",
+    "shop/payments/repo.py"
+  ],
+  "fixesApplied": 3,
+  "fixedIds": [
+    "shop/payments/receipt.py#render_receipt",
+    "shop/payments/repo.py#save_payment",
+    "shop/payments/routes.py#post_payment"
+  ],
+  "testsBefore": {
+    "passed": 33,
+    "failed": 3,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 37,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

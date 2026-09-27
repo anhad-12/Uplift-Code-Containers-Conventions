@@ -1,0 +1,27 @@
+{
+  "scenario": "s1-null-user",
+  "module": "orders",
+  "worker": "codex-orders",
+  "filesChanged": [
+    "shop/orders/invoice.py",
+    "shop/orders/service.py"
+  ],
+  "fixesApplied": 2,
+  "fixedIds": [
+    "shop/orders/invoice.py#build_invoice",
+    "shop/orders/service.py#create_order"
+  ],
+  "testsBefore": {
+    "passed": 22,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testsAfter": {
+    "passed": 24,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "blocked": []
+}

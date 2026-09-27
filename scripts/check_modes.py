@@ -31,6 +31,11 @@ def rx(slug):
 
 
 TESTS = [
+    ("uplift-worker-users", ".uplift/repair-users-s1-null-user.json", True),
+    ("uplift-worker-users", ".uplift/repair-orders-s1-null-user.json", False),
+    ("uplift-worker-orders", ".uplift/repair-orders-s2-cents.json", True),
+    ("uplift-worker-payments", ".uplift/repair-payments-s2-cents.json", True),
+    ("uplift-worker-core", ".uplift/repair-core-s3-pydantic2.json", True),
     ("uplift-impact-analyst", ".uplift/verdicts.json", True),
     ("uplift-impact-analyst", r"C:\Uplift\.uplift\graph.json", True),
     ("uplift-impact-analyst", "sample-app/shop/users/service.py", False),

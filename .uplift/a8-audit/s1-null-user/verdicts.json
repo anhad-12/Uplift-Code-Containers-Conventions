@@ -1,0 +1,44 @@
+[
+  {
+    "id": "shop/users/routes.py#get_user_route",
+    "verdict": "will_break",
+    "reason": "Line 13 returns None directly to FastAPI, which will fail response_model=UserOut validation (500) or return null with 200, breaking the HTTP contract for unknown user_ids.",
+    "fix": "After calling service.get_user, check for None and raise HTTPException(status_code=404) before returning."
+  },
+  {
+    "id": "shop/orders/invoice.py#build_invoice",
+    "verdict": "will_break",
+    "reason": "Line 9: `user.email` raises AttributeError when get_user returns None for an unknown user_id.",
+    "fix": "Add a None-check after get_user: `if user is None: raise NotFoundError('user', order.user_id)`."
+  },
+  {
+    "id": "shop/orders/service.py#create_order",
+    "verdict": "will_break",
+    "reason": "Lines 8-11: the except NotFoundError branch is never reached now that get_user returns None, so an unknown user_id bypasses the validation guard and reaches repo.save_order.",
+    "fix": "Replace the try/except with `if get_user(data.user_id) is None: raise ValidationError('unknown user')`."
+  },
+  {
+    "id": "shop/payments/receipt.py#render_receipt",
+    "verdict": "will_break",
+    "reason": "Line 7: when user_id is unknown, get_user now returns None, so user.name raises AttributeError instead of propagating NotFoundError.",
+    "fix": "Check the return value before use: `if user is None: raise NotFoundError('user', payment.user_id)` after line 6."
+  },
+  {
+    "id": "shop/payments/charge.py#charge",
+    "verdict": "will_break",
+    "reason": "Line 13: get_user is called solely as an existence check relying on it raising NotFoundError; it now returns None silently, so charge proceeds for non-existent users without any error.",
+    "fix": "Capture the return value and raise explicitly: `if get_user(user_id) is None: raise NotFoundError('user', user_id)`."
+  },
+  {
+    "id": "shop/notifications/email.py#send_welcome",
+    "verdict": "safe",
+    "reason": "Line 8 already guards `if user is None: return False`, which correctly handles the new return-None behaviour with no dereference risk.",
+    "fix": ""
+  },
+  {
+    "id": "shop/admin/reports.py#user_spend_report",
+    "verdict": "will_break",
+    "reason": "Line 11 calls get_user(order.user_id).name; when get_user now returns None for an unknown user_id, this raises AttributeError instead of propagating NotFoundError.",
+    "fix": "Assign user = get_user(order.user_id) and skip the row (or use a fallback name) when user is None before accessing .name."
+  }
+]

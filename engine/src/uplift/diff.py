@@ -8,6 +8,7 @@ changed_symbols(head, base, patch) -> list[dict]
 from __future__ import annotations
 
 import ast
+import os
 import re
 import shutil
 import subprocess
@@ -20,7 +21,7 @@ from unidiff import PatchSet
 
 # Files / directories to exclude when copying the repo tree
 IGNORE = shutil.ignore_patterns(
-    ".git", ".venv", "__pycache__", ".pytest_cache", "node_modules"
+    ".git", ".venv*", "__pycache__", ".pytest_cache", "node_modules"
 )
 
 
@@ -42,7 +43,13 @@ def git_apply(tree: Path, patch: Path, reverse: bool = False) -> None:
         + (["-R"] if reverse else [])
         + [str(patch.resolve())]
     )
-    r = subprocess.run(cmd, cwd=tree, capture_output=True, text=True)
+    # Copies must not inherit an unrelated repository from an ancestor directory:
+    # Git otherwise silently skips diff --git paths outside its cwd prefix.
+    env = os.environ.copy()
+    env["GIT_CEILING_DIRECTORIES"] = str(tree.resolve().parent)
+    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+        env.pop(key, None)
+    r = subprocess.run(cmd, cwd=tree, capture_output=True, text=True, env=env)
     if r.returncode != 0:
         raise RuntimeError(f"git apply failed: {r.stderr.strip()}")
 
