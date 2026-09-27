@@ -1,0 +1,18 @@
+﻿{
+  "module": "core",
+  "worker": "uplift-worker-core",
+  "scenario": "s1-null-user",
+  "filesChanged": [
+    "sample-app/shop/admin/reports.py",
+    "sample-app/shop/notifications/email.py"
+  ],
+  "fixesApplied": 3,
+  "testsBefore": {"passed": 3, "failed": 3},
+  "testsAfter": {"passed": 5, "failed": 1},
+  "blocked": [
+    {
+      "item": "sample-app/tests/notifications/test_email.py::test_receipt_email_mentions_the_amount",
+      "reason": "Test uses Payment(1, 103.2) (dollar-era amount) but Payment.amount is now int cents after S2 patch; after fixing send_receipt_email to divide by 100, this test fails with '$1.03' != '$103.20'. Fix requires changing Payment(1, 103.2) to Payment(1, 10320) in tests/notifications/test_email.py, which is outside uplift-worker-core allowed paths (scope: sample-app/shop/admin/**, sample-app/shop/notifications/**, sample-app/shop/*.py, sample-app/requirements.txt)."
+    }
+  ]
+}
