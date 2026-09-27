@@ -1,10 +1,11 @@
-from pydantic import BaseModel, constr
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, StringConstraints
 
 
 class UserOut(BaseModel):
     id: int
     name: str
-    email: constr(regex=r"^[^@]+@[^@]+$")
+    email: Annotated[str, StringConstraints(pattern=r"^[^@]+@[^@]+$")]
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

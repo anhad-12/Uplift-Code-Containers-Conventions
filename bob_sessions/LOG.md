@@ -7,6 +7,7 @@ Account check (do once): Bob Settings shows `ibm-coding-challenge-uat`, region u
 | Member | Task | What Bob did | Files touched | Coins used | Screenshot |
 | --- | --- | --- | --- | --- | --- |
 
+![alt text](uplift_A_task_5_summary.png)
 
 ![DHRUV TASK 4](uplift_A_task_4_summary.png)
 | C | C1 | Bob scaffolded the Dash dashboard: report loader with schema validation, change-impact graph builder, app shell, styles and 5 passing tests; verified both mock scenarios render | dashboard/ (app.py, loader.py, graph.py, assets/style.css, tests, reports, requirements.txt, schema copy) | 3.30 | uplift_C_task01_scaffold_summary.png |
