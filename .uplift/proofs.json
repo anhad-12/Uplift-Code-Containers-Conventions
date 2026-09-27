@@ -23,3 +23,23 @@
  }
  ]
 }
+  "proofs": [
+    {
+      "item": "shop/orders/service.py#create_order",
+      "testFile": "tests/uplift_proofs/test_create_order_unknown_user.py",
+      "passesOnBase": true,
+      "failsOnHead": true,
+      "status": "confirmed"
+    }
+  ],
+  "suite": {
+    "base": {
+      "passed": 46,
+      "failed": 0
+    },
+    "head": {
+      "passed": 46,
+      "failed": 1
+    }
+  }
+}

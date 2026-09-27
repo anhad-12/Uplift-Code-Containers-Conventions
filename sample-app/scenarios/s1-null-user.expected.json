@@ -1,0 +1,48 @@
+{
+  "scenario": "s1-null-user",
+  "changedSymbol": "shop/users/service.py#get_user",
+  "items": [
+    {
+      "id": "shop/orders/invoice.py#build_invoice",
+      "file": "shop/orders/invoice.py",
+      "expected": "will_break",
+      "evidence": "Ran build_invoice(Order(id=1, user_id=999, total=20.0)) on scenario/s1-null-user branch. get_user(999) returns None; next line accesses user.email -> AttributeError: 'NoneType' object has no attribute 'email'."
+    },
+    {
+      "id": "shop/orders/service.py#create_order",
+      "file": "shop/orders/service.py",
+      "expected": "will_break",
+      "evidence": "Ran create_order(OrderIn(user_id=999, items=[10.0])) on scenario/s1-null-user branch. Pre-patch: NotFoundError raised inside the try block -> ValidationError 422. Post-patch: get_user returns None (no raise), the except block never fires, order is created for user 999. HTTP POST /orders with user_id=999 returns HTTP 200 with order body instead of 422. Contract broken: unknown users can now place orders."
+    },
+    {
+      "id": "shop/users/routes.py#get_user_route",
+      "file": "shop/users/routes.py",
+      "expected": "will_break",
+      "evidence": "Called GET /users/999 on scenario/s1-null-user branch with raise_server_exceptions=False. FastAPI tries to serialize None as UserOut (response_model). Pydantic raises ValidationError: 'none is not an allowed value'. HTTP 500 instead of 404."
+    },
+    {
+      "id": "shop/payments/charge.py#charge",
+      "file": "shop/payments/charge.py",
+      "expected": "will_break",
+      "evidence": "Ran charge(999, 100.0) on scenario/s1-null-user branch. Pre-patch: NotFoundError raised -> caller sees 404. Post-patch: get_user(999) returns None, return value not used, charge proceeds and returns Payment(user_id=999, amount=103.2). Payment created for a non-existent user without error. POST /payments with user_id=999 returns HTTP 200 instead of 404."
+    },
+    {
+      "id": "shop/payments/receipt.py#render_receipt",
+      "file": "shop/payments/receipt.py",
+      "expected": "will_break",
+      "evidence": "Ran render_receipt(Payment(999, 103.2)) on scenario/s1-null-user branch. get_user(999) returns None; accesses user.name -> AttributeError: 'NoneType' object has no attribute 'name'."
+    },
+    {
+      "id": "shop/admin/reports.py#user_spend_report",
+      "file": "shop/admin/reports.py",
+      "expected": "will_break",
+      "evidence": "Ran user_spend_report() with an order for user_id=999 injected via order_repo.save_order(999, 50.0) on scenario/s1-null-user branch. get_user(999) returns None; next line accesses .name -> AttributeError: 'NoneType' object has no attribute 'name'."
+    },
+    {
+      "id": "shop/notifications/email.py#send_welcome",
+      "file": "shop/notifications/email.py",
+      "expected": "safe",
+      "evidence": "Ran send_welcome(999) on scenario/s1-null-user branch. The function already contains an explicit 'if user is None: return False' guard written before the rest of the body. Returns False (same as a handled not-found). No exception raised. Behaviour is correct for the None case."
+    }
+  ]
+}
