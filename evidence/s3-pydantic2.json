@@ -230,16 +230,10 @@
     ],
     "modules": [
       {
-        "name": "core",
-        "status": "fixed",
-        "catalogEntries": [
-          "basesettings-moved"
-        ],
         "filesChanged": [
           "shop/config.py",
           "requirements.txt"
         ],
-        "summary": "Moved BaseSettings import from pydantic to pydantic_settings; added pydantic-settings>=2.0 to requirements.txt",
         "testsBefore": {
           "passed": 0,
           "failed": 0,
@@ -249,18 +243,14 @@
           "passed": 1,
           "failed": 0,
           "errors": 0
-        }
+        },
+        "module": "core",
+        "worker": "uplift-worker-core"
       },
       {
-        "name": "payments",
-        "status": "fixed",
-        "catalogEntries": [
-          "field-regex-removed"
-        ],
         "filesChanged": [
           "shop/payments/schemas.py"
         ],
-        "summary": "Changed Field(regex=r'^\\d{16}$') to Field(pattern=r'^\\d{16}$') in PaymentIn schema",
         "testsBefore": {
           "passed": 0,
           "failed": 0,
@@ -270,18 +260,14 @@
           "passed": 8,
           "failed": 0,
           "errors": 0
-        }
+        },
+        "module": "payments",
+        "worker": "uplift-worker-payments"
       },
       {
-        "name": "users",
-        "status": "fixed",
-        "catalogEntries": [
-          "constr-regex-removed"
-        ],
         "filesChanged": [
           "shop/users/schemas.py"
         ],
-        "summary": "Replaced constr(regex=...) with Annotated[str, StringConstraints(pattern=...)] for email and username fields",
         "testsBefore": {
           "passed": 11,
           "failed": 0,
@@ -291,9 +277,12 @@
           "passed": 11,
           "failed": 0,
           "errors": 0
-        }
+        },
+        "module": "users",
+        "worker": "uplift-worker-users"
       }
-    ]
+    ],
+    "releaseNotes": "# Migrate Pydantic v1 to v2\n\nGenerated from isolated scenario copies using Bob modes. Original Bob predictions are preserved.\n\nBase: {'passed': 46, 'failed': 0, 'errors': 0, 'skipped': 0, 'exitCode': 0}\n\nBefore repairs: {'passed': 26, 'failed': 8, 'errors': 6, 'skipped': 0, 'exitCode': 1}\n\nAfter repairs: {'passed': 46, 'failed': 0, 'errors': 0, 'skipped': 0, 'exitCode': 0}\n\nRepairs:\n- requirements.txt\n- shop/config.py\n- shop/orders/schemas.py\n- shop/payments/schemas.py\n- shop/users/schemas.py\n\nVerified: all collected tests pass; no collection errors. See the raw base/before/after JSON, XML and console logs for counts and commands."
   },
   "metrics": {
     "filesScanned": 25,
@@ -303,12 +292,21 @@
     "unconfirmed": 0,
     "fixed": 0,
     "regressions": 0,
-    "accuracy": {
-      "note": "No expected.json ground truth for dependency upgrade \u2014 accuracy measured by test restoration",
-      "testsBefore": 36,
-      "testsAfter": 49,
-      "collectionErrorsBefore": 4,
-      "collectionErrorsAfter": 0
+    "tests": {
+      "before": {
+        "passed": 26,
+        "failed": 8,
+        "errors": 6,
+        "skipped": 0,
+        "exitCode": 1
+      },
+      "after": {
+        "passed": 46,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "exitCode": 0
+      }
     }
   }
 }
