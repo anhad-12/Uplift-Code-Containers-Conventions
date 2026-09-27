@@ -5,7 +5,9 @@ from shop.users.service import get_user
 
 
 def create_order(data: OrderIn) -> repo.Order:
-    if get_user(data.user_id) is None:
+    try:
+        get_user(data.user_id)
+    except NotFoundError:
         raise ValidationError("unknown user")
     total = sum(data.items)
     return repo.save_order(data.user_id, total)
