@@ -89,8 +89,8 @@ customModes:
       - read
       - execute
       - - edit
-        - fileRegex: '(^|.*[/\\])sample-app[/\\]shop[/\\]users[/\\].*'
-          description: Only the users module
+        - fileRegex: '(^|.*[/\\])sample-app[/\\]shop[/\\]users[/\\].*|(^|.*[/\\])\.uplift[/\\]repair-users-.*\.json'
+          description: Only the users module and its repair output
 
   - slug: uplift-worker-orders
     name: Uplift Worker Orders
@@ -111,8 +111,8 @@ customModes:
       - read
       - execute
       - - edit
-        - fileRegex: '(^|.*[/\\])sample-app[/\\]shop[/\\]orders[/\\].*'
-          description: Only the orders module
+        - fileRegex: '(^|.*[/\\])sample-app[/\\]shop[/\\]orders[/\\].*|(^|.*[/\\])\.uplift[/\\]repair-orders-.*\.json'
+          description: Only the orders module and its repair output
 
   - slug: uplift-worker-payments
     name: Uplift Worker Payments
@@ -133,8 +133,8 @@ customModes:
       - read
       - execute
       - - edit
-        - fileRegex: '(^|.*[/\\])sample-app[/\\]shop[/\\]payments[/\\].*'
-          description: Only the payments module
+        - fileRegex: '(^|.*[/\\])sample-app[/\\]shop[/\\]payments[/\\].*|(^|.*[/\\])\.uplift[/\\]repair-payments-.*\.json'
+          description: Only the payments module and its repair output
 
   - slug: uplift-worker-core
     name: Uplift Worker Core
@@ -155,8 +155,8 @@ customModes:
       - read
       - execute
       - - edit
-        - fileRegex: '(^|.*[/\\])sample-app[/\\](requirements\.txt|shop[/\\][^/\\]+\.py|shop[/\\]admin[/\\].*|shop[/\\]notifications[/\\].*)$'
-          description: Top-level shop files, admin, notifications, requirements
+        - fileRegex: '(^|.*[/\\])sample-app[/\\](requirements\.txt|shop[/\\][^/\\]+\.py|shop[/\\]admin[/\\].*|shop[/\\]notifications[/\\].*)|(^|.*[/\\])\.uplift[/\\]repair-core-.*\.json'
+          description: Top-level shop files, admin, notifications, requirements and core repair output
 
   - slug: uplift-verifier
     name: Uplift Verifier
