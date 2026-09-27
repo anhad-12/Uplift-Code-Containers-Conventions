@@ -16,6 +16,22 @@ from typing import Optional
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _module_of(file_path: str) -> str:
+    """Derive module name from a repo-relative file path (e.g. shop/users/schemas.py → users)."""
+    parts = file_path.replace("\\", "/").split("/")
+    try:
+        shop_idx = parts.index("shop")
+        if shop_idx + 1 < len(parts):
+            return parts[shop_idx + 1]
+    except ValueError:
+        pass
+    return "core"
+
+
+# ---------------------------------------------------------------------------
 # Risk scoring
 # ---------------------------------------------------------------------------
 
@@ -96,7 +112,7 @@ def build_report(
     proof_map: dict[str, dict] = {}
     if proofs:
         for p in proofs:
-            pid = p.get("id", "")
+            pid = p.get("id", p.get("item", ""))
             if pid:
                 proof_map[pid] = p
 
@@ -227,14 +243,20 @@ def build_report(
     mode = "impact"
     if catalog or occurrences is not None:
         mode = "migrate"
-        catalog_entries = catalog.get("catalog", []) if catalog else []
-        catalog_modules = catalog.get("modules", []) if catalog else []
+        if isinstance(catalog, list):
+            catalog_entries = catalog
+            catalog_modules = []
+            catalog_release_notes = None
+        else:
+            catalog_entries = catalog.get("catalog", []) if catalog else []
+            catalog_modules = catalog.get("modules", []) if catalog else []
+            catalog_release_notes = catalog.get("releaseNotes") if catalog else None
         migration = {
             "catalog": catalog_entries,
             "modules": catalog_modules,
         }
-        if catalog and "releaseNotes" in catalog:
-            migration["releaseNotes"] = catalog["releaseNotes"]
+        if catalog_release_notes:
+            migration["releaseNotes"] = catalog_release_notes
 
     # If we have occurrences, build affected[] from them and override changedSymbols
     if occurrences is not None and library:
@@ -243,14 +265,16 @@ def build_report(
         occ_affected: list[dict] = []
         verdict_map_local = verdict_map.copy()
         for occ in occurrences:
-            enc = occ.get("enclosing") or occ["module"]
-            item_id = f"{occ['file']}#{enc}"
+            file_path = occ.get("file", "")
+            module = occ.get("module") or _module_of(file_path)
+            enc = occ.get("enclosing") or module
+            item_id = f"{file_path}#{enc}"
             v_entry = verdict_map_local.get(item_id, {})
             verdict = v_entry.get("verdict", "unknown")
             occ_affected.append({
                 "id": item_id,
-                "file": occ["file"],
-                "line": occ["line"],
+                "file": file_path,
+                "line": occ.get("line", 0),
                 "hop": 1,
                 "layer": "direct",
                 "via": via_id,
@@ -258,7 +282,7 @@ def build_report(
                 "reason": v_entry.get("reason", ""),
                 "fix": v_entry.get("fix", ""),
                 "proof": {"status": "not_attempted"},
-                "module": occ["module"],
+                "module": module,
             })
         # Deduplicate by id
         seen_ids: set[str] = set()

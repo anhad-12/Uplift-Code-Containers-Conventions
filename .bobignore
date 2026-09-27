@@ -2,4 +2,4 @@
 # Hidden ground truth: B uncomments the next line right after task B2 finishes.
 # A comments it out again ONLY for task A8 (accuracy evaluation), then uncomments it.
 # The toggling is visible in git history on purpose (PLAN.md section 11b).
-# sample-app/scenarios/*.expected.json
+sample-app/scenarios/*.expected.json
